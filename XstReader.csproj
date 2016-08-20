@@ -94,12 +94,15 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BTree.cs" />
+    <Compile Include="LayoutsU4K.cs" />
     <Compile Include="LTP.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="NamedProperties.cs" />
     <Compile Include="NDB.cs" />
     <Compile Include="Property.cs" />
     <Compile Include="RtfDecompressor.cs" />
     <Compile Include="SortAdorner.cs" />
+    <Compile Include="StandardProperties.cs" />
     <Compile Include="View.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

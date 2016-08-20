@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 
 namespace XstReader
@@ -17,14 +18,27 @@ namespace XstReader
         private BTree<Node> nodeTree = new BTree<Node>();
         private BTree<DataRef> dataTree = new BTree<DataRef>();
 
+        // deferReadingNodes is a switch set only here
+        // If true, reading node and data tree b-trees is deferred until look-up time,
+        // and only required portions of the tree are read
+        // If false, the full b-trees are read at file open time
+        // The former setting (the default) gets the folder structure almost instantly after opening,
+        // and consumes less memory in many scenarios,
+        // but may make opening a folder slower and net less efficient
+        private bool deferReadingNodes = true;
+        private Action<TreeIntermediate> deferredReadAction;
+
         public int BlockSize { get; private set; } = 8192;
+        public int BlockSize4K { get; private set; } = 65536;
         public bool IsUnicode { get; private set; }
+        public bool IsUnicode4K { get; private set; } = false;
 
         #region Public methods
 
         public NDB(string fullName)
         {
             this.fullName = fullName;
+            deferredReadAction = new Action<TreeIntermediate>(p => this.ReadDeferredIndex(p));
         }
 
         // Prepare to read the contents of a file
@@ -48,14 +62,14 @@ namespace XstReader
         // Look up a node in the main node b-tree
         public Node LookupNode(NID nid)
         {
-            return nodeTree.Lookup(nid.dwValue);
+            return nodeTree.Lookup(nid.dwValue, deferredReadAction);
         }
 
         // Look up a data block in the main data block b-tree
         public DataRef LookupDataBlock(UInt64 dataBid)
         {
             // Clear the LSB, which is reserved, but sometimes set
-            return dataTree.Lookup(dataBid & 0xfffffffe);
+            return dataTree.Lookup(dataBid & 0xfffffffe, deferredReadAction);
         }
 
         // Read a sub-node's b-tree from the specified data block
@@ -171,9 +185,15 @@ namespace XstReader
                 }
                 else if (h.wVer == 0x24)
                 {
-                    // This value is not documented in [MS-PST], but is described in libpff
-                    // If we ever see one, we should be able to support it by setting BlockSize to 4096
-                    throw new Exception("Unicode files with 4K pages not implemented");
+                    // This value indicates the use of 4K pages, as opposed to 512 bytes
+                    // It is used only in .ost files, and was introduced in Office 2013
+                    // It is not documented in [MS-PST], being .ost only
+                    var h2 = Map.ReadType<FileHeader2Unicode>(fs);
+                    bCryptMethod = h2.bCryptMethod;
+                    IsUnicode = true;
+                    IsUnicode4K = true;
+                    ReadBTPageUnicode4K(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                    ReadBTPageUnicode4K(fs, h2.root.BREFBBT.ib, dataTree.Root);
                 }
                 else if (h.wVer == 0x0e || h.wVer == 0x0f)
                 {
@@ -188,6 +208,22 @@ namespace XstReader
             }
         }
 
+        // A callback to be used when searching a tree to read part of the index whose loading has been deferred
+        private void ReadDeferredIndex(TreeIntermediate inter)
+        {
+            using (var fs = GetReadStream())
+            {
+                if (IsUnicode4K)
+                    ReadBTPageUnicode4K(fs, (ulong)inter.fileOffset, inter);
+                else if (IsUnicode)
+                    ReadBTPageUnicode(fs, (ulong)inter.fileOffset, inter);
+                else
+                    ReadBTPageANSI(fs, (ulong)inter.fileOffset, inter);
+
+                // Don't read it again
+                inter.fileOffset = null;
+            }
+        }
         // Read a page containing part of a node or data block B-tree, and build the corresponding data structure
         private void ReadBTPageUnicode(FileStream fs, ulong fileOffset, TreeIntermediate parent)
         {
@@ -207,8 +243,14 @@ namespace XstReader
                     var inter = new TreeIntermediate { Key = e.btkey };
                     parent.Children.Add(inter);
 
-                    // Read child nodes in tree
-                    ReadBTPageUnicode(fs, e.BREF.ib, inter);
+                    if (deferReadingNodes)
+                        inter.fileOffset = e.BREF.ib;
+                    else
+                    {
+                        // Read child nodes in tree
+                        ReadBTPageUnicode(fs, e.BREF.ib, inter);
+                        inter.fileOffset = null;
+                    }
                 }
                 else
                 {
@@ -235,6 +277,59 @@ namespace XstReader
             }
         }
 
+        // Read a page containing part of a node or data block B-tree, and build the corresponding data structure
+        private void ReadBTPageUnicode4K(FileStream fs, ulong fileOffset, TreeIntermediate parent)
+        {
+            fs.Seek((long)fileOffset, SeekOrigin.Begin);
+            var p = Map.ReadType<BTPAGEUnicode4K>(fs);
+
+            // read entries
+            for (int i = 0; i < p.cEnt; i++)
+            {
+                if (p.cLevel > 0)
+                {
+                    BTENTRYUnicode e;
+                    unsafe
+                    {
+                        e = Map.MapType<BTENTRYUnicode>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt);
+                    }
+                    var inter = new TreeIntermediate { Key = e.btkey };
+                    parent.Children.Add(inter);
+
+                    if (deferReadingNodes)
+                        inter.fileOffset = e.BREF.ib;
+                    else
+                    {
+                        // Read child nodes in tree
+                        ReadBTPageUnicode4K(fs, e.BREF.ib, inter);
+                        inter.fileOffset = null;
+                    }
+                }
+                else
+                {
+                    if (p.pageTrailer.ptype == Eptype.ptypeNBT)
+                    {
+                        unsafe
+                        {
+                            var e = Map.MapType<NBTENTRYUnicode>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt);
+                            var nb = new Node { Key = e.nid.dwValue, Type = e.nid.nidType, DataBid = e.bidData, SubDataBid = e.bidSub, Parent = e.nidParent };
+                            parent.Children.Add(nb);
+                        }
+                    }
+                    else if (p.pageTrailer.ptype == Eptype.ptypeBBT)
+                    {
+                        unsafe
+                        {
+                            var e = Map.MapType<BBTENTRYUnicode4K>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt);
+                            parent.Children.Add(new DataRef { Key = e.BREF.bid, Offset = e.BREF.ib, Length = e.cbStored, InflatedLength = e.cbInflated });
+                        }
+                    }
+                    else
+                        throw new Exception("Unexpected page entry type");
+                }
+            }
+        }
+
         private void ReadBTPageANSI(FileStream fs, ulong fileOffset, TreeIntermediate parent)
         {
             fs.Seek((long)fileOffset, SeekOrigin.Begin);
@@ -253,8 +348,14 @@ namespace XstReader
                     var inter = new TreeIntermediate { Key = e.btkey };
                     parent.Children.Add(inter);
 
-                    // Read child nodes in tree
-                    ReadBTPageANSI(fs, e.BREF.ib, inter);
+                    if (deferReadingNodes)
+                        inter.fileOffset = e.BREF.ib;
+                    else
+                    {
+                        // Read child nodes in tree
+                        ReadBTPageANSI(fs, e.BREF.ib, inter);
+                        inter.fileOffset = null;
+                    }
                 }
                 else
                 {
@@ -285,13 +386,8 @@ namespace XstReader
         private IEnumerable<byte[]> ReadDataBlocksInternal(FileStream fs, UInt64 dataBid, uint totalLength = 0)
         {
             var rb = LookupDataBlock(dataBid);
-            if (rb == null)
-                throw new Exception("Data block does not exist");
-            byte[] buffer = new byte[rb.Length];
-            fs.Seek((long)rb.Offset, SeekOrigin.Begin);
-            fs.Read(buffer, 0, rb.Length);
-            // To actually get the block trailer, we would need to skip to the next 64 byte boundary, minus size of trailer
-            //var t = Map.ReadType<BLOCKTRAILERUnicode>(fs);
+            int read;
+            byte[] buffer = ReadAndDecompress(fs, rb, out read);
 
             if (rb.IsInternal)
             {
@@ -342,16 +438,12 @@ namespace XstReader
             if (rb == null)
                 throw new Exception("Data block does not exist");
             if (first)
-            {
-                // First guy in allocates enough to hold the initial block
-                // This is either the one and only block, or gets replaced when we find out how much data there is in total
-                buffer = new byte[rb.Length];
                 offset = 0;
-            }
-            fs.Seek((long)rb.Offset, SeekOrigin.Begin);
-            fs.Read(buffer, offset, rb.Length);
-            // To actually get the block trailer, we would need to skip to the next 64 byte boundary, minus size of trailer
-            //var t = Map.ReadType<BLOCKTRAILERUnicode>(fs);
+
+            // First guy in allocates enough to hold the initial block
+            // This is either the one and only block, or gets replaced when we find out how much data there is in total
+            int read;
+            buffer = ReadAndDecompress(fs, rb, out read, buffer, offset);
 
             if (rb.IsInternal)
             {
@@ -399,10 +491,10 @@ namespace XstReader
             {
                 // Key for cyclic algorithm is the low 32 bits of the BID
                 // Assume that this means the BID of each block, rather than all using the BID from the head of the tree
-                Decrypt(ref buffer, (UInt32)(dataBid & 0xffff), offset, rb.Length);
+                Decrypt(ref buffer, (UInt32)(dataBid & 0xffff), offset, read);
 
                 // Increment the offset by the length of the real data that we have read
-                offset += rb.Length;
+                offset += read;
             }
 
             if (first)
@@ -417,6 +509,43 @@ namespace XstReader
                 return null;  // Value only returned from the top level guy
         }
 
+        private byte[] ReadAndDecompress(FileStream fs, DataRef rb, out int read, byte[] buffer = null, int offset = 0)
+        {
+            if (rb == null)
+                throw new Exception("Data block does not exist");
+
+            if (IsUnicode4K && rb.Length != rb.InflatedLength)
+            {
+                fs.Seek((long)rb.Offset, SeekOrigin.Begin);
+
+                // The first two bytes are a zlib header which DeflateStream does not understand
+                // They should be 0x789c, the magic code for default compression
+                if (fs.ReadByte() != 0x78 || fs.ReadByte() != 0x9c)
+                    throw new Exception("Unexpected header in compressed data stream");
+
+                using (DeflateStream decompressionStream = new DeflateStream(fs, CompressionMode.Decompress, true))
+                {
+                    if (buffer == null)
+                        buffer = new byte[rb.InflatedLength];
+
+                    decompressionStream.Read(buffer, offset, rb.InflatedLength);
+                }
+                read = rb.InflatedLength;
+            }
+            else
+            {
+                if (buffer == null)
+                    buffer = new byte[rb.Length];
+                fs.Seek((long)rb.Offset, SeekOrigin.Begin);
+                fs.Read(buffer, offset, rb.Length);
+                read = rb.Length;
+            }
+
+            // To actually get the block trailer, we would need to skip to the next 64 byte boundary, minus size of trailer
+            //var t = Map.ReadType<BLOCKTRAILERUnicode>(fs);
+
+            return buffer;
+        }
 
         // When a data block has a subnode, it can be a simple node, or a two-level tree
         // This reads a sub node and builds suitable data structures, so that we can later access data held in it

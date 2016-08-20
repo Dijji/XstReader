@@ -7,7 +7,7 @@ using System.Windows.Media;
 
 namespace XstReader
 {
-    public class SortAdorner : Adorner
+    class SortAdorner : Adorner
     {
         private static Geometry ascGeometry =
                 Geometry.Parse("M 0 4 L 3.5 0 L 7 4 Z");

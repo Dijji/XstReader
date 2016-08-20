@@ -16,19 +16,27 @@ namespace XstReader
     {
         public TreeIntermediate Root { get; private set; } = new TreeIntermediate();
 
-        public T Lookup(UInt32 key)
+        public T Lookup(UInt32 key, Action<TreeIntermediate> readDeferred = null)
         {
-            return (T)LookupTreeNode(Root, key);
+            return (T)LookupTreeNode(Root, key, readDeferred);
         }
 
-        public T Lookup(UInt64 key)
+        public T Lookup(UInt64 key, Action<TreeIntermediate> readDeferred = null)
         {
-            return (T)LookupTreeNode(Root, key);
+            return (T)LookupTreeNode(Root, key, readDeferred);
         }
 
         // Perform a lookup in the b-tree
-        private static TreeNode LookupTreeNode(TreeIntermediate parent, UInt64 key)
+        private static TreeNode LookupTreeNode(TreeIntermediate parent, UInt64 key, Action<TreeIntermediate> readDeferred)
         {
+            if (parent.ReadDeferred)
+            {
+                if (readDeferred != null)
+                    readDeferred(parent);
+                else
+                    throw new Exception("Deferred index found, but no reader supplied");
+            }
+
             TreeIntermediate next = null;
             foreach (var n in parent.Children)
             {
@@ -39,20 +47,20 @@ namespace XstReader
                 else if (key < n.Key)
                 {
                     if (next != null)
-                        return LookupTreeNode(next, key);
+                        return LookupTreeNode(next, key, readDeferred);
                     else
                         return null; // Key does not exist
                 }
                 else // key matches
                 {
                     if (n is TreeIntermediate)
-                        return LookupTreeNode((TreeIntermediate)n, key);
+                        return LookupTreeNode((TreeIntermediate)n, key, readDeferred);
                     else
                         return n;
                 }
             }
             if (next != null)
-                return LookupTreeNode(next, key);
+                return LookupTreeNode(next, key, readDeferred);
             else
                 return null; // Key does not exist
         }
@@ -68,6 +76,8 @@ namespace XstReader
     class TreeIntermediate : TreeNode
     {
         public List<TreeNode> Children = new List<TreeNode>();
+        public ulong? fileOffset = null;
+        public bool ReadDeferred { get { return fileOffset != null; } }
     }
 
     // Terminal node in node tree
@@ -87,6 +97,7 @@ namespace XstReader
     {
         public UInt64 Offset;
         public int Length;
+        public int InflatedLength; // Only used for Unicode4K
         public bool IsInternal { get { return (Key & 0x02) != 0; } }
     }
 }

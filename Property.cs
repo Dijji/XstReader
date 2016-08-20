@@ -12,13 +12,16 @@ namespace XstReader
     {
         PtypBinary = 0x0102,
         PtypBoolean = 0x000b,
+        PtypFloating64 = 0x0005,
         PtypGuid = 0x0048,
+        PtypInteger16 = 0x0002,
         PtypInteger32 = 0x0003,
         PtypInteger64 = 0x0014,
         PtypMultipleInteger32 = 0x1003,
         PtypObject = 0x000d,
         PtypString = 0x001f,
         PtypString8 = 0x001e,
+        PtypMultipleString = 0x101F,
         PtypTime = 0x0040,
     }
 
@@ -41,24 +44,36 @@ namespace XstReader
         PidTagMessageFlags = 0x0E07,
         PidTagMessageDeliveryTime = 0x0E06,
         PidTagSentRepresentingNameW = 0x0042,
+        PidTagSentRepresentingEmailAddress = 0x0065,
+        PidTagSenderName = 0x0C1A,
         PidTagClientSubmitTime = 0x0039,
         PidTagLastModificationTime = 0x3008,
-        //PidTagLtpRowId = 0x67F2,
 
         // Message body
         PidTagNativeBody = 0x1016,
         PidTagBody = 0x1000,
         PidTagInternetCodepage = 0x3FDE,
         PidTagHtml = 0x1013,
-        //PidTagBodyHtml = 0x1013,
         PidTagRtfCompressed = 0x1009,
+
+        // Recipient
+        PidTagRecipientType = 0x0c15,
+        PidTagEmailAddress = 0x3003,
 
         // Attachment
         PidTagAttachFilenameW = 0x3704,
         PidTagAttachLongFilename = 0x3707,
         PidTagAttachmentSize = 0x0E20,
         PidTagAttachMethod = 0x3705,
+        PidTagAttachMimeTag = 0x370e,
+        PidTagAttachPayloadClass = 0x371a,
         PidTagAttachDataBinary = 0x3701,
+        //PidTagAttachDataObject = 0x3701,
+
+        // Named properties
+        PidTagNameidStreamGuid = 0x0002,
+        PidTagNameidStreamEntry = 0x0003,
+        PidTagNameidStreamString = 0x0004,
     }
 
     // Values of the PidTagNativeBody property
@@ -78,17 +93,28 @@ namespace XstReader
         mfHasAttach = 0x00000010,
     }
 
+    // Values of the PidTagRecipientType property
+    [Flags]
+    public enum RecipientType : Int32
+    {
+        Originator = 0x00000000,
+        To = 0x00000001,
+        Cc = 0x00000002,
+        Bcc = 0x00000003,
+    }
+
     // Values of the PidTagAttachMethod property
     public enum AttachMethods : Int32
     {
         afByValue = 0x00000001,
+        afEmbeddedMessage = 0x00000005,
         afStorage = 0x00000006,
     }
 
     // Property getters are used to specify which properties should be retrieved from a property context
     // or table context, and where they should be stored.
     // T is the target object, Action arguments are target object, column value 
-    public class PropertyGetters<T> : Dictionary<EpropertyTag, Action<T, dynamic>>
+    class PropertyGetters<T> : Dictionary<EpropertyTag, Action<T, dynamic>>
     {
     }
 }

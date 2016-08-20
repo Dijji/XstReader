@@ -71,11 +71,11 @@
                         </GridViewColumn>
                         <GridViewColumn Width="100" >
                             <GridViewColumn.Header>
-                                <GridViewColumnHeader Tag="From" Click="listMessagesColumnHeader_Click">From</GridViewColumnHeader>
+                                <GridViewColumnHeader Tag="FromTo" Click="listMessagesColumnHeader_Click">From or To</GridViewColumnHeader>
                             </GridViewColumn.Header>
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=From}" />
+                                    <TextBlock Text="{Binding Path=FromTo}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -100,20 +100,91 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
-            <TextBox Grid.Row="0" DataContext="{Binding Path=SelectedMessage}" Text="{Binding Path=Body}"
-                 Visibility="{Binding ShowText, Converter={StaticResource VisibleIfTrue}}"/>
-            <WebBrowser Grid.Row="0" Name="wbMessage" DataContext="{Binding Path=SelectedMessage}" 
-                 Visibility="{Binding ShowHtml, Converter={StaticResource VisibleIfTrue}}"/>
-            <RichTextBox Grid.Row="0" Name="rtfMessage" DataContext="{Binding Path=SelectedMessage}" 
-                 Visibility="{Binding ShowRtf, Converter={StaticResource VisibleIfTrue}}"/>
-            <ListView Grid.Row="1"  Name="listAttachments" Margin="0,0,0,0" ItemsSource="{Binding Path=SelectedMessage.Attachments}"
-                      SelectionChanged="listAttachments_SelectionChanged" FontSize="12" Visibility="{Binding AttachmentPresent, Converter={StaticResource VisibleIfTrue}}">
+            <Grid Grid.Row="0" Visibility="{Binding ShowContent, Converter={StaticResource VisibleIfTrue}}">
+                <TextBox  DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=Body}"
+                     Visibility="{Binding ShowText, Converter={StaticResource VisibleIfTrue}}"/>
+                <WebBrowser Name="wbMessage" DataContext="{Binding Path=CurrentMessage}" 
+                     Visibility="{Binding ShowHtml, Converter={StaticResource VisibleIfTrue}}"/>
+                <RichTextBox Name="rtfMessage" DataContext="{Binding Path=CurrentMessage}" 
+                     Visibility="{Binding ShowRtf, Converter={StaticResource VisibleIfTrue}}"/>
+            </Grid>
+            <Grid Grid.Row="0" Visibility="{Binding ShowProperties, Converter={StaticResource VisibleIfTrue}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="3"/>
+                    <RowDefinition Height="4*"/>
+                </Grid.RowDefinitions>
+                <ListView Grid.Row="0"  Name="listRecipients" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Recipients}" FontSize="12">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="100" Header="Type" >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=RecipientType}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="200" Header="Name"  >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=DisplayName}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="400" Header="Email"  >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=EmailAddress}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" />
+                <ListView Grid.Row="2"  Name="listProperties" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Properties}" FontSize="12">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="50" Header="Id" >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=DisplayId}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="200" Header="Description"  >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Description}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="400" Header="Value"  >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=DisplayValue}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+            <ListView Grid.Row="1"  Name="listAttachments" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Attachments}"
+                      SelectionChanged="listAttachments_SelectionChanged" FontSize="12" Visibility="{Binding IsAttachmentPresent, Converter={StaticResource VisibleIfTrue}}">
                 <ListView.View>
                     <GridView>
+                        <GridViewColumn Width="75" Header="Type"  >
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Path=Type}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Width="300" Header="Attachment" >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=FileName}" />
+                                    <TextBlock Text="{Binding Path=Description}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -128,10 +199,20 @@
                 </ListView.View>
             </ListView>
             <StackPanel Grid.Row="2" Orientation="Horizontal">
-                <Button Content="Save..." Height="20" HorizontalAlignment="Left" Margin="10,5,0,0" Name="btnSave" VerticalAlignment="Top" Width="75" Click="btnSave_Click"
-                        Visibility="{Binding AttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=AttachmentSelected}"/>
-                <Button Content="Save All..." Height="20" HorizontalAlignment="Left" Margin="10,5,0,0" Name="btnSaveAll" VerticalAlignment="Top" Width="75" Click="btnSaveAll_Click" 
-                        Visibility="{Binding AttachmentPresent, Converter={StaticResource VisibleIfTrue}}"/>
+                <Button Content="Save File..." Height="20" Margin="10,5,0,0" Name="btnSave" VerticalAlignment="Top" Width="75" Click="btnSave_Click"
+                        Visibility="{Binding IsFileAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsFileAttachmentSelected}"/>
+                <Button Content="Save All Files..." Height="20" Margin="10,5,0,0" Name="btnSaveAll" VerticalAlignment="Top" Width="90" Click="btnSaveAll_Click" 
+                        Visibility="{Binding IsFileAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsFileAttachmentPresent}"/>
+                <Button Content="Open Email" Height="20" Margin="10,5,0,0" Name="btnOpenEmail" VerticalAlignment="Top" Width="75" Click="btnOpenEmail_Click"
+                        Visibility="{Binding IsEmailAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsEmailAttachmentSelected}"/>
+                <Button Content="Close Email" Height="20" Margin="10,5,0,0" Name="btnCloseEmail" VerticalAlignment="Top" Width="75" Click="btnCloseEmail_Click"
+                        Visibility="{Binding CanPopMessage, Converter={StaticResource VisibleIfTrue}}" />
+            </StackPanel>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <RadioButton x:Name="rbContent" Content="Content" Margin="0,10,10,0" IsChecked="True" Click="rbContent_Click"
+                              Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
+                <RadioButton x:Name="rbProperties" Content="Properties" Margin="0,10,10,0" Click="rbProperties_Click"
+                              Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
             </StackPanel>
         </Grid>
     </Grid>

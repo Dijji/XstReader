@@ -19,7 +19,7 @@ namespace XstReader
     public partial class MainWindow : Window
     {
         private View view = new View();
-        private XstFile file = null;
+        private XstFile xstFile = null;
         private GridViewColumnHeader listViewSortCol = null;
         private SortAdorner listViewSortAdorner = null;
 
@@ -55,8 +55,8 @@ namespace XstReader
                 {
                     try
                     {
-                        file = new XstFile(view, dialog.FileName);
-                        file.ReadFolderTree();
+                        xstFile = new XstFile(view, dialog.FileName);
+                        xstFile.ReadFolderTree();
                     }
                     catch (System.Exception ex)
                     {
@@ -79,49 +79,137 @@ namespace XstReader
         private void treeFolders_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             Folder f = (Folder)e.NewValue;
-            try
-            {
-                if (f != null)
-                {
-                    file.ReadMessages(f);
+            view.SelectedFolder = f;
 
-                    // If there is no sort in effect, sort by date in descending order
-                    if (listViewSortCol == null)
+            if (f != null)
+            {
+                f.Messages.Clear();
+                txtStatus.Text = "Reading messages...";
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // Read messages on a background thread so we can keep the UI in sync
+                Task.Factory.StartNew(() =>
+                {
+                    try
                     {
-                        string tag = "Date";
-                        listViewSortCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header).Where(h => h.Tag.ToString() == tag).First();
-                        listViewSortAdorner = new SortAdorner(listViewSortCol, ListSortDirection.Descending);
-                        AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
-                        listMessages.Items.SortDescriptions.Add(new SortDescription(tag, ListSortDirection.Descending));
+                        xstFile.ReadMessages(f);
                     }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error reading messages");
+                    }
+                })
+                // When loading completes, update the UI using the UI thread 
+                .ContinueWith((task) =>
+                {
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        txtStatus.Text = "";
+                        Mouse.OverrideCursor = null;
+                    }));
+                });
+
+                // If there is no sort in effect, sort by date in descending order
+                if (listViewSortCol == null)
+                {
+                    string tag = "Date";
+                    listViewSortCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header).Where(h => h.Tag.ToString() == tag).First();
+                    listViewSortAdorner = new SortAdorner(listViewSortCol, ListSortDirection.Descending);
+                    AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
+                    listMessages.Items.SortDescriptions.Add(new SortDescription(tag, ListSortDirection.Descending));
                 }
             }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error reading messages");
-            }
-            view.SelectedFolder = f;
         }
 
         private void listMessages_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Message m = (Message)listMessages.SelectedItem;
+
+            if (m != null)
+            {
+                xstFile.ReadMessageDetails(m);
+                ShowMessage(m);
+            }
+            view.SetMessage(m);
+        }
+
+        private void listMessagesColumnHeader_Click(object sender, RoutedEventArgs e)
+        {
+            // Sort the messages by the clicked on column
+            GridViewColumnHeader column = (sender as GridViewColumnHeader);
+            string sortBy = column.Tag.ToString();
+            if (listViewSortCol != null)
+            {
+                AdornerLayer.GetAdornerLayer(listViewSortCol).Remove(listViewSortAdorner);
+                listMessages.Items.SortDescriptions.Clear();
+            }
+
+            ListSortDirection newDir = ListSortDirection.Ascending;
+            if (listViewSortCol == column && listViewSortAdorner.Direction == newDir)
+                newDir = ListSortDirection.Descending;
+
+            listViewSortCol = column;
+            listViewSortAdorner = new SortAdorner(listViewSortCol, newDir);
+            AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
+            listMessages.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
+        }
+
+        private void listAttachments_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<Attachment>());
+        }
+
+        private void btnSave_Click(object sender, RoutedEventArgs e)
+        {
+            SaveAttachments(listAttachments.SelectedItems.Cast<Attachment>().Where(a => a.IsFile));
+        }
+
+        private void btnSaveAll_Click(object sender, RoutedEventArgs e)
+        {
+            SaveAttachments(listAttachments.Items.Cast<Attachment>().Where(a => a.IsFile));
+        }
+
+        private void btnOpenEmail_Click(object sender, RoutedEventArgs e)
+        {
+            Message m = xstFile.OpenAttachedMessage(listAttachments.Items.Cast<Attachment>().First(a => a.IsEmail));
+            ShowMessage(m);
+            view.PushMessage(m);
+        }
+
+        private void btnCloseEmail_Click(object sender, RoutedEventArgs e)
+        {
+            view.PopMessage();
+            ShowMessage(view.CurrentMessage);
+        }
+
+        private void rbContent_Click(object sender, RoutedEventArgs e)
+        {
+            view.ShowContent = true;
+        }
+
+        private void rbProperties_Click(object sender, RoutedEventArgs e)
+        {
+            view.ShowContent = false;
+        }
+
+        private void ShowMessage(Message m)
+        {
             try
             {
                 if (m != null)
                 {
-                    file.ReadMessageContent(m);
-
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (m.ShowHtml)
                     {
                         if (m.BodyHtml != null)
                             wbMessage.NavigateToString(m.BodyHtml);
-                        else
+                        else if(m.Html != null)
                         {
                             var ms = new System.IO.MemoryStream(m.Html);
                             wbMessage.NavigateToStream(ms);
                         }
+                        else if(m.Body != null)
+                            wbMessage.NavigateToString(m.Body);
                     }
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (m.ShowRtf)
@@ -149,43 +237,6 @@ namespace XstReader
             {
                 MessageBox.Show(ex.Message, "Error reading message body");
             }
-            view.SelectedMessage = m;
-        }
-
-        private void listMessagesColumnHeader_Click(object sender, RoutedEventArgs e)
-        {
-            // Sort the messages by the clicked on column
-            GridViewColumnHeader column = (sender as GridViewColumnHeader);
-            string sortBy = column.Tag.ToString();
-            if (listViewSortCol != null)
-            {
-                AdornerLayer.GetAdornerLayer(listViewSortCol).Remove(listViewSortAdorner);
-                listMessages.Items.SortDescriptions.Clear();
-            }
-
-            ListSortDirection newDir = ListSortDirection.Ascending;
-            if (listViewSortCol == column && listViewSortAdorner.Direction == newDir)
-                newDir = ListSortDirection.Descending;
-
-            listViewSortCol = column;
-            listViewSortAdorner = new SortAdorner(listViewSortCol, newDir);
-            AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
-            listMessages.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
-        }
-
-        private void listAttachments_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            view.AttachmentSelected = listAttachments.SelectedItem != null;
-        }
-
-        private void btnSave_Click(object sender, RoutedEventArgs e)
-        {
-            SaveAttachments(listAttachments.SelectedItems.Cast<Attachment>());
-        }
-
-        private void btnSaveAll_Click(object sender, RoutedEventArgs e)
-        {
-            SaveAttachments(listAttachments.Items.Cast<Attachment>());
         }
 
         private void SaveAttachments(IEnumerable<Attachment> attachments)
@@ -208,7 +259,7 @@ namespace XstReader
                 {
                     foreach (var a in attachments)
                     {
-                        file.SaveAttachment(dialog.SelectedPath, a);
+                        xstFile.SaveAttachment(dialog.SelectedPath, a);
                     }
                 }
                 catch (System.Exception ex)

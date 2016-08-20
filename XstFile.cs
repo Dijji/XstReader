@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 
@@ -15,7 +16,7 @@ namespace XstReader
     // - Read the list of messages contained in a folder
     // - Read the contents of a message
     // - Save an attachment to a message
-   
+
     class XstFile
     {
         private NDB ndb;
@@ -45,7 +46,26 @@ namespace XstReader
             {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
             {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
         };
-        
+
+        // When reading folder contents, the message properties we ask for
+        // In Unicode4K, PidTagSentRepresentingNameW doesn't yield a useful value
+        private static readonly PropertyGetters<Message> pgMessageList4K = new PropertyGetters<Message>
+        {
+            {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
+            {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
+            {EpropertyTag.PidTagDisplayToW, (m, val) => m.To = val },
+            {EpropertyTag.PidTagMessageFlags, (m, val) => m.Flags = (MessageFlags)val },
+            {EpropertyTag.PidTagClientSubmitTime, (m, val) => m.Submitted = val },
+            {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
+            {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
+        };
+
+        private static readonly PropertyGetters<Message> pgMessageDetail4K = new PropertyGetters<Message>
+        {
+            {EpropertyTag.PidTagSentRepresentingEmailAddress, (m, val) => m.From = val },
+            {EpropertyTag.PidTagSenderName, (m, val) => { if(m.From == null) m.From = val; } },
+        };
+
         // The properties we read when accessing the contents of a message
         private static readonly PropertyGetters<Message> pgMessageContent = new PropertyGetters<Message>
         {
@@ -58,12 +78,49 @@ namespace XstReader
             {EpropertyTag.PidTagRtfCompressed, (m, val) => m.RtfCompressed = val },
         };
 
+        // The properties we read when accessing the recipient table of a message
+        private static readonly PropertyGetters<Recipient> pgMessageRecipient = new PropertyGetters<Recipient>
+        {
+            {EpropertyTag.PidTagRecipientType, (r, val) => r.RecipientType = (RecipientType)val },
+            {EpropertyTag.PidTagDisplayName, (r, val) => r.DisplayName = val },
+            {EpropertyTag.PidTagEmailAddress, (r, val) => r.EmailAddress = val },
+        };
+
+        //The properties we read when accessing a message attached to a message
+        private static readonly PropertyGetters<Message> pgMessageAttachment = new PropertyGetters<Message>
+        {
+            {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
+            {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
+            {EpropertyTag.PidTagDisplayToW, (m, val) => m.To = val },
+            {EpropertyTag.PidTagMessageFlags, (m, val) => m.Flags = (MessageFlags)val },
+            {EpropertyTag.PidTagSentRepresentingNameW, (m, val) => m.From = val },
+            {EpropertyTag.PidTagClientSubmitTime, (m, val) => m.Submitted = val },
+            {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
+            {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
+            {EpropertyTag.PidTagNativeBody, (m, val) => m.NativeBody = (BodyType)val },
+            {EpropertyTag.PidTagBody, (m, val) => m.Body = val },
+            {EpropertyTag.PidTagHtml, (m, val) => { if (val is string)  m.BodyHtml = val; else m.Html = val; } },
+            {EpropertyTag.PidTagRtfCompressed, (m, val) => m.RtfCompressed = val },
+        };
+
+        private static readonly HashSet<EpropertyTag> contentExclusions = new HashSet<EpropertyTag>
+        {
+            EpropertyTag.PidTagNativeBody,
+            EpropertyTag.PidTagBody,
+            EpropertyTag.PidTagHtml,
+            EpropertyTag.PidTagRtfCompressed,
+        };
+
         // The properties we read when getting a list of attachments
         private static readonly PropertyGetters<Attachment> pgAttachmentList = new PropertyGetters<Attachment>
         {
+            {EpropertyTag.PidTagDisplayName, (a, val) => a.DisplayName = val },
             {EpropertyTag.PidTagAttachFilenameW, (a, val) => a.FileNameW = val },
             {EpropertyTag.PidTagAttachLongFilename, (a, val) => a.LongFileName = val },
             {EpropertyTag.PidTagAttachmentSize, (a, val) => a.Size = val },
+            {EpropertyTag.PidTagAttachMethod, (a, val) => a.AttachMethod = (AttachMethods)val },
+            {EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
+            {EpropertyTag.PidTagAttachPayloadClass, (a, val) => a.FileNameW = val },
         };
 
         // The properties we read when accessing the name of an attachment
@@ -76,9 +133,9 @@ namespace XstReader
         // The properties we read when accessing the contents of an attachment
         private static readonly PropertyGetters<Attachment> pgAttachmentContent = new PropertyGetters<Attachment>
         {
-            {EpropertyTag.PidTagAttachMethod, (a, val) => a.AttachMethod = (AttachMethods)val },
             {EpropertyTag.PidTagAttachDataBinary, (a, val) => a.Content = val },
         };
+
 
         #region Public methods
 
@@ -115,69 +172,108 @@ namespace XstReader
                 using (var fs = ndb.GetReadStream())
                 {
                     // Get the Contents table for the folder
-                    var ms = ltp.ReadTable<Message>(fs, NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid), pgMessageList, (m, id) => m.Nid = new NID(id));
-                    f.Messages.Clear();
-                    foreach (var m in ms)
-                        f.Messages.Add(m);
+                    var ms = ltp.ReadTable<Message>(fs, NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
+                                                    ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id));
+
+                    if (ndb.IsUnicode4K)
+                    { 
+                        foreach (var m in ms)
+                            ltp.ReadProperties<Message>(fs, m.Nid, pgMessageDetail4K, m);
+                    }
+
+                    // We may be called on a background thread, so we need to dispatch this to the UI thread
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        f.Messages.Clear();
+                        foreach (var m in ms)
+                        {
+                            f.AddMessage(m);
+                        }
+                    }));
                 }
             }
         }
 
-        public void ReadMessageContent(Message m)
+        public void ReadMessageDetails(Message m)
         {
             using (var fs = ndb.GetReadStream())
             {
+                // Read the contents properties
                 var subNodeTree = ltp.ReadProperties<Message>(fs, m.Nid, pgMessageContent, m);
 
-                if (m.HasAttachment)
+                // Read all other properties
+                m.Properties.Clear();
+                foreach (var p in ltp.ReadAllProperties(fs, m.Nid, contentExclusions))
                 {
-                    // Read the attachment table, which is held in the subnode of the message
-                    var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, new NID(EnidSpecial.NID_ATTACHMENT_TABLE), pgAttachmentList, (a, id) => a.Nid = new NID(id));
-                    m.Attachments.Clear();
-                    foreach (var a in atts)
-                    {
-                        a.Parent = m;
-
-                        // If the long name wasn't in the attachment table, go look for it in the attachment properties
-                        if (a.LongFileName == null)
-                        {
-                            BTree<Node> subNodeTreeMessage;
-                            ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
-                            ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentName, a);
-                        }
-                        m.Attachments.Add(a);
-                    }
+                    m.Properties.Add(p);
                 }
+
+                ReadMessageTables(fs, subNodeTree, m);
             }
         }
 
         public void SaveAttachment(string path, Attachment a)
         {
             using (FileStream fs = ndb.GetReadStream(),
-                             afs = new FileStream(Path.Combine(path, a.FileName), FileMode.Create, FileAccess.Write))
+                              afs = new FileStream(Path.Combine(path, a.FileName), FileMode.Create, FileAccess.Write))
             {
-                BTree<Node> subNodeTreeMessage;
-                ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
+
+                if (subNodeTreeMessage == null)
+                    // No subNodeTree given: assume we can look it up in the main tree
+                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
 
                 var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
-                if (a.AttachMethod == AttachMethods.afByValue)
-                {
-                    // If the value is inline, we just write it out
-                    if (a.Content.GetType() == typeof(byte[]))
-                    {
-                        afs.Write(a.Content, 0, a.Content.Length);
-                    }
-                    // Otherwise we need to dereference the node pointing to the data,
-                    // using the subnode tree belonging to the attachment
-                    else if (a.Content.GetType() == typeof(NID))
-                    {
-                        var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
 
-                        // Copy the data to the output file stream without getting it all into memory at once,
-                        // as there can be a lot of data
-                        ndb.CopyDataBlocks(fs, afs, nb.DataBid);
-                    }
+                // If the value is inline, we just write it out
+                if (a.Content.GetType() == typeof(byte[]))
+                {
+                    afs.Write(a.Content, 0, a.Content.Length);
                 }
+                // Otherwise we need to dereference the node pointing to the data,
+                // using the subnode tree belonging to the attachment
+                else if (a.Content.GetType() == typeof(NID))
+                {
+                    var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
+
+                    // Copy the data to the output file stream without getting it all into memory at once,
+                    // as there can be a lot of data
+                    ndb.CopyDataBlocks(fs, afs, nb.DataBid);
+                }
+            }
+        }
+
+        public Message OpenAttachedMessage(Attachment a)
+        {
+            using (FileStream fs = ndb.GetReadStream())
+            {
+                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
+
+                if (subNodeTreeMessage == null)
+                    // No subNodeTree given: assume we can look it up in the main tree
+                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+
+                var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
+
+                if (a.Content.GetType() == typeof(PtypObjectValue))
+                {
+                    Message m = new Message { Nid = new NID(((PtypObjectValue)a.Content).Nid) };
+
+                    // Read the basic and contents properties
+                    var childSubNodeTree = ltp.ReadProperties<Message>(fs, subNodeTreeAttachment, m.Nid, pgMessageAttachment, m, true);
+
+                    // Read all other properties
+                    foreach (var p in ltp.ReadAllProperties(fs, subNodeTreeAttachment, m.Nid, contentExclusions, true))
+                    {
+                        m.Properties.Add(p);
+                    }
+
+                    ReadMessageTables(fs, childSubNodeTree, m, true);
+
+                    return m;
+                }
+                else
+                    throw new Exception("Unexpected data type for attached message");
             }
         }
         #endregion
@@ -201,6 +297,43 @@ namespace XstReader
             }
 
             return f;
+        }
+
+        private void ReadMessageTables(FileStream fs, BTree<Node> subNodeTree, Message m, bool isAttached = false)
+        {
+            // Read the recipient table for the message
+            var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
+            if (ltp.IsTablePresent(subNodeTree, recipientsNid))
+            {
+                var rs = ltp.ReadTable<Recipient>(fs, subNodeTree, recipientsNid, pgMessageRecipient, null);
+                m.Recipients.Clear();
+                foreach (var r in rs)
+                    m.Recipients.Add(r);
+            }
+
+            // Read any attachments
+            var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
+            if (m.HasAttachment)
+            {
+                // Read the attachment table, which is held in the subnode of the message
+                var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id));
+                m.Attachments.Clear();
+                foreach (var a in atts)
+                {
+                    a.Parent = m;
+
+                    // If the long name wasn't in the attachment table, go look for it in the attachment properties
+                    if (a.LongFileName == null)
+                        ltp.ReadProperties<Attachment>(fs, subNodeTree, a.Nid, pgAttachmentName, a);
+
+                    // If this is an embedded email, tell the attachment where to look for its properties
+                    // This is needed because the email node is not in the main node tree
+                    if (isAttached)
+                        a.subNodeTreeProperties = subNodeTree;  
+
+                    m.Attachments.Add(a);
+                }
+            }
         }
 
         #endregion

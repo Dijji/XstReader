@@ -93,6 +93,7 @@ namespace XstReader
         NID_SEARCH_GATHERER_DESCRIPTOR = 0x2a1,
         NID_SEARCH_GATHERER_FOLDER_QUEUE = 0x321,
         NID_ATTACHMENT_TABLE = 0x671,
+        NID_RECIPIENT_TABLE = 0x692,
     }
 
     public enum Eptype : byte
@@ -108,18 +109,36 @@ namespace XstReader
 
     // LTP layer
 
+    // The HID is a 32-bit value, with the following internal structure
+    // non-4K: 5-bit Type; 11-bit Index; 16-bit BlockIndex
+    // 4K:     5-bit Type; 14-bit Index; 13-bit BlockIndex
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct HID
     {
         private UInt16 wValue1;
         private UInt16 wValue2;
-        public EnidType hidType { get { return (EnidType)(wValue1 & 0x001f); } }
-        public UInt16 hidIndex { get { return (UInt16)(wValue1 >> 5); } }
-        public UInt16 hidBlockIndex { get { return wValue2; } }
-        public HID (UInt16 wValue1, UInt16 wValue2)
+ 
+        private UInt16 hidIndex { get { return (UInt16)(wValue1 >> 5); } }
+        private UInt16 hidBlockIndex { get { return wValue2; } }
+        private UInt16 hidIndex4K { get { return (UInt16)((wValue1 >> 5) | ((wValue2 & 0x0007) << 11)); } }
+        private UInt16 hidBlockIndex4K { get { return (UInt16)(wValue2 >> 3); } }
+
+        public HID(UInt16 wValue1, UInt16 wValue2)
         {
             this.wValue1 = wValue1;
             this.wValue2 = wValue2;
+        }
+
+        public EnidType hidType { get { return (EnidType)(wValue1 & 0x001f); } }
+
+        public UInt16 GetIndex(bool isUnicode4K)
+        {
+            return isUnicode4K ? hidIndex4K : hidIndex;
+        }
+
+        public UInt16 GetBlockIndex(bool isUnicode4K)
+        {
+            return isUnicode4K ? hidBlockIndex4K : hidBlockIndex;
         }
     }
 
@@ -130,15 +149,29 @@ namespace XstReader
     {
         private UInt16 wValue1;
         private UInt16 wValue2;
+
+        private UInt16 hidIndex { get { return (UInt16)(wValue1 >> 5); } }
+        private UInt16 hidBlockIndex { get { return wValue2; } }
+        private UInt16 hidIndex4K { get { return (UInt16)((wValue1 >> 5) | ((wValue2 & 0x0007) << 11)); } }
+        private UInt16 hidBlockIndex4K { get { return (UInt16)(wValue2 >> 3); } }
+
         public bool HasValue { get { return (wValue1 != 0) || (wValue2 != 0); } }
         public bool IsHID { get { return HasValue && hidType == EnidType.HID; } }
         public EnidType hidType { get { return (EnidType)(wValue1 & 0x001f); } }
-        public UInt16 hidIndex { get { return (UInt16)(wValue1 >> 5); } }
-        public UInt16 hidBlockIndex { get { return wValue2; } }
         public EnidType nidType { get { return (EnidType)(wValue1 & 0x001f); } }  // Low order five bits of stored value
         public UInt32 dwValue { get { return (UInt32)(wValue2 << 16) | wValue1; } }  // References use the whole four bytes
         public HID HID { get { return new HID(wValue1, wValue2); } }
         public NID NID { get { return new NID(dwValue); } }
+
+        public UInt16 GetIndex(bool isUnicode4K)
+        {
+            return isUnicode4K ? hidIndex4K : hidIndex;
+        }
+
+        public UInt16 GetBlockIndex(bool isUnicode4K)
+        {
+            return isUnicode4K ? hidBlockIndex4K : hidBlockIndex;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -294,4 +327,29 @@ namespace XstReader
     //    public Byte[] rgbData;
     //    public Byte[] rgbCEB;
     //}
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    struct NAMEID
+    {
+        public UInt32 dwPropertyID;
+        private UInt16 wValue;
+        public UInt16 wPropIdx;
+        public bool N { get { return (wValue & 0x0001) == 1; } }
+        public UInt16 wGuid { get { return (UInt16)(wValue >> 1); } }
+    }
+
+    public enum EwGuid : UInt16
+    {
+        NAMEID_GUID_NONE = 0,
+        NAMEID_GUID_MAPI = 1,
+        NAMEID_GUID_PUBLIC_STRINGS = 2,
+        InStream = 3,
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct PtypObjectValue
+    {
+        public UInt32 Nid;
+        public UInt32 ulSize;
+    }
 }

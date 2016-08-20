@@ -9,7 +9,7 @@ namespace XstReader
     // All layouts and names are taken from <MS-PST>
 
     // Constants
-    public class LayoutsU
+    class LayoutsU
     {
         public const int BTPAGEEntryBytes = 488;
     }

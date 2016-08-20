@@ -15,6 +15,14 @@ namespace XstReader
     /// </summary>
     class LTP
     {
+        // The properties we read when accessing the named property definitions
+        private static readonly PropertyGetters<NamedProperties> pgNamedProperties = new PropertyGetters<NamedProperties>
+        {
+            {EpropertyTag.PidTagNameidStreamGuid, (np, val) => np.StreamGuid = val },
+            {EpropertyTag.PidTagNameidStreamEntry, (np, val) => np.StreamEntry = val },
+            {EpropertyTag.PidTagNameidStreamString, (np, val) => np.StreamString = val },
+        };
+
         // A heap-on-node data block
         private class HNDataBlock
         {
@@ -36,7 +44,7 @@ namespace XstReader
         }
 
         private NDB ndb;
-
+        private NamedProperties namedProperties = null;
 
         #region Public methods
 
@@ -56,19 +64,43 @@ namespace XstReader
             BTree<Node> subNodeTree;
             var rn = ndb.LookupNodeAndReadItsSubNodeBtree(fs, nid, out subNodeTree);
 
-            return ReadPropertiesInternal<T>(fs, subNodeTree, rn.DataBid, g, target);
+            ReadPropertiesInternal<T>(fs, subNodeTree, rn.DataBid, g, target);
+
+            return subNodeTree;
         }
 
         // Second form takes a node ID for a node in the supplied sub node tree
-        public BTree<Node> ReadProperties<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g, T target)
+        // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
+        public BTree<Node> ReadProperties<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g, T target, bool propertyValuesInChildNodeTree = false )
         {
             BTree<Node> childSubNodeTree;
             var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
-            if (rn == null)
-                throw new Exception("Node block does not exist");
 
-            ReadPropertiesInternal<T>(fs, subNodeTree, rn.DataBid, g, target);
+            ReadPropertiesInternal<T>(fs, propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, g, target);
+
             return childSubNodeTree;
+        }
+
+        // Read all the properties in a property context, apart from a supplied set of exclusions
+        // Returns a series of Property objects
+        //
+        // First form takes a node ID for a node in the main node tree
+        public IEnumerable<Property> ReadAllProperties(FileStream fs, NID nid, HashSet<EpropertyTag> excluding)
+        {
+            BTree<Node> subNodeTree;
+            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(fs, nid, out subNodeTree);
+
+            return ReadAllPropertiesInternal(fs, subNodeTree, rn.DataBid, excluding);
+        }
+
+        // Second form takes a node ID for a node in the supplied sub node tree
+        // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
+        public IEnumerable<Property> ReadAllProperties(FileStream fs, BTree<Node> subNodeTree, NID nid, HashSet<EpropertyTag> excluding, bool propertyValuesInChildNodeTree = false)
+        {
+            BTree<Node> childSubNodeTree;
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
+
+            return ReadAllPropertiesInternal(fs, propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, excluding);
         }
 
         // This is a cutdown version of the table reader to fetch subfolder NIDs from the hierarchy table of a folder,
@@ -106,18 +138,25 @@ namespace XstReader
         // Second form takes a node ID for a node in the supplied sub node tree
         public IEnumerable<T> ReadTable<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
         {
-            var rn = NDB.LookupSubNode(subNodeTree, nid);
+            BTree<Node> childSubNodeTree;
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
             if (rn == null)
                 throw new Exception("Node block does not exist");
 
-            return ReadTableInternal<T>(fs, subNodeTree, rn.DataBid, g, idGetter);
+            return ReadTableInternal<T>(fs, childSubNodeTree, rn.DataBid, g, idGetter);
+        }
+
+        // Test for the  presence of an optional table in the supplied sub node tree
+        public bool IsTablePresent(BTree<Node> subNodeTree, NID nid)
+        {
+            return (subNodeTree != null && NDB.LookupSubNode(subNodeTree, nid) != null);
         }
         #endregion
 
         #region Private methods
 
         // Common implementation of property reading takes a data ID for a block in the main block tree
-        private BTree<Node> ReadPropertiesInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g, T target)
+        private void ReadPropertiesInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g, T target)
         {
             var blocks = ReadHeapOnNode(fs, dataBid);
             var h = blocks.First();
@@ -129,79 +168,199 @@ namespace XstReader
 
             foreach (var prop in props)
             {
-                if (!g.ContainsKey(prop.wPropId))
+                 if (!g.ContainsKey(prop.wPropId))
                     continue;
 
-                dynamic val = null;
-                byte[] buf = null;
-
-                switch (prop.wPropType)
-                {
-                    case EpropertyType.PtypInteger32:
-                        val = prop.dwValueHnid.dwValue;
-                        break;
-
-                    case EpropertyType.PtypBoolean:
-                        val = (prop.dwValueHnid.dwValue == 0x01);
-                        break;
-
-                    case EpropertyType.PtypBinary:
-                        if (prop.dwValueHnid.HasValue && prop.dwValueHnid.hidType != EnidType.HID && prop.wPropId == EpropertyTag.PidTagAttachDataBinary)
-                        {
-                            // Special case for out of line attachment contents: don't dereference to binary yet
-                            val = prop.dwValueHnid.NID;
-                        }
-                        else
-                        {
-                            buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                            if (buf == null)
-                                val = "<Could not read Binary value>";
-                            else
-                                val = buf;
-                        }
-                        break;
-
-                    case EpropertyType.PtypString: // Unicode string
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                        if (buf == null)
-                            val = "<Could not read string value>";
-                        else
-                        {
-                            val = Encoding.Unicode.GetString(buf, 0, buf.Length);
-                        }
-                        break;
-
-                    case EpropertyType.PtypString8:  // Multipoint string in variable encoding
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                        if (buf == null)
-                            val = "<Could not read string value>";
-                        else
-                            val = Encoding.UTF8.GetString(buf, 0, buf.Length);
-                        break;
-
-                    case EpropertyType.PtypTime:
-                        // In a Property Context, time values are references to data
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                        if (buf != null)
-                        {
-                            var fileTime = Map.MapType<Int64>(buf);
-                            val = DateTime.FromFileTimeUtc(fileTime);
-                        }
-                        break;
-
-                    default:
-                        val = null;
-                        break;
-                }
-
+                dynamic val = ReadPropertyValue(fs, subNodeTree, blocks, prop);
                 g[prop.wPropId](target, val);
             }
-            return subNodeTree;
         }
+
+        // Common implementation of property reading takes a data ID for a block in the main block tree
+        private IEnumerable<Property> ReadAllPropertiesInternal(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, HashSet<EpropertyTag> excluding)
+        {
+            var blocks = ReadHeapOnNode(fs, dataBid);
+            var h = blocks.First();
+            if (h.bClientSig != EbType.bTypePC)
+                throw new Exception("Was expecting a PC");
+
+            // Read the index of properties
+            var props = ReadBTHIndex<PCBTH>(blocks, h.hidUserRoot).ToArray();
+
+            foreach (var prop in props)
+            {
+                if (excluding != null && excluding.Contains(prop.wPropId))
+                    continue;
+
+                dynamic val = ReadPropertyValue(fs, subNodeTree, blocks, prop);
+
+                Property p = new Property { Tag = prop.wPropId, Value = val };
+
+                if (p.IsNamed)
+                {
+                    // If we haven't read the named properties dictionary, do so now
+                    if (namedProperties == null)
+                    {
+                        namedProperties = new NamedProperties();
+                        ReadProperties<NamedProperties>(fs, new NID(EnidSpecial.NID_NAME_TO_ID_MAP), pgNamedProperties, namedProperties);
+                    }
+
+                    // Fill in property details as far as we can
+                    namedProperties.LookupNPID((UInt16) p.Tag, p);
+                }
+
+                yield return p; 
+            }
+
+            yield break;
+        }
+
+        private dynamic ReadPropertyValue(FileStream fs, BTree<Node> subNodeTree, List<HNDataBlock> blocks, PCBTH prop)
+        {
+            dynamic val = null;
+            byte[] buf = null;
+
+            switch (prop.wPropType)
+            {
+                case EpropertyType.PtypInteger16:
+                    val = (Int16)prop.dwValueHnid.dwValue;
+                    break;
+
+                case EpropertyType.PtypInteger32:
+                    val = prop.dwValueHnid.dwValue;
+                    break;
+
+                case EpropertyType.PtypInteger64:
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read Integer64 value>";
+                    else
+                        val = Map.MapType<Int64>(buf);
+                    break;
+
+                case EpropertyType.PtypFloating64:
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read Floating64 value>";
+                    else
+                        val = Map.MapType<Double>(buf);
+                    break;
+
+                case EpropertyType.PtypMultipleInteger32:
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read MultipleInteger32 value>";
+                    else
+                        val = Map.MapArray<Int32>(buf, 0, buf.Length/sizeof(Int32));
+                    break;
+
+                case EpropertyType.PtypBoolean:
+                    val = (prop.dwValueHnid.dwValue == 0x01);
+                    break;
+
+                case EpropertyType.PtypBinary:
+                    if (prop.dwValueHnid.HasValue && prop.dwValueHnid.hidType != EnidType.HID && prop.wPropId == EpropertyTag.PidTagAttachDataBinary)
+                    {
+                        // Special case for out of line attachment contents: don't dereference to binary yet
+                        val = prop.dwValueHnid.NID;
+                    }
+                    else
+                    {
+                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                        if (buf == null)
+                            val = null;
+                        else
+                            val = buf;
+                    }
+                    break;
+
+                case EpropertyType.PtypString: // Unicode string
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read string value>";
+                    else
+                    {
+                        val = Encoding.Unicode.GetString(buf, 0, buf.Length);
+                    }
+                    break;
+
+                case EpropertyType.PtypString8:  // Multipoint string in variable encoding
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read string value>";
+                    else
+                        val = Encoding.UTF8.GetString(buf, 0, buf.Length);
+                    break;
+
+                case EpropertyType.PtypMultipleString: // Unicode strings
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read MultipleString value>";
+                    else
+                    {
+                        var count = Map.MapType<UInt32>(buf);
+                        var offsets = Map.MapArray<UInt32>(buf, sizeof(UInt32), (int)count);
+                        var ss = new string[count];
+
+                        // Offsets are relative to the start of the buffer
+                        for (int i = 0; i < count; i++)
+                        {
+                            int len;
+                            if (i < count - 1)
+                                len = (int)(offsets[i + 1] - offsets[i]);
+                            else
+                                len = buf.Length - (int)offsets[i];
+
+                            ss[i] = Encoding.Unicode.GetString(buf, (int)offsets[i], len);
+                        }
+                        val = ss;
+                    }
+                    break;
+
+                case EpropertyType.PtypTime:
+                    // In a Property Context, time values are references to data
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf != null)
+                    {
+                        var fileTime = Map.MapType<Int64>(buf);
+                        val = DateTime.FromFileTimeUtc(fileTime);
+                    }
+                    break;
+
+                case EpropertyType.PtypGuid:
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read Guid value>";
+                    else
+                        val = new Guid(buf);
+                    break;
+
+                case EpropertyType.PtypObject:
+                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                    if (buf == null)
+                        val = "<Could not read Object value>";
+                    else
+                        val = Map.MapType<PtypObjectValue>(buf);
+                    break;
+
+                default:
+                    val = String.Format("Unsupported property type {0}", prop.wPropType);
+                    break;
+            }
+
+            return val;
+        }
+
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
         private IEnumerable<T> ReadTableInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
@@ -242,23 +401,25 @@ namespace XstReader
                         Length = buf.Length,
                     }
                 };
-                return ReadTableData<T>(fs, t, blocks, dataBlocks, colsToGet, subNodeTree, indexes, g, idGetter);
+                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter);
             }
             else
             {
                 // Don't use GetBytesForHNID in this case, as we need to handle multiple blocks
                 var dataBlocks = ReadSubNodeRowDataBlocks(fs, subNodeTree, t.hnidRows.NID);
-                return ReadTableData<T>(fs, t, blocks, dataBlocks, colsToGet, subNodeTree, indexes, g, idGetter);
+                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter);
             }
         }
 
         // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters
-        private IEnumerable<T> ReadTableData<T>(FileStream fs, TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, List<TCOLDESC> colsToGet,
+        private IEnumerable<T> ReadTableData<T>(FileStream fs, TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols, List<TCOLDESC> colsToGet,
              BTree<Node> subNodeTree, TCROWIDUnicode[] indexes, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
         {
             int rgCEBSize = (int)Math.Ceiling((decimal)t.cCols / 8);
             int rowsPerBlock;
-            if (ndb.IsUnicode)
+            if (ndb.IsUnicode4K)
+                rowsPerBlock = (ndb.BlockSize4K - Marshal.SizeOf(typeof(BLOCKTRAILERUnicode4K))) / t.rgibTCI_bm;
+            else if (ndb.IsUnicode)
                 rowsPerBlock = (ndb.BlockSize - Marshal.SizeOf(typeof(BLOCKTRAILERUnicode))) / t.rgibTCI_bm;
             else
                 rowsPerBlock = (ndb.BlockSize - Marshal.SizeOf(typeof(BLOCKTRAILERANSI))) / t.rgibTCI_bm;
@@ -267,8 +428,8 @@ namespace XstReader
             {
                 int blockNum = (int)(index.dwRowIndex / rowsPerBlock);
                 if (blockNum >= dataBlocks.Count)
-                    throw new Exception("Data block number out of bounds");
-
+                      throw new Exception("Data block number out of bounds");
+ 
                 var db = dataBlocks[blockNum];
 
                 long rowOffset = db.Offset + (index.dwRowIndex % rowsPerBlock) * t.rgibTCI_bm;
@@ -285,6 +446,32 @@ namespace XstReader
 
                 // Read the column existence data
                 var rgCEB = Map.MapArray<Byte>(db.Buffer, (int)(rowOffset + t.rgibTCI_1b), rgCEBSize);
+
+                // Debug code that can be used to read all string properties, to aid in finding useful ones
+                //List<string> sprops = new List<string>();
+                //foreach (var col in cols)
+                //{
+                //    // Check if the column exists
+                //    if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
+                //        continue;
+
+                //    if (col.wPropType == EpropertyType.PtypString)
+                //    {
+                //        if (col.cbData != 4)
+                //            throw new Exception("Unexpected property length");
+                //        HNID hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
+
+                //        if (hnid.HasValue)
+                //        {
+                //            var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+
+                //            if (buf != null)
+                //            {
+                //                sprops.Add(Encoding.Unicode.GetString(buf, 0, buf.Length));
+                //            }
+                //        }
+                //    }
+                //}
 
                 foreach (var col in colsToGet)
                 {
@@ -392,25 +579,32 @@ namespace XstReader
         private IEnumerable<T> ReadBTHIndex<T>(List<HNDataBlock> blocks, HID hid)
         {
             var b = MapType<BTHHEADER>(blocks, hid);
-            if (b.bIdxLevels == 0)
+            foreach (var row in ReadBTHIndexHelper<T>(blocks, b.hidRoot, b.bIdxLevels))
+                yield return row;
+
+            yield break; // No more entries
+        }
+
+        private IEnumerable<T> ReadBTHIndexHelper<T>(List<HNDataBlock> blocks, HID hid, int level)
+        {
+            if (level == 0)
             {
-                int recCount = HidSize(blocks, b.hidRoot) / Marshal.SizeOf(typeof(T));
-                if (b.hidRoot.hidIndex != 0)
+                int recCount = HidSize(blocks, hid) / Marshal.SizeOf(typeof(T));
+                if (hid.GetIndex(ndb.IsUnicode4K) != 0)
                 {
                     // The T record also forms the key of the BTH entry
-                    foreach (var row in MapArray<T>(blocks, b.hidRoot, recCount))
+                    foreach (var row in MapArray<T>(blocks, hid, recCount))
                         yield return row;
                 }
             }
             else
             {
-                int recCount = HidSize(blocks, b.hidRoot) / Marshal.SizeOf(typeof(IntermediateBTH4));
-                var inters = MapArray<IntermediateBTH4>(blocks, b.hidRoot, recCount);
+                int recCount = HidSize(blocks, hid) / Marshal.SizeOf(typeof(IntermediateBTH4));
+                var inters = MapArray<IntermediateBTH4>(blocks, hid, recCount);
 
                 foreach (var inter in inters)
                 {
-                    int count = HidSize(blocks, inter.hidNextLevel) / Marshal.SizeOf(typeof(T));
-                    foreach (var row in MapArray<T>(blocks, inter.hidNextLevel, count))
+                    foreach (var row in ReadBTHIndexHelper<T>(blocks, inter.hidNextLevel, level - 1))
                         yield return row;
                 }
             }
@@ -514,7 +708,7 @@ namespace XstReader
 
             if (hnid.hidType == EnidType.HID)
             {
-                if (hnid.hidIndex != 0)
+                if (hnid.GetIndex(ndb.IsUnicode4K) != 0)
                 {
                     buf = MapArray<byte>(blocks, hnid.HID, HidSize(blocks, hnid.HID));
                 }
@@ -531,28 +725,29 @@ namespace XstReader
 
         // Dereference the supplied HID in the supplied heap-on-node blocks,
         // and return the size of the resulting data buffer
-        private static int HidSize(List<HNDataBlock> blocks, HID hid)
+        private int HidSize(List<HNDataBlock> blocks, HID hid)
         {
-            if (hid.hidIndex == 0) // Check for empty
+            var index = hid.GetIndex(ndb.IsUnicode4K);
+            if (index == 0) // Check for empty
                 return 0;
-            var b = blocks[hid.hidBlockIndex];
-            return b.rgibAlloc[hid.hidIndex] - b.rgibAlloc[hid.hidIndex - 1];
+            var b = blocks[hid.GetBlockIndex(ndb.IsUnicode4K)];
+            return b.rgibAlloc[index] - b.rgibAlloc[index - 1];
         }
 
         // Dereference the supplied HID in the supplied heap-on-node blocks,
         // and map the resulting data buffer onto the specified type T
-        private static T MapType<T>(List<HNDataBlock> blocks, HID hid, int offset = 0)
+        private T MapType<T>(List<HNDataBlock> blocks, HID hid, int offset = 0)
         {
-            var b = blocks[hid.hidBlockIndex];
-            return Map.MapType<T>(b.Buffer, b.rgibAlloc[hid.hidIndex - 1] + offset);
+            var b = blocks[hid.GetBlockIndex(ndb.IsUnicode4K)];
+            return Map.MapType<T>(b.Buffer, b.rgibAlloc[hid.GetIndex(ndb.IsUnicode4K) - 1] + offset);
         }
 
         // Dereference the supplied HID in the supplied heap-on-node blocks,
         // and map the resulting data buffer onto an array of count occurrences of the specified type T
-        private static T[] MapArray<T>(List<HNDataBlock> blocks, HID hid, int count, int offset = 0)
+        private T[] MapArray<T>(List<HNDataBlock> blocks, HID hid, int count, int offset = 0)
         {
-            var b = blocks[hid.hidBlockIndex];
-            return Map.MapArray<T>(b.Buffer, b.rgibAlloc[hid.hidIndex - 1] + offset, count);
+            var b = blocks[hid.GetBlockIndex(ndb.IsUnicode4K)];
+            return Map.MapArray<T>(b.Buffer, b.rgibAlloc[hid.GetIndex(ndb.IsUnicode4K) - 1] + offset, count);
         }
         #endregion
     }
