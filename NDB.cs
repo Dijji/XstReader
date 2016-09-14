@@ -554,9 +554,9 @@ namespace XstReader
             var rb = LookupDataBlock(subDataBid);
             if (rb == null)
                 throw new Exception("SubNode data block does not exist");
-            byte[] buffer = new byte[rb.Length];
-            fs.Seek((long)rb.Offset, SeekOrigin.Begin);
-            fs.Read(buffer, 0, rb.Length);
+
+            int read;
+            byte[] buffer = ReadAndDecompress(fs, rb, out read);
             var sl = Map.MapType<SLBLOCKUnicode>(buffer);
 
             if (sl.cLevel > 0)
@@ -590,9 +590,9 @@ namespace XstReader
             var rb = LookupDataBlock(subDataBid);
             if (rb == null)
                 throw new Exception("SubNode data block does not exist");
-            byte[] buffer = new byte[rb.Length];
-            fs.Seek((long)rb.Offset, SeekOrigin.Begin);
-            fs.Read(buffer, 0, rb.Length);
+
+            int read;
+            byte[] buffer = ReadAndDecompress(fs, rb, out read);
             var sl = Map.MapType<SLBLOCKANSI>(buffer);
 
             if (sl.cLevel > 0)

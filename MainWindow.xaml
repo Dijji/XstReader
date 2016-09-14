@@ -170,7 +170,7 @@
                     </ListView.View>
                 </ListView>
             </Grid>
-            <ListView Grid.Row="1"  Name="listAttachments" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Attachments}"
+            <ListView Grid.Row="1"  Name="listAttachments" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Attachments}" MaxHeight="200"
                       SelectionChanged="listAttachments_SelectionChanged" FontSize="12" Visibility="{Binding IsAttachmentPresent, Converter={StaticResource VisibleIfTrue}}">
                 <ListView.View>
                     <GridView>
