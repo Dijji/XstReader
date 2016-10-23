@@ -154,6 +154,11 @@ namespace XstReader
             listMessages.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
         }
 
+        private void listRecipients_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            view.SelectedRecipientChanged((Recipient)listRecipients.SelectedItem);
+        }
+
         private void listAttachments_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<Attachment>());

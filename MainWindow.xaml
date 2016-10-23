@@ -114,7 +114,8 @@
                     <RowDefinition Height="3"/>
                     <RowDefinition Height="4*"/>
                 </Grid.RowDefinitions>
-                <ListView Grid.Row="0"  Name="listRecipients" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Recipients}" FontSize="12">
+                <ListView Grid.Row="0"  Name="listRecipients" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Recipients}" 
+                      SelectionChanged="listRecipients_SelectionChanged" FontSize="12">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Width="100" Header="Type" >
@@ -142,7 +143,7 @@
                     </ListView.View>
                 </ListView>
                 <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" />
-                <ListView Grid.Row="2"  Name="listProperties" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Properties}" FontSize="12">
+                <ListView Grid.Row="2"  Name="listProperties" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentProperties}" FontSize="12">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Width="50" Header="Id" >

@@ -127,23 +127,24 @@ namespace XstReader
         // Property getters must be supplied to map property IDs to members of T
         //
         // First form takes a node ID for a node in the main node tree
-        public IEnumerable<T> ReadTable<T>(FileStream fs, NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
+        public IEnumerable<T> ReadTable<T>(FileStream fs, NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null, Action<T, Property> storeProp = null) where T : new()
         {
             BTree<Node> subNodeTree;
             var rn = ndb.LookupNodeAndReadItsSubNodeBtree(fs, nid, out subNodeTree);
 
-            return ReadTableInternal<T>(fs, subNodeTree, rn.DataBid, g, idGetter);
+            return ReadTableInternal<T>(fs, subNodeTree, rn.DataBid, g, idGetter, storeProp);
         }
 
         // Second form takes a node ID for a node in the supplied sub node tree
-        public IEnumerable<T> ReadTable<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
+        public IEnumerable<T> ReadTable<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g,
+            Action<T, UInt32> idGetter = null, Action<T, Property> storeProp = null) where T : new()
         {
             BTree<Node> childSubNodeTree;
             var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
             if (rn == null)
                 throw new Exception("Node block does not exist");
 
-            return ReadTableInternal<T>(fs, childSubNodeTree, rn.DataBid, g, idGetter);
+            return ReadTableInternal<T>(fs, childSubNodeTree, rn.DataBid, g, idGetter, storeProp);
         }
 
         // Test for the  presence of an optional table in the supplied sub node tree
@@ -194,20 +195,7 @@ namespace XstReader
 
                 dynamic val = ReadPropertyValue(fs, subNodeTree, blocks, prop);
 
-                Property p = new Property { Tag = prop.wPropId, Value = val };
-
-                if (p.IsNamed)
-                {
-                    // If we haven't read the named properties dictionary, do so now
-                    if (namedProperties == null)
-                    {
-                        namedProperties = new NamedProperties();
-                        ReadProperties<NamedProperties>(fs, new NID(EnidSpecial.NID_NAME_TO_ID_MAP), pgNamedProperties, namedProperties);
-                    }
-
-                    // Fill in property details as far as we can
-                    namedProperties.LookupNPID((UInt16) p.Tag, p);
-                }
+                Property p = CreatePropertyObject(fs, prop.wPropId, val);
 
                 yield return p; 
             }
@@ -279,48 +267,63 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypString: // Unicode string
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                    if (buf == null)
-                        val = "<Could not read string value>";
+                    if (!prop.dwValueHnid.HasValue)
+                        val = "";
                     else
                     {
-                        val = Encoding.Unicode.GetString(buf, 0, buf.Length);
+                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                        if (buf == null)
+                            val = "<Could not read string value>";
+                        else
+                        {
+                            val = Encoding.Unicode.GetString(buf, 0, buf.Length);
+                        }
                     }
                     break;
 
                 case EpropertyType.PtypString8:  // Multipoint string in variable encoding
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                    if (buf == null)
-                        val = "<Could not read string value>";
+                    if (!prop.dwValueHnid.HasValue)
+                        val = "";
                     else
-                        val = Encoding.UTF8.GetString(buf, 0, buf.Length);
+                    {
+                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                        if (buf == null)
+                            val = "<Could not read string value>";
+                        else
+                            val = Encoding.UTF8.GetString(buf, 0, buf.Length);
+                    }
                     break;
 
                 case EpropertyType.PtypMultipleString: // Unicode strings
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
-
-                    if (buf == null)
-                        val = "<Could not read MultipleString value>";
+                    if (!prop.dwValueHnid.HasValue)
+                        val = "";
                     else
                     {
-                        var count = Map.MapType<UInt32>(buf);
-                        var offsets = Map.MapArray<UInt32>(buf, sizeof(UInt32), (int)count);
-                        var ss = new string[count];
+                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
 
-                        // Offsets are relative to the start of the buffer
-                        for (int i = 0; i < count; i++)
+                        if (buf == null)
+                            val = "<Could not read MultipleString value>";
+                        else
                         {
-                            int len;
-                            if (i < count - 1)
-                                len = (int)(offsets[i + 1] - offsets[i]);
-                            else
-                                len = buf.Length - (int)offsets[i];
+                            var count = Map.MapType<UInt32>(buf);
+                            var offsets = Map.MapArray<UInt32>(buf, sizeof(UInt32), (int)count);
+                            var ss = new string[count];
 
-                            ss[i] = Encoding.Unicode.GetString(buf, (int)offsets[i], len);
+                            // Offsets are relative to the start of the buffer
+                            for (int i = 0; i < count; i++)
+                            {
+                                int len;
+                                if (i < count - 1)
+                                    len = (int)(offsets[i + 1] - offsets[i]);
+                                else
+                                    len = buf.Length - (int)offsets[i];
+
+                                ss[i] = Encoding.Unicode.GetString(buf, (int)offsets[i], len);
+                            }
+                            val = ss;
                         }
-                        val = ss;
                     }
                     break;
 
@@ -361,9 +364,31 @@ namespace XstReader
             return val;
         }
 
+        private Property CreatePropertyObject(FileStream fs, EpropertyTag propId, dynamic val)
+        {
+
+            Property p = new Property { Tag = propId, Value = val };
+
+            if (p.IsNamed)
+            {
+                // If we haven't read the named properties dictionary, do so now
+                if (namedProperties == null)
+                {
+                    namedProperties = new NamedProperties();
+                    ReadProperties<NamedProperties>(fs, new NID(EnidSpecial.NID_NAME_TO_ID_MAP), pgNamedProperties, namedProperties);
+                }
+
+                // Fill in property details as far as we can
+                namedProperties.LookupNPID((UInt16)p.Tag, p);
+            }
+
+            return p;
+        }
+
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
-        private IEnumerable<T> ReadTableInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
+        private IEnumerable<T> ReadTableInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g,
+            Action<T, UInt32> idGetter, Action<T, Property> storeProp) where T : new()
         {
             var blocks = ReadHeapOnNode(fs, dataBid);
             var h = blocks.First();
@@ -401,19 +426,19 @@ namespace XstReader
                         Length = buf.Length,
                     }
                 };
-                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter);
+                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
             }
             else
             {
                 // Don't use GetBytesForHNID in this case, as we need to handle multiple blocks
                 var dataBlocks = ReadSubNodeRowDataBlocks(fs, subNodeTree, t.hnidRows.NID);
-                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter);
+                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
             }
         }
 
-        // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters
+        // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters, and optionally getting all columns as properties
         private IEnumerable<T> ReadTableData<T>(FileStream fs, TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols, List<TCOLDESC> colsToGet,
-             BTree<Node> subNodeTree, TCROWIDUnicode[] indexes, PropertyGetters<T> g, Action<T, UInt32> idGetter = null) where T : new()
+             BTree<Node> subNodeTree, TCROWIDUnicode[] indexes, PropertyGetters<T> g, Action<T, UInt32> idGetter, Action<T, Property> storeProp) where T : new()
         {
             int rgCEBSize = (int)Math.Ceiling((decimal)t.cCols / 8);
             int rowsPerBlock;
@@ -447,132 +472,149 @@ namespace XstReader
                 // Read the column existence data
                 var rgCEB = Map.MapArray<Byte>(db.Buffer, (int)(rowOffset + t.rgibTCI_1b), rgCEBSize);
 
-                // Debug code that can be used to read all string properties, to aid in finding useful ones
-                //List<string> sprops = new List<string>();
-                //foreach (var col in cols)
-                //{
-                //    // Check if the column exists
-                //    if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
-                //        continue;
-
-                //    if (col.wPropType == EpropertyType.PtypString)
-                //    {
-                //        if (col.cbData != 4)
-                //            throw new Exception("Unexpected property length");
-                //        HNID hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
-
-                //        if (hnid.HasValue)
-                //        {
-                //            var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
-
-                //            if (buf != null)
-                //            {
-                //                sprops.Add(Encoding.Unicode.GetString(buf, 0, buf.Length));
-                //            }
-                //        }
-                //    }
-                //}
-
                 foreach (var col in colsToGet)
                 {
                     // Check if the column exists
                     if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
                         continue;
 
-                    dynamic val = null;
-                    HNID hnid;
+                    dynamic val = ReadTableColumnValue(fs, subNodeTree, blocks, db, rowOffset, col);
 
-                    switch (col.wPropType)
-                    {
-                        case EpropertyType.PtypInteger32:
-                            if (col.cbData != 4)
-                                throw new Exception("Unexpected property length");
-                            val = Map.MapType<Int32>(db.Buffer, (int)rowOffset + col.ibData);
-                            break;
-
-                        case EpropertyType.PtypBoolean:
-                            val.Value = (db.Buffer[rowOffset + col.ibData] == 0x01);
-                            break;
-
-                        case EpropertyType.PtypString:  // Unicode string
-                            if (col.cbData != 4)
-                                throw new Exception("Unexpected property length");
-                            hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
-
-                            if (!hnid.HasValue)
-                                val = "";
-                            else
-                            {
-                                var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
-
-                                if (buf == null)
-                                    val = "<Could not read string value>";
-                                else
-                                {
-                                    int skip = 0;
-                                    if (col.wPropId == EpropertyTag.PidTagSubjectW)
-                                        if (buf[0] == 0x01 && buf[1] == 0x00)  // Unicode 0x01
-                                            skip = 4;
-                                    val = Encoding.Unicode.GetString(buf, skip, buf.Length - skip);
-                                }
-                            }
-                            if (val == "" && col.wPropId == EpropertyTag.PidTagSubjectW)
-                                val = "<No subject>";
-                            break;
-
-                        case EpropertyType.PtypString8: // Multibyte string in variable encoding
-                            if (col.cbData != 4)
-                                throw new Exception("Unexpected property length");
-                            hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
-
-                            if (!hnid.HasValue)
-                                val = "";
-                            else
-                            {
-                                var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
-
-                                if (buf == null)
-                                    val = "<Could not read string value>";
-                                else
-                                {
-                                    int skip = 0;
-
-                                    if (col.wPropId == EpropertyTag.PidTagSubjectW)
-                                        if (buf[0] == 0x01)  // ANSI 0x01
-                                            skip = 2;
-                                    val = Encoding.UTF8.GetString(buf, skip, buf.Length - skip);
-                                }
-                            }
-                            if (val == "" && col.wPropId == EpropertyTag.PidTagSubjectW)
-                                val = "<No subject>";
-                            break;
-
-                        case EpropertyType.PtypTime:
-                            // In a Table Context, time values are held in line
-                            if (col.cbData != 8)
-                                throw new Exception("Unexpected property length");
-                            var fileTime = Map.MapType<Int64>(db.Buffer, (int)rowOffset + col.ibData);
-                            try
-                            {
-                                val = DateTime.FromFileTimeUtc(fileTime);
-                            }
-                            catch (System.ArgumentOutOfRangeException)
-                            {
-                                val = null;
-                            }
-                            break;
-
-                        default:
-                            val = null;
-                            break;
-                    }
                     g[col.wPropId](row, val);
                 }
+
+                // If we were asked for all column values as properties, read them and store them
+                if (storeProp != null)
+                {
+                    foreach (var col in cols)
+                    {
+                        // Check if the column exists
+                        if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
+                            continue;
+
+                        dynamic val = ReadTableColumnValue(fs, subNodeTree, blocks, db, rowOffset, col);
+
+                        Property p = CreatePropertyObject(fs, col.wPropId, val);
+
+                        storeProp(row, p);
+                    }
+                }
+
                 yield return row;
             }
             yield break; // No more entries
         }
 
+        private dynamic ReadTableColumnValue(FileStream fs, BTree<Node> subNodeTree, List<HNDataBlock> blocks, RowDataBlock db, long rowOffset, TCOLDESC col)
+        {
+            dynamic val = null;
+            HNID hnid;
+
+            switch (col.wPropType)
+            {
+                case EpropertyType.PtypInteger32:
+                    if (col.cbData != 4)
+                        throw new Exception("Unexpected property length");
+                    val = Map.MapType<Int32>(db.Buffer, (int)rowOffset + col.ibData);
+                    break;
+
+                case EpropertyType.PtypBoolean:
+                    val = (db.Buffer[rowOffset + col.ibData] == 0x01);
+                    break;
+
+                case EpropertyType.PtypBinary:
+                    if (col.cbData != 4)
+                        throw new Exception("Unexpected property length");
+                    hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
+
+                    if (!hnid.HasValue)
+                        val = "";
+                    else
+                    {
+                        var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+
+                        if (buf == null)
+                            val = null;
+                        else
+                            val = buf;
+                    }
+                    break;
+
+                case EpropertyType.PtypString:  // Unicode string
+                    if (col.cbData != 4)
+                        throw new Exception("Unexpected property length");
+                    hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
+
+                    if (!hnid.HasValue)
+                        val = "";
+                    else
+                    {
+                        var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+
+                        if (buf == null)
+                            val = "<Could not read string value>";
+                        else
+                        {
+                            int skip = 0;
+                            if (col.wPropId == EpropertyTag.PidTagSubjectW)
+                                if (buf[0] == 0x01 && buf[1] == 0x00)  // Unicode 0x01
+                                    skip = 4;
+                            val = Encoding.Unicode.GetString(buf, skip, buf.Length - skip);
+                        }
+                    }
+                    if (val == "" && col.wPropId == EpropertyTag.PidTagSubjectW)
+                        val = "<No subject>";
+                    break;
+
+                case EpropertyType.PtypString8: // Multibyte string in variable encoding
+                    if (col.cbData != 4)
+                        throw new Exception("Unexpected property length");
+                    hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
+
+                    if (!hnid.HasValue)
+                        val = "";
+                    else
+                    {
+                        var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+
+                        if (buf == null)
+                            val = "<Could not read string value>";
+                        else
+                        {
+                            int skip = 0;
+
+                            if (col.wPropId == EpropertyTag.PidTagSubjectW)
+                                if (buf[0] == 0x01)  // ANSI 0x01
+                                    skip = 2;
+                            val = Encoding.UTF8.GetString(buf, skip, buf.Length - skip);
+                        }
+                    }
+                    if (val == "" && col.wPropId == EpropertyTag.PidTagSubjectW)
+                        val = "<No subject>";
+                    break;
+
+                case EpropertyType.PtypTime:
+                    // In a Table Context, time values are held in line
+                    if (col.cbData != 8)
+                        throw new Exception("Unexpected property length");
+                    var fileTime = Map.MapType<Int64>(db.Buffer, (int)rowOffset + col.ibData);
+                    try
+                    {
+                        val = DateTime.FromFileTimeUtc(fileTime);
+                    }
+                    catch (System.ArgumentOutOfRangeException)
+                    {
+                        val = null;
+                    }
+                    break;
+
+                default:
+                    val = String.Format("Unsupported property type {0}", col.wPropType);
+                    break;
+            }
+
+            return val;
+        }
 
         // Walk a b-tree implemented on a heap, and return all the type T entries
         // This is used when reading the index of properties in a PC (property context), or rows in a TC (table context)

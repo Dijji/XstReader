@@ -22,6 +22,7 @@ namespace XstReader
         public ObservableCollection<Folder> RootFolders { get; private set; } = new ObservableCollection<Folder>();
         public Folder SelectedFolder { get { return selectedFolder; } set { selectedFolder = value; OnPropertyChanged("SelectedFolder"); } }
         public Message CurrentMessage { get; private set; } = null;
+        public ObservableCollection<Property> CurrentProperties { get; private set; } = null;
         public bool IsMessagePresent { get { return (CurrentMessage != null); } }
         public bool CanPopMessage { get { return (stackMessage.Count > 0); } }
         public bool IsAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasAttachment); } }
@@ -29,14 +30,42 @@ namespace XstReader
         public bool IsFileAttachmentSelected { get { return fileAttachmentSelected; } set { fileAttachmentSelected = value; OnPropertyChanged("IsFileAttachmentSelected"); } }
         public bool IsEmailAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment); } }
         public bool IsEmailAttachmentSelected { get { return emailAttachmentSelected; } set { emailAttachmentSelected = value; OnPropertyChanged("IsEmailAttachmentSelected"); } }
-        public bool ShowContent { get { return showContent; }
-                                  set { showContent = value; OnPropertyChanged("ShowContent"); OnPropertyChanged("ShowProperties"); OnPropertyChanged("IsAttachmentPresent"); } }
+        public bool ShowContent {
+            get { return showContent; }
+            set
+            {
+                showContent = value;
+                OnPropertyChanged("ShowContent");
+                OnPropertyChanged("ShowProperties");
+                OnPropertyChanged("IsAttachmentPresent");
+                OnPropertyChanged("IsFileAttachmentPresent");
+                OnPropertyChanged("IsFileAttachmentSelected");
+                OnPropertyChanged("IsEmailAttachmentPresent");
+                OnPropertyChanged("IsEmailAttachmentSelected");
+            }
+        }
         public bool ShowProperties { get { return !showContent; } }
+
+        public void SelectedRecipientChanged(Recipient recipient)
+        {
+            if (recipient != null)
+            {
+                CurrentProperties = recipient.Properties;
+                OnPropertyChanged("CurrentProperties");
+            }
+        }
 
         public void SelectedAttachmentsChanged(IEnumerable<Attachment> selection)
         {
             IsFileAttachmentSelected = selection.FirstOrDefault(a => a.IsFile) != null;
             IsEmailAttachmentSelected = selection.FirstOrDefault(a => a.IsEmail) != null;
+
+            var firstAttachment = selection.FirstOrDefault(a => (a.IsFile || a.IsEmail));
+            if (firstAttachment != null)
+            {
+                CurrentProperties = firstAttachment.Properties;
+                OnPropertyChanged("CurrentProperties");
+            }
         }
 
         public void SetMessage(Message m)
@@ -67,8 +96,10 @@ namespace XstReader
         private void UpdateCurrentMessage(Message m)
         {
             CurrentMessage = m;
+            CurrentProperties = m != null ? m.Properties : null;
             
             OnPropertyChanged("CurrentMessage");
+            OnPropertyChanged("CurrentProperties");
             OnPropertyChanged("IsMessagePresent");
             OnPropertyChanged("CanPopMessage");
             OnPropertyChanged("IsAttachmentPresent");
@@ -145,6 +176,7 @@ namespace XstReader
         public RecipientType RecipientType { get; set; }
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
+        public ObservableCollection<Property> Properties { get; private set; } = new ObservableCollection<Property>();
     }
 
     class Property
@@ -214,6 +246,9 @@ namespace XstReader
 
     class Attachment
     {
+        private ObservableCollection<Property> properties = null;
+
+        public XstFile XstFile { get; set; }
         public Message Parent { get; set; }
         public BTree<Node> subNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
         public string DisplayName { get; set; }
@@ -227,6 +262,7 @@ namespace XstReader
         public dynamic Content { get; set; }  
         public bool IsFile { get { return AttachMethod == AttachMethods.afByValue; } }
         public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethods.afEmbeddedMessage; } }
+
         public string Type
         {
             get
@@ -239,6 +275,7 @@ namespace XstReader
                     return "Other";
             }
         }
+
         public string Description
         {
             get
@@ -247,6 +284,23 @@ namespace XstReader
                     return FileName;
                 else
                     return DisplayName;
+            }
+        }
+
+        public ObservableCollection<Property> Properties
+        {
+            get
+            {
+                // We read the full set of attachment property values only on demand
+                if (properties == null)
+                {
+                    properties = new ObservableCollection<Property>();
+                    foreach (var p in XstFile.ReadAttachmentProperties(this))
+                    {
+                        properties.Add(p);
+                    }
+                }
+                return properties;
             }
         }
     }

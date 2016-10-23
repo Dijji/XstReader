@@ -136,6 +136,11 @@ namespace XstReader
             {EpropertyTag.PidTagAttachDataBinary, (a, val) => a.Content = val },
         };
 
+        private static readonly HashSet<EpropertyTag> attachmentContentExclusions = new HashSet<EpropertyTag>
+        {
+            EpropertyTag.PidTagAttachDataBinary,
+        };
+
 
         #region Public methods
 
@@ -209,6 +214,22 @@ namespace XstReader
                 }
 
                 ReadMessageTables(fs, subNodeTree, m);
+            }
+        }
+
+        public List<Property> ReadAttachmentProperties(Attachment a)
+        {
+            using (var fs = ndb.GetReadStream())
+            {
+                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
+
+                if (subNodeTreeMessage == null)
+                    // No subNodeTree given: assume we can look it up in the main tree
+                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+
+                // Read all non-content properties
+                // Convert to list so that we can dispose the file access
+                return new List<Property>(ltp.ReadAllProperties(fs, subNodeTreeMessage, a.Nid, attachmentContentExclusions));
             }
         }
 
@@ -305,10 +326,19 @@ namespace XstReader
             var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
             if (ltp.IsTablePresent(subNodeTree, recipientsNid))
             {
-                var rs = ltp.ReadTable<Recipient>(fs, subNodeTree, recipientsNid, pgMessageRecipient, null);
+                var rs = ltp.ReadTable<Recipient>(fs, subNodeTree, recipientsNid, pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
                 m.Recipients.Clear();
                 foreach (var r in rs)
+                {
+                    // Sort the properties
+                    List<Property> lp = new List<Property>(r.Properties);
+                    lp.Sort((a, b) => a.Tag.CompareTo(b.Tag));
+                    r.Properties.Clear();
+                    foreach (var p in lp)
+                        r.Properties.Add(p);
+
                     m.Recipients.Add(r);
+                }
             }
 
             // Read any attachments
@@ -320,6 +350,7 @@ namespace XstReader
                 m.Attachments.Clear();
                 foreach (var a in atts)
                 {
+                    a.XstFile = this; // For lazy reading of the complete properties
                     a.Parent = m;
 
                     // If the long name wasn't in the attachment table, go look for it in the attachment properties
