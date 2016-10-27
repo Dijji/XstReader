@@ -127,8 +127,15 @@ namespace XstReader
 
             if (m != null)
             {
-                xstFile.ReadMessageDetails(m);
-                ShowMessage(m);
+                try
+                {
+                    xstFile.ReadMessageDetails(m);
+                    ShowMessage(m);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error reading message details");
+                }
             }
             view.SetMessage(m);
         }
@@ -156,12 +163,26 @@ namespace XstReader
 
         private void listRecipients_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            view.SelectedRecipientChanged((Recipient)listRecipients.SelectedItem);
+            try
+            {
+                view.SelectedRecipientChanged((Recipient)listRecipients.SelectedItem);
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error reading recipient");
+            }
         }
 
         private void listAttachments_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<Attachment>());
+            try
+            {
+                view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<Attachment>());
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error reading attachment");
+            }
         }
 
         private void btnSave_Click(object sender, RoutedEventArgs e)

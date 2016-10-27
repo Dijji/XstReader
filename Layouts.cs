@@ -37,6 +37,7 @@ namespace XstReader
         public UInt32 dwValue; // References use the whole four bytes
         public EnidType nidType {get { return (EnidType)(dwValue & 0x0000001f); } }  // Low order five bits of stored value
         public UInt32 nidIndex { get { return dwValue >> 5; } }
+        public bool HasValue { get { return (dwValue != 0); } }
 
         public NID(UInt32 nid)
         {

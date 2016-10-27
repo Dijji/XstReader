@@ -96,9 +96,11 @@ namespace XstReader
         // If it has a multiblock structure, return all of the blocks' contents concatenated
         public byte[] ReadSubNodeDataBlock(FileStream fs, BTree<Node> subNodeTree, NID nid)
         {
+            if (!nid.HasValue)
+                return null;
             var n = LookupSubNode(subNodeTree, nid);
             if (n == null)
-                return null;
+                throw new Exception("Node not found in sub node tree");
             if (n.SubDataBid != 0)
                 throw new Exception("Sub-nodes of sub-nodes not yet implemented");
             return ReadDataBlock(fs, n.DataBid);

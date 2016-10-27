@@ -229,7 +229,7 @@ namespace XstReader
 
                 // Read all non-content properties
                 // Convert to list so that we can dispose the file access
-                return new List<Property>(ltp.ReadAllProperties(fs, subNodeTreeMessage, a.Nid, attachmentContentExclusions));
+                return new List<Property>(ltp.ReadAllProperties(fs, subNodeTreeMessage, a.Nid, attachmentContentExclusions, true));
             }
         }
 
