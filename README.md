@@ -13,8 +13,10 @@ Xst Reader is based on Microsoft’s documentation of the Outlook file formats i
 
 ## Installation
 
-Tbd
-
+To install a binary:
+1.	Choose a release, then download the XstReader.zip file attached to it.
+2.	Extract the contents of the zip file to a programs folder.
+3.	Run XstReader.exe, and create shortcuts to it as required.
 
 ## Release History
 
