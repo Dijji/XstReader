@@ -3,7 +3,7 @@ Xst Reader is an open source viewer for Microsoft Outlook’s .ost and .pst file
 
 It presents as a simple, classic, three pane mail viewer:
 
-![](screenshot5.png)
+![](screenshot.png)
 
 Xst Reader goes beyond Outlook in that it will allow you to open .ost files, which are the caches created by Outlook to hold a local copy of a mailbox. Wanting to read an .ost file was the original motivation for this project: knowing that documentation of the format existed, I thought it would only take me a couple of days. In fact, it rapidly became clear that I’d bitten into something considerably more complex than that. But once I’d started…
 
@@ -25,7 +25,7 @@ Tbd
 
 ## Meta
 
-Distributed under the MS-PL license. See [](/license) for more information.
+Distributed under the MS-PL license. See [license](license.md) for more information.
 
 
 
