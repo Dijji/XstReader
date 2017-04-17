@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Windows;
 
 namespace XstReader
 {
@@ -160,6 +164,7 @@ namespace XstReader
         public ObservableCollection<Attachment> Attachments { get; private set; } = new ObservableCollection<Attachment>();
         public ObservableCollection<Recipient> Recipients { get; private set; } = new ObservableCollection<Recipient>();
         public ObservableCollection<Property> Properties { get; private set; } = new ObservableCollection<Property>();
+        public bool MayHaveInlineAttachment { get { return (Attachments.FirstOrDefault(a => a.HasContentId) != null); } }
 
         // The following properties are used in XAML bindings to control the UI
         public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
@@ -169,6 +174,106 @@ namespace XstReader
         public bool ShowHtml { get { return NativeBody == BodyType.HTML || (NativeBody == BodyType.Undefined && 
                                             ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0))); } }
         public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
+
+        public string EmbedAttachments(XstFile xst)
+        {
+            string raw = null;
+
+            if (BodyHtml != null)
+                raw = BodyHtml;
+            else if (Html != null)
+            {
+                var e = GetEncoding();
+                if (e != null)
+                {
+                    raw = new String(e.GetChars(Html));
+                }
+            }
+            else if (Body != null)
+                raw = Body;
+
+            if (raw == null)
+                return null;
+
+            var dict = new Dictionary<string, Attachment>();
+            foreach (var a in Attachments.Where(x => x.HasContentId))
+                dict.Add(a.ContentId, a);
+
+            return Regex.Replace(raw, @"(="")cid:(.*?)("")", match =>
+            {
+                Attachment a;
+                
+                if (dict.TryGetValue(match.Groups[2].Value, out a))
+                {
+                    // There are limits to what we can push into an inline data image, 
+                    // but we don't know exactly what
+                    // Todo handle limit when known
+                    a.WasRenderedInline = true;
+                    var s = new MemoryStream();
+                    xst.SaveAttachment(s, a);
+                    s.Seek(0, SeekOrigin.Begin);
+                    var cooked = match.Groups[1] + @"data:image/jpg;base64," + EscapeString(Convert.ToBase64String(s.ToArray())) + match.Groups[3];
+                    return cooked;
+                }
+
+                return match.Value;
+            }, RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        }
+
+        public void SortAndSaveAttachments(List<Attachment> atts = null)
+        {
+            // If no attachments are supplied, sort the list we already have
+            if (atts == null)
+                atts = new List<Attachment>(Attachments);
+
+            atts.Sort((a, b) =>
+            {
+                if (a == null)
+                    return -1;
+                else if (b == null)
+                    return 1;
+                else if (a.Hide != b.Hide)
+                    return a.Hide ? 1 : -1;
+                else
+                    return 0;
+            });
+
+            Attachments.Clear();
+            foreach (var a in atts)
+                Attachments.Add(a);
+        }
+
+        private string EscapeString(string s)
+        {
+            var sb = new StringBuilder(s.Length);
+            for (int i = 0; i < s.Length;)
+            {
+                int len = Math.Min(s.Length - i, 32766);
+                sb.Append(Uri.EscapeDataString(s.Substring(i, len)));
+                i += len;
+            }
+            return sb.ToString();
+        }
+
+        private Encoding GetEncoding()
+        {
+            var p = Properties.FirstOrDefault(x => x.Guid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
+            if (p != null)
+            {
+
+                Match m = Regex.Match((string)p.Value, @".*charset=""(.*?)""");
+                if (m.Success)
+                     return Encoding.GetEncoding(m.Groups[1].Value);
+            }
+
+            p = Properties.FirstOrDefault(x => x.Tag == EpropertyTag.PidTagInternetCodepage);
+            if (p != null)
+            {
+                return Encoding.GetEncoding((int)p.Value);
+            }
+
+            return null;
+        }
     }
 
     class Recipient
@@ -254,14 +359,18 @@ namespace XstReader
         public string DisplayName { get; set; }
         public string FileNameW { get; set; }
         public string LongFileName { get; set; }
+        public AttachFlags Flags { get; set; }
+        public string MimeTag { get; set; }
+        public string ContentId { get; set; }
+        public bool Hidden { get; set; }
         public string FileName { get { return LongFileName ?? FileNameW; } }
         public int Size { get; set; }
         public NID Nid { get; set; }  
         public AttachMethods AttachMethod { get; set; }
-        public string MimeTag { get; set; }
         public dynamic Content { get; set; }  
         public bool IsFile { get { return AttachMethod == AttachMethods.afByValue; } }
         public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethods.afEmbeddedMessage; } }
+        public bool WasRenderedInline { get; set; } = false;
 
         public string Type
         {
@@ -284,6 +393,23 @@ namespace XstReader
                     return FileName;
                 else
                     return DisplayName;
+            }
+        }
+
+        public bool Hide { get { return (Hidden || IsInlineAttachment); } }
+        public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
+        public bool HasContentId { get { return (ContentId != null); } }
+
+        // To do: case where ContentLocation property is used instead of ContentId
+        public bool IsInlineAttachment
+        {
+            get
+            {
+                // It is an in-line attachment either if the flags say it is, or the content ID
+                // matched a reference in the body and it was rendered inline
+                return ((Flags & AttachFlags.attRenderedInBody) == AttachFlags.attRenderedInBody ||
+                        WasRenderedInline) &&
+                       HasContentId;
             }
         }
 

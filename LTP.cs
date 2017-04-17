@@ -428,12 +428,14 @@ namespace XstReader
                 };
                 return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
             }
-            else
+            else if (t.hnidRows.NID.HasValue)
             {
                 // Don't use GetBytesForHNID in this case, as we need to handle multiple blocks
                 var dataBlocks = ReadSubNodeRowDataBlocks(fs, subNodeTree, t.hnidRows.NID);
                 return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
             }
+            else
+                return Enumerable.Empty<T>();
         }
 
         // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters, and optionally getting all columns as properties

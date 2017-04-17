@@ -227,15 +227,28 @@ namespace XstReader
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (m.ShowHtml)
                     {
-                        if (m.BodyHtml != null)
+                        string embedded = null;
+                        if (m.MayHaveInlineAttachment)
+                            embedded = m.EmbedAttachments(xstFile);  // Returns null if this is not appropriate
+
+                        if (embedded != null)
+                        {
+                            wbMessage.NavigateToString(embedded);
+                            m.SortAndSaveAttachments();  // Re-sort attachments in case any new in-line rendering discovered
+                        }
+                        else if (m.BodyHtml != null)
+                        {
                             wbMessage.NavigateToString(m.BodyHtml);
-                        else if(m.Html != null)
+                        }
+                        else if (m.Html != null)
                         {
                             var ms = new System.IO.MemoryStream(m.Html);
                             wbMessage.NavigateToStream(ms);
                         }
-                        else if(m.Body != null)
+                        else if (m.Body != null)
+                        {
                             wbMessage.NavigateToString(m.Body);
+                        }
                     }
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (m.ShowRtf)

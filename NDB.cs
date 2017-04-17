@@ -124,11 +124,11 @@ namespace XstReader
 
         // Copy data to the specified file stream
         // We write each external data block as we read it, so that we never have more than one in memory at the same time
-        public void CopyDataBlocks(FileStream fs, FileStream afs, UInt64 dataBid)
+        public void CopyDataBlocks(FileStream fs, Stream s, UInt64 dataBid)
         {
             foreach (var buf in ReadDataBlocksInternal(fs, dataBid))
             {
-                afs.Write(buf, 0, buf.Length);
+                s.Write(buf, 0, buf.Length);
             }
         }
 

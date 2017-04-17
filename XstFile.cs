@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace XstReader
@@ -119,8 +120,17 @@ namespace XstReader
             {EpropertyTag.PidTagAttachLongFilename, (a, val) => a.LongFileName = val },
             {EpropertyTag.PidTagAttachmentSize, (a, val) => a.Size = val },
             {EpropertyTag.PidTagAttachMethod, (a, val) => a.AttachMethod = (AttachMethods)val },
-            {EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
+            //{EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
             {EpropertyTag.PidTagAttachPayloadClass, (a, val) => a.FileNameW = val },
+        };
+
+        // The properties we read To enable handling of HTML images delivered as attachments
+        private static readonly PropertyGetters<Attachment> pgAttachedHtmlImages = new PropertyGetters<Attachment>
+        {
+            {EpropertyTag.PidTagAttachFlags, (a, val) => a.Flags = (AttachFlags)val },
+            {EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
+            {EpropertyTag.PidTagAttachContentId, (a, val) => a.ContentId = val },
+            {EpropertyTag.PidTagAttachmentHidden, (a, val) => a.Hidden = val },
         };
 
         // The properties we read when accessing the name of an attachment
@@ -235,8 +245,15 @@ namespace XstReader
 
         public void SaveAttachment(string path, Attachment a)
         {
-            using (FileStream fs = ndb.GetReadStream(),
-                              afs = new FileStream(Path.Combine(path, a.FileName), FileMode.Create, FileAccess.Write))
+            using (var afs = new FileStream(Path.Combine(path, a.FileName), FileMode.Create, FileAccess.Write))
+            {
+                SaveAttachment(afs, a);
+            }
+        }
+
+        public void SaveAttachment(Stream s, Attachment a)
+        {
+            using (FileStream fs = ndb.GetReadStream())
             {
                 BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
 
@@ -249,7 +266,7 @@ namespace XstReader
                 // If the value is inline, we just write it out
                 if (a.Content.GetType() == typeof(byte[]))
                 {
-                    afs.Write(a.Content, 0, a.Content.Length);
+                    s.Write(a.Content, 0, a.Content.Length);
                 }
                 // Otherwise we need to dereference the node pointing to the data,
                 // using the subnode tree belonging to the attachment
@@ -259,7 +276,7 @@ namespace XstReader
 
                     // Copy the data to the output file stream without getting it all into memory at once,
                     // as there can be a lot of data
-                    ndb.CopyDataBlocks(fs, afs, nb.DataBid);
+                    ndb.CopyDataBlocks(fs, s, nb.DataBid);
                 }
             }
         }
@@ -310,11 +327,11 @@ namespace XstReader
 
             if (f.HasSubFolders)
             {
-                foreach (var id in ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid)))
-                {
-                    if (id.nidType == EnidType.NORMAL_FOLDER)
-                        f.Folders.Add(ReadFolderStructure(fs, id));
-                }
+                foreach (var sf in ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
+                    .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
+                    .Select(id => ReadFolderStructure(fs, id))
+                    .OrderBy(sf => sf.Name))
+                    f.Folders.Add(sf);
             }
 
             return f;
@@ -346,8 +363,7 @@ namespace XstReader
             if (m.HasAttachment)
             {
                 // Read the attachment table, which is held in the subnode of the message
-                var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id));
-                m.Attachments.Clear();
+                var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
                 foreach (var a in atts)
                 {
                     a.XstFile = this; // For lazy reading of the complete properties
@@ -357,13 +373,16 @@ namespace XstReader
                     if (a.LongFileName == null)
                         ltp.ReadProperties<Attachment>(fs, subNodeTree, a.Nid, pgAttachmentName, a);
 
+                    // Read properties relating to HTML images presented as attachments
+                    ltp.ReadProperties<Attachment>(fs, subNodeTree, a.Nid, pgAttachedHtmlImages, a);
+
                     // If this is an embedded email, tell the attachment where to look for its properties
                     // This is needed because the email node is not in the main node tree
                     if (isAttached)
-                        a.subNodeTreeProperties = subNodeTree;  
-
-                    m.Attachments.Add(a);
+                        a.subNodeTreeProperties = subNodeTree;
                 }
+
+                m.SortAndSaveAttachments(atts);
             }
         }
 

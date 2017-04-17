@@ -178,21 +178,21 @@
                         <GridViewColumn Width="75" Header="Type"  >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Type}" />
+                                    <TextBlock Text="{Binding Path=Type}"  FontWeight="{Binding Path=Weight}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Width="300" Header="Attachment" >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Description}" />
+                                    <TextBlock Text="{Binding Path=Description}"  FontWeight="{Binding Path=Weight}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Width="50" Header="Size"  >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Size}" />
+                                    <TextBlock Text="{Binding Path=Size}"  FontWeight="{Binding Path=Weight}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

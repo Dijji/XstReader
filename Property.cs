@@ -66,8 +66,11 @@ namespace XstReader
         PidTagAttachmentSize = 0x0E20,
         PidTagAttachMethod = 0x3705,
         PidTagAttachMimeTag = 0x370e,
+        PidTagAttachContentId = 0x3712,
+        PidTagAttachFlags = 0x3714,
         PidTagAttachPayloadClass = 0x371a,
         PidTagAttachDataBinary = 0x3701,
+        PidTagAttachmentHidden = 0x7ffe,
         //PidTagAttachDataObject = 0x3701,
 
         // Named properties
@@ -109,6 +112,13 @@ namespace XstReader
         afByValue = 0x00000001,
         afEmbeddedMessage = 0x00000005,
         afStorage = 0x00000006,
+    }
+
+    // Values of the PidTagAttachFlags property
+    public enum AttachFlags : UInt32
+    {
+        attInvisibleInHtml = 0x00000001,
+        attRenderedInBody = 0x00000004,
     }
 
     // Property getters are used to specify which properties should be retrieved from a property context
