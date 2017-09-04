@@ -23,7 +23,7 @@ namespace XstReader
         {
             int size = Marshal.SizeOf(typeof(T));
             if (offset < 0 || offset + size > buffer.Length)
-                throw new Exception("Out of bounds error attempting to map type");
+                throw new XstException("Out of bounds error attempting to map type");
             GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             T temp = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject() + offset, typeof(T));
             handle.Free();
@@ -36,7 +36,7 @@ namespace XstReader
             T[] temp = new T[count];
             int size = Marshal.SizeOf(typeof(T));
             if (offset < 0 || offset + count * size > buffer.Length)
-                throw new Exception("Out of bounds error attempting to map array of types");
+                throw new XstException("Out of bounds error attempting to map array of types");
             GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             for (int i = 0; i < count; i++)
             {
@@ -51,7 +51,7 @@ namespace XstReader
         {
             int size = Marshal.SizeOf(typeof(T));
             if (offset < 0 || offset + size > buflen)
-                throw new Exception("Out of bounds error attempting to map type");
+                throw new XstException("Out of bounds error attempting to map type");
             return (T)Marshal.PtrToStructure(new IntPtr(buffer + offset), typeof(T));
         }
     }

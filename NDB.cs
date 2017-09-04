@@ -87,7 +87,7 @@ namespace XstReader
         public static Node LookupSubNode(BTree<Node> subNodeTree, NID nid)
         {
             if (subNodeTree == null)
-                throw new Exception("No sub node data tree found");
+                throw new XstException("No sub node data tree found");
 
             return subNodeTree.Lookup(nid.dwValue);
         }
@@ -100,9 +100,9 @@ namespace XstReader
                 return null;
             var n = LookupSubNode(subNodeTree, nid);
             if (n == null)
-                throw new Exception("Node not found in sub node tree");
+                throw new XstException("Node not found in sub node tree");
             if (n.SubDataBid != 0)
-                throw new Exception("Sub-nodes of sub-nodes not yet implemented");
+                throw new XstException("Sub-nodes of sub-nodes not yet implemented");
             return ReadDataBlock(fs, n.DataBid);
         }
 
@@ -138,7 +138,7 @@ namespace XstReader
             subNodeTree = null;
             var rn = LookupNode(nid);
             if (rn == null)
-                throw new Exception("Node block does not exist");
+                throw new XstException("Node block does not exist");
             // If there is a sub-node, read its btree so that we can resolve references to nodes in it later
             if (rn.SubDataBid != 0)
             {
@@ -153,7 +153,7 @@ namespace XstReader
             childSubNodeTree = null;
             var rn = LookupSubNode(subNodeTree, nid);
             if (rn == null)
-                throw new Exception("Node block does not exist");
+                throw new XstException("Node block does not exist");
             // If there is a sub-node, read its btree so that we can resolve references to nodes in it later
             if (rn.SubDataBid != 0)
             {
@@ -175,7 +175,7 @@ namespace XstReader
                 var h = Map.ReadType<FileHeader1>(fs);
 
                 if (h.dwMagic != 0x4e444221)
-                    throw new Exception("File is not a .ost or .pst file: the magic cookie is missing");
+                    throw new XstException("File is not a .ost or .pst file: the magic cookie is missing");
 
                 if (h.wVer == 0x15 || h.wVer == 0x17 )
                 {
@@ -206,7 +206,7 @@ namespace XstReader
                     ReadBTPageANSI(fs, h2.root.BREFBBT.ib, dataTree.Root);
                 }
                 else
-                    throw new Exception("Unrecognised header type");
+                    throw new XstException("Unrecognised header type");
             }
         }
 
@@ -274,7 +274,7 @@ namespace XstReader
                         }
                     }
                     else
-                        throw new Exception("Unexpected page entry type");
+                        throw new XstException("Unexpected page entry type");
                 }
             }
         }
@@ -327,7 +327,7 @@ namespace XstReader
                         }
                     }
                     else
-                        throw new Exception("Unexpected page entry type");
+                        throw new XstException("Unexpected page entry type");
                 }
             }
         }
@@ -379,7 +379,7 @@ namespace XstReader
                         }
                     }
                     else
-                        throw new Exception("Unexpected page entry type");
+                        throw new XstException("Unexpected page entry type");
                 }
             }
         }
@@ -438,7 +438,7 @@ namespace XstReader
             bool first = (buffer == null);  // Remember if we're at the top of a potential recursion
             var rb = LookupDataBlock(dataBid);
             if (rb == null)
-                throw new Exception("Data block does not exist");
+                throw new XstException("Data block does not exist");
             if (first)
                 offset = 0;
 
@@ -503,7 +503,7 @@ namespace XstReader
             {
                 // The recursion is over, check the results
                 if (offset != buffer.Length)
-                    throw new Exception("Data xblock length mismatch");
+                    throw new XstException("Data xblock length mismatch");
 
                 return buffer;
             }
@@ -514,7 +514,7 @@ namespace XstReader
         private byte[] ReadAndDecompress(FileStream fs, DataRef rb, out int read, byte[] buffer = null, int offset = 0)
         {
             if (rb == null)
-                throw new Exception("Data block does not exist");
+                throw new XstException("Data block does not exist");
 
             if (IsUnicode4K && rb.Length != rb.InflatedLength)
             {
@@ -523,7 +523,7 @@ namespace XstReader
                 // The first two bytes are a zlib header which DeflateStream does not understand
                 // They should be 0x789c, the magic code for default compression
                 if (fs.ReadByte() != 0x78 || fs.ReadByte() != 0x9c)
-                    throw new Exception("Unexpected header in compressed data stream");
+                    throw new XstException("Unexpected header in compressed data stream");
 
                 using (DeflateStream decompressionStream = new DeflateStream(fs, CompressionMode.Decompress, true))
                 {
@@ -555,7 +555,7 @@ namespace XstReader
         {
             var rb = LookupDataBlock(subDataBid);
             if (rb == null)
-                throw new Exception("SubNode data block does not exist");
+                throw new XstException("SubNode data block does not exist");
 
             int read;
             byte[] buffer = ReadAndDecompress(fs, rb, out read);
@@ -591,7 +591,7 @@ namespace XstReader
         {
             var rb = LookupDataBlock(subDataBid);
             if (rb == null)
-                throw new Exception("SubNode data block does not exist");
+                throw new XstException("SubNode data block does not exist");
 
             int read;
             byte[] buffer = ReadAndDecompress(fs, rb, out read);

@@ -34,7 +34,7 @@ namespace XstReader
                 if (readDeferred != null)
                     readDeferred(parent);
                 else
-                    throw new Exception("Deferred index found, but no reader supplied");
+                    throw new XstException("Deferred index found, but no reader supplied");
             }
 
             TreeIntermediate next = null;

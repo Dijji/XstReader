@@ -104,12 +104,12 @@ namespace XstReader
                         }
 
                         // Throw until the code has been validated
-                        throw new Exception("Decryption of Cyclic algorithm not validated");
+                        throw new XstException("Decryption of Cyclic algorithm not validated");
                         //break;
                     }
 
                 default:
-                    throw new Exception("Encryption method not known");
+                    throw new XstException("Encryption method not known");
             }
         }
     }

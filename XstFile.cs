@@ -311,7 +311,7 @@ namespace XstReader
                     return m;
                 }
                 else
-                    throw new Exception("Unexpected data type for attached message");
+                    throw new XstException("Unexpected data type for attached message");
             }
         }
         #endregion
@@ -387,5 +387,12 @@ namespace XstReader
         }
 
         #endregion
+    }
+
+    public class XstException : Exception
+    {
+        public XstException(string message) : base(message)
+        {
+        }
     }
 }

@@ -107,7 +107,7 @@ namespace XstReader
                     {
                         var crc = CalculateCrc(data, HeaderLength);
                         if (crc != header.crc)
-                            throw new ArgumentException("Input stream is corrupt: CRC did not match");
+                            throw new XstException("Input stream is corrupt: CRC did not match");
                     }
 
                     byte[] dictionary = new byte[CircularDictionaryMaxLength];
@@ -149,7 +149,7 @@ namespace XstReader
                                     var lower = (word & 0xF) + 2;
 
                                     if (upper > dictionaryEnd)
-                                        throw new ArgumentException("Input stream is corrupt: invalid dictionary reference");
+                                        throw new XstException("Input stream is corrupt: invalid dictionary reference");
 
                                     if (upper == dictionaryWrite)
                                         //special dictionary reference means that decompression is complete
@@ -182,12 +182,12 @@ namespace XstReader
                     }
                     catch (IndexOutOfRangeException ex)
                     {
-                        throw new ArgumentException("Input stream is corrupt: index out of range");
+                        throw new XstException("Input stream is corrupt: index out of range");
                     }
                     break;
 
                 default:
-                    throw new ArgumentException("Input stream is corrupt: unknown compression type");
+                    throw new XstException("Input stream is corrupt: unknown compression type");
             }
 
             return null;

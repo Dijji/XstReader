@@ -110,7 +110,7 @@ namespace XstReader
             var blocks = ReadHeapOnNode(fs, nid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypeTC)
-                throw new Exception("Was expecting a table");
+                throw new XstException("Was expecting a table");
 
             // Read the table information
             var t = MapType<TCINFO>(blocks, h.hidUserRoot);
@@ -142,7 +142,7 @@ namespace XstReader
             BTree<Node> childSubNodeTree;
             var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
             if (rn == null)
-                throw new Exception("Node block does not exist");
+                throw new XstException("Node block does not exist");
 
             return ReadTableInternal<T>(fs, childSubNodeTree, rn.DataBid, g, idGetter, storeProp);
         }
@@ -162,7 +162,7 @@ namespace XstReader
             var blocks = ReadHeapOnNode(fs, dataBid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypePC)
-                throw new Exception("Was expecting a PC");
+                throw new XstException("Was expecting a PC");
 
             // Read the index of properties
             var props = ReadBTHIndex<PCBTH>(blocks, h.hidUserRoot).ToArray();
@@ -183,7 +183,7 @@ namespace XstReader
             var blocks = ReadHeapOnNode(fs, dataBid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypePC)
-                throw new Exception("Was expecting a PC");
+                throw new XstException("Was expecting a PC");
 
             // Read the index of properties
             var props = ReadBTHIndex<PCBTH>(blocks, h.hidUserRoot).ToArray();
@@ -393,7 +393,7 @@ namespace XstReader
             var blocks = ReadHeapOnNode(fs, dataBid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypeTC)
-                throw new Exception("Was expecting a table");
+                throw new XstException("Was expecting a table");
 
             // Read the table information
             var t = MapType<TCINFO>(blocks, h.hidUserRoot);
@@ -455,7 +455,7 @@ namespace XstReader
             {
                 int blockNum = (int)(index.dwRowIndex / rowsPerBlock);
                 if (blockNum >= dataBlocks.Count)
-                      throw new Exception("Data block number out of bounds");
+                      throw new XstException("Data block number out of bounds");
  
                 var db = dataBlocks[blockNum];
 
@@ -468,7 +468,7 @@ namespace XstReader
 
                 if (rowOffset + t.rgibTCI_bm > db.Offset + db.Length)
                 {
-                    throw new Exception("Out of bounds reading table data");
+                    throw new XstException("Out of bounds reading table data");
                 }
 
                 // Read the column existence data
@@ -516,7 +516,7 @@ namespace XstReader
             {
                 case EpropertyType.PtypInteger32:
                     if (col.cbData != 4)
-                        throw new Exception("Unexpected property length");
+                        throw new XstException("Unexpected property length");
                     val = Map.MapType<Int32>(db.Buffer, (int)rowOffset + col.ibData);
                     break;
 
@@ -526,7 +526,7 @@ namespace XstReader
 
                 case EpropertyType.PtypBinary:
                     if (col.cbData != 4)
-                        throw new Exception("Unexpected property length");
+                        throw new XstException("Unexpected property length");
                     hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
 
                     if (!hnid.HasValue)
@@ -544,7 +544,7 @@ namespace XstReader
 
                 case EpropertyType.PtypString:  // Unicode string
                     if (col.cbData != 4)
-                        throw new Exception("Unexpected property length");
+                        throw new XstException("Unexpected property length");
                     hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
 
                     if (!hnid.HasValue)
@@ -570,7 +570,7 @@ namespace XstReader
 
                 case EpropertyType.PtypString8: // Multibyte string in variable encoding
                     if (col.cbData != 4)
-                        throw new Exception("Unexpected property length");
+                        throw new XstException("Unexpected property length");
                     hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
 
                     if (!hnid.HasValue)
@@ -598,7 +598,7 @@ namespace XstReader
                 case EpropertyType.PtypTime:
                     // In a Table Context, time values are held in line
                     if (col.cbData != 8)
-                        throw new Exception("Unexpected property length");
+                        throw new XstException("Unexpected property length");
                     var fileTime = Map.MapType<Int64>(db.Buffer, (int)rowOffset + col.ibData);
                     try
                     {
@@ -663,9 +663,9 @@ namespace XstReader
             var blocks = new List<RowDataBlock>();
             var n = NDB.LookupSubNode(subNodeTree, nid);
             if (n == null)
-                throw new Exception("Sub node NID not found");
+                throw new XstException("Sub node NID not found");
             if (n.SubDataBid != 0)
-                throw new Exception("Sub-nodes of sub-nodes not yet implemented");
+                throw new XstException("Sub-nodes of sub-nodes not yet implemented");
 
             foreach (var buf in ndb.ReadDataBlocks(fs, n.DataBid))
             {
@@ -685,7 +685,7 @@ namespace XstReader
         {
             var rn = ndb.LookupNode(nid);
             if (rn == null)
-                throw new Exception("Node block does not exist");
+                throw new XstException("Node block does not exist");
             return ReadHeapOnNode(fs, rn.DataBid);
         }
 
@@ -762,7 +762,7 @@ namespace XstReader
                 buf = ndb.ReadSubNodeDataBlock(fs, subNodeTree, hnid.NID);
             }
             else
-                throw new Exception("Data storage style not implemented");
+                throw new XstException("Data storage style not implemented");
 
             return buf;
         }
