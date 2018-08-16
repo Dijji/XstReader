@@ -63,7 +63,8 @@ namespace XstReader
 
         private static readonly PropertyGetters<Message> pgMessageDetail4K = new PropertyGetters<Message>
         {
-            {EpropertyTag.PidTagSentRepresentingEmailAddress, (m, val) => m.From = val },
+            {EpropertyTag.PidTagSentRepresentingNameW, (m, val) => m.From = val },
+            {EpropertyTag.PidTagSentRepresentingEmailAddress, (m, val) => { if(m.From == null) m.From = val; } },
             {EpropertyTag.PidTagSenderName, (m, val) => { if(m.From == null) m.From = val; } },
         };
 
@@ -187,14 +188,10 @@ namespace XstReader
                 using (var fs = ndb.GetReadStream())
                 {
                     // Get the Contents table for the folder
+                    // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
                     var ms = ltp.ReadTable<Message>(fs, NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
-                                                    ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id));
-
-                    if (ndb.IsUnicode4K)
-                    { 
-                        foreach (var m in ms)
-                            ltp.ReadProperties<Message>(fs, m.Nid, pgMessageDetail4K, m);
-                    }
+                                                    ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
+                                .Select(m => ndb.IsUnicode4K ? Add4KMessageProperties(fs, m) : m);
 
                     // We may be called on a background thread, so we need to dispatch this to the UI thread
                     Application.Current.Dispatcher.Invoke(new Action(() =>
@@ -335,6 +332,13 @@ namespace XstReader
             }
 
             return f;
+        }
+
+        private Message Add4KMessageProperties(FileStream fs, Message m)
+        {
+            ltp.ReadProperties<Message>(fs, m.Nid, pgMessageDetail4K, m);
+
+            return m;
         }
 
         private void ReadMessageTables(FileStream fs, BTree<Node> subNodeTree, Message m, bool isAttached = false)
