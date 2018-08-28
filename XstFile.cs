@@ -32,7 +32,8 @@ namespace XstReader
         {
             {EpropertyTag.PidTagDisplayName, (f, val) => f.Name = val },
             {EpropertyTag.PidTagContentCount, (f, val) => f.ContentCount = val },
-            {EpropertyTag.PidTagSubfolders, (f, val) => f.HasSubFolders = val },
+            // Don't bother reading HasSubFolders, because it is not always set
+            // {EpropertyTag.PidTagSubfolders, (f, val) => f.HasSubFolders = val },
         };
 
         // When reading folder contents, the message properties we ask for
@@ -322,14 +323,11 @@ namespace XstReader
 
             ltp.ReadProperties<Folder>(fs, nid, pgFolder, f);
 
-            if (f.HasSubFolders)
-            {
-                foreach (var sf in ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
-                    .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
-                    .Select(id => ReadFolderStructure(fs, id))
-                    .OrderBy(sf => sf.Name))
-                    f.Folders.Add(sf);
-            }
+            foreach (var sf in ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
+                .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
+                .Select(id => ReadFolderStructure(fs, id))
+                .OrderBy(sf => sf.Name))
+                f.Folders.Add(sf);
 
             return f;
         }
