@@ -28,7 +28,45 @@ namespace XstReader
             InitializeComponent();
             this.DataContext = view;
         }
-        
+
+        public void OpenFile(string fileName)
+        {
+            if (!System.IO.File.Exists(fileName))
+                return;
+
+            Properties.Settings.Default.LastFolder = System.IO.Path.GetDirectoryName(fileName);
+            Properties.Settings.Default.Save();
+
+            view.Clear();
+            txtStatus.Text = "Loading...";
+            Mouse.OverrideCursor = Cursors.Wait;
+
+            // Load on a background thread so we can keep the UI in sync
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    xstFile = new XstFile(view, fileName);
+                    xstFile.ReadFolderTree();
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error reading xst file");
+                }
+            })
+            // When loading completes, update the UI using the UI thread 
+            .ContinueWith((task) =>
+            {
+                Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    txtStatus.Text = "";
+                    Mouse.OverrideCursor = null;
+                    Title = "Xst Reader - " + System.IO.Path.GetFileName(fileName);
+                }));
+            });
+        }
+
+
         private void btnOpen_Click(object sender, RoutedEventArgs e)
         {
             // Ask for a .ost or .pst file to open
@@ -43,36 +81,7 @@ namespace XstReader
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Properties.Settings.Default.LastFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
-                Properties.Settings.Default.Save();
-
-                view.Clear();
-                txtStatus.Text = "Loading...";
-                Mouse.OverrideCursor = Cursors.Wait;
-
-                // Load on a background thread so we can keep the UI in sync
-                Task.Factory.StartNew(() => 
-                {
-                    try
-                    {
-                        xstFile = new XstFile(view, dialog.FileName);
-                        xstFile.ReadFolderTree();
-                    }
-                    catch (System.Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error reading xst file");
-                    }
-                })
-                // When loading completes, update the UI using the UI thread 
-                .ContinueWith((task) =>
-                {
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                    {
-                        txtStatus.Text = "";
-                        Mouse.OverrideCursor = null;
-                        Title = "Xst Reader - " + System.IO.Path.GetFileName(dialog.FileName);
-                    }));
-                });
+                OpenFile(dialog.FileName);
             }
         }
 
