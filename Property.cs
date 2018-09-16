@@ -22,6 +22,7 @@ namespace XstReader
         PtypString = 0x001f,
         PtypString8 = 0x001e,
         PtypMultipleString = 0x101F,
+        PtypMultipleBinary = 0x1102,
         PtypTime = 0x0040,
     }
 

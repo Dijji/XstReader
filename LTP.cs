@@ -321,8 +321,41 @@ namespace XstReader
                                     len = buf.Length - (int)offsets[i];
 
                                 ss[i] = Encoding.Unicode.GetString(buf, (int)offsets[i], len);
+                                }
+                                val = ss;
                             }
-                            val = ss;
+                        }
+                    break;
+
+                case EpropertyType.PtypMultipleBinary:
+                    if (!prop.dwValueHnid.HasValue)
+                        val = null;
+                    else
+                    {
+                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+
+                        if (buf == null)
+                            val = "<Could not read MultipleBinary value>";
+                        else
+                        {
+                            var count = Map.MapType<UInt32>(buf);
+                            var offsets = Map.MapArray<UInt32>(buf, sizeof(UInt32), (int)count);
+                            var bs = new List<byte[]>();
+
+                            // Offsets are relative to the start of the buffer
+                            for (int i = 0; i < count; i++)
+                            {
+                                int len;
+                                if (i < count - 1)
+                                    len = (int)(offsets[i + 1] - offsets[i]);
+                                else
+                                    len = buf.Length - (int)offsets[i];
+
+                                var b = new byte[len];
+                                Array.Copy(buf, offsets[i], b, 0, len);
+                                bs.Add(b);
+                            }
+                            val = bs;
                         }
                     }
                     break;

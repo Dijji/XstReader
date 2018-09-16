@@ -341,6 +341,8 @@ namespace XstReader
                     return String.Join(", ", Value);
                 else if (Value is string[])
                     return String.Join(",\r\n", Value);
+                else if (Value is List<byte[]>)
+                    return String.Join(",\r\n", ((List<byte[]>)Value).Select(v => BitConverter.ToString(v)));
                 else if (Value == null)
                     return null; 
                 else
