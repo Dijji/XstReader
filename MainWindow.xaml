@@ -1,8 +1,9 @@
-﻿ <!-- Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.-->
- <Window x:Class="XstReader.MainWindow"
+﻿<!-- Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.-->
+<Window x:Class="XstReader.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Xst Reader" Height="800" Width="1500">
+        Title="Xst Reader" Height="800" Width="1500"
+        Closing="Window_Closing">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrue"/>
     </Window.Resources>
@@ -35,7 +36,11 @@
             </TreeView>
             <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Button Content="Open..." Height="20" HorizontalAlignment="Left" Margin="10,5,0,0" Name="btnOpen" VerticalAlignment="Top" Width="75" Click="btnOpen_Click" />
-                <TextBlock Name="txtStatus" Margin="20,7,0,0" Width="100" />
+                <Grid Margin="10,0,0,0" >
+                    <TextBlock Name="txtStatus" Margin="10,7,0,0" Width="100" />
+                    <Button Content="Export Folder..." Height="20" Margin="10,0,0,5" Name="btnExportFolder" VerticalAlignment="Bottom" Width="100" Click="btnExportFolder_Click"
+                        Visibility="{Binding CanExportFolder, Converter={StaticResource VisibleIfTrue}}"/>
+                </Grid>    
             </StackPanel>
         </Grid>
         <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" />
@@ -196,7 +201,7 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                      </GridView>
+                    </GridView>
                 </ListView.View>
             </ListView>
             <StackPanel Grid.Row="2" Orientation="Horizontal">
@@ -208,6 +213,8 @@
                         Visibility="{Binding IsEmailAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsEmailAttachmentSelected}"/>
                 <Button Content="Close Email" Height="20" Margin="10,5,0,0" Name="btnCloseEmail" VerticalAlignment="Top" Width="75" Click="btnCloseEmail_Click"
                         Visibility="{Binding CanPopMessage, Converter={StaticResource VisibleIfTrue}}" />
+                <Button Content="Export Properties..." Height="20" Margin="10,0,0,5" Name="btnExportProperties" VerticalAlignment="Bottom" Width="105" Click="btnExportProperties_Click"
+                        Visibility="{Binding CanExportProperties, Converter={StaticResource VisibleIfTrue}}" />
             </StackPanel>
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
                 <RadioButton x:Name="rbContent" Content="Content" Margin="0,10,10,0" IsChecked="True" Click="rbContent_Click"

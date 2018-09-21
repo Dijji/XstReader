@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows;
 
 namespace XstReader
@@ -312,6 +313,73 @@ namespace XstReader
                     throw new XstException("Unexpected data type for attached message");
             }
         }
+
+        private struct LineProp
+        {
+            public int line;
+            public Property p;
+        }
+
+        public void ExportMessageProperties(IEnumerable<Message> messages, string fileName)
+        {
+            // We build a dictionary of queues of line,Property pairs where each queue represents
+            // a column in the CSV file, and the line is the line number in the file.
+            // The key to the dictionary is the property ID.
+
+            var dict = new Dictionary<string, Queue<LineProp>>();
+            int lines = 1;
+
+            foreach (var m in messages)
+            {
+                ReadMessageDetails(m);
+                foreach (var p in m.Properties)
+                {
+                    Queue<LineProp> queue;
+                    if (!dict.TryGetValue(p.CsvId, out queue))
+                    {
+                        queue = new Queue<LineProp>();
+                        dict[p.CsvId] = queue;
+                    }
+                    queue.Enqueue(new LineProp { line = lines, p = p });
+                }
+                lines++;
+            }
+
+            // Now we sort the columns by ID
+            var columns = dict.Keys.OrderBy(x => x).ToArray();
+
+            // And finally output the CSV file line by line
+            using (var sw = new System.IO.StreamWriter(fileName, false))
+            {
+                StringBuilder sb = new StringBuilder();
+                bool hasValue = false;
+
+                for (int line = 0; line < lines; line++)
+                {
+                    foreach (var col in columns)
+                    {
+                        var q = dict[col];
+
+                        // First line is always the column headers
+                        if (line == 0)
+                            AddCsvValue(sb, q.Peek().p.CsvDescription, ref hasValue);
+
+                        // After that, output the column value if it has one
+                        else if (q.Count > 0 && q.Peek().line == line)
+                            AddCsvValue(sb, q.Dequeue().p.DisplayValue, ref hasValue);
+                        
+                        // Or leave it blank
+                        else
+                            AddCsvValue(sb, "", ref hasValue);
+                    }
+
+                    // Write the completed line out
+                    sw.WriteLine(sb.ToString());
+                    sb.Clear();
+                    hasValue = false;
+                }
+            }
+        }
         #endregion
 
         #region Private methods
@@ -386,6 +454,27 @@ namespace XstReader
 
                 m.SortAndSaveAttachments(atts);
             }
+        }
+
+        private void AddCsvValue(StringBuilder sb, string value, ref bool hasValue)
+        {
+            if (hasValue)
+                sb.Append(",");
+
+            if (value != null)
+            {
+                value = value.Replace("\r\n", "; ").Replace("\r", "; ").Replace("\n", "; ");
+                if (value.Contains(','))    
+                {
+                    sb.Append("\"");
+                    sb.Append(value);
+                    sb.Append("\"");
+                }
+                else
+                    sb.Append(value);
+            }
+
+            hasValue = true;
         }
 
         #endregion

@@ -27,6 +27,13 @@ namespace XstReader
         {
             InitializeComponent();
             this.DataContext = view;
+            if (Properties.Settings.Default.Top != 0.0)
+            {
+                this.Top = Properties.Settings.Default.Top;
+                this.Left = Properties.Settings.Default.Left;
+                this.Height = Properties.Settings.Default.Height;
+                this.Width = Properties.Settings.Default.Width;
+            }
         }
 
         public void OpenFile(string fileName)
@@ -38,7 +45,7 @@ namespace XstReader
             Properties.Settings.Default.Save();
 
             view.Clear();
-            txtStatus.Text = "Loading...";
+            ShowStatus("Loading...");
             Mouse.OverrideCursor = Cursors.Wait;
 
             // Load on a background thread so we can keep the UI in sync
@@ -59,7 +66,7 @@ namespace XstReader
             {
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
-                    txtStatus.Text = "";
+                    ShowStatus(null);
                     Mouse.OverrideCursor = null;
                     Title = "Xst Reader - " + System.IO.Path.GetFileName(fileName);
                 }));
@@ -85,6 +92,39 @@ namespace XstReader
             }
         }
 
+        private void btnExportFolder_Click(object sender, RoutedEventArgs e)
+        {
+            string fileName = GetPropertiesFileName(view.SelectedFolder.Name);
+
+            if (fileName != null)
+            {
+                ShowStatus("Exporting properties...");
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // Export properties on a background thread so we can keep the UI in sync
+                Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        xstFile.ExportMessageProperties(view.SelectedFolder.Messages, fileName);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error exporting properties");
+                    }
+                })
+                // When exporting completes, update the UI using the UI thread 
+                .ContinueWith((task) =>
+                {
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        ShowStatus(null);
+                        Mouse.OverrideCursor = null;
+                    }));
+                });
+            }
+        }
+
         private void treeFolders_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             Folder f = (Folder)e.NewValue;
@@ -93,7 +133,7 @@ namespace XstReader
             if (f != null)
             {
                 f.Messages.Clear();
-                txtStatus.Text = "Reading messages...";
+                ShowStatus("Reading messages...");
                 Mouse.OverrideCursor = Cursors.Wait;
 
                 // Read messages on a background thread so we can keep the UI in sync
@@ -113,7 +153,7 @@ namespace XstReader
                 {
                     Application.Current.Dispatcher.Invoke(new Action(() =>
                     {
-                        txtStatus.Text = "";
+                        ShowStatus(null);
                         Mouse.OverrideCursor = null;
                     }));
                 });
@@ -217,6 +257,14 @@ namespace XstReader
             ShowMessage(view.CurrentMessage);
         }
 
+        private void btnExportProperties_Click(object sender, RoutedEventArgs e)
+        {
+            string fileName = GetPropertiesFileName(view.CurrentMessage.Subject);
+
+            if (fileName != null)
+                xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage }, fileName);
+        }
+
         private void rbContent_Click(object sender, RoutedEventArgs e)
         {
             view.ShowContent = true;
@@ -225,6 +273,20 @@ namespace XstReader
         private void rbProperties_Click(object sender, RoutedEventArgs e)
         {
             view.ShowContent = false;
+        }
+
+        private void ShowStatus(string status)
+        {
+            if (status != null)
+            {
+                view.IsBusy = true;
+                txtStatus.Text = status;
+            }
+            else
+            {
+                view.IsBusy = false;
+                txtStatus.Text = "";
+            }
         }
 
         private void ShowMessage(Message m)
@@ -315,6 +377,47 @@ namespace XstReader
                     MessageBox.Show(ex.Message, "Error saving attachments");
                 }
             }
+        }
+
+        private string GetPropertiesFileName(string defaultName)
+        {
+            var dialog = new System.Windows.Forms.SaveFileDialog();
+
+            dialog.Title = "Specify properties export file";
+            dialog.InitialDirectory = Properties.Settings.Default.LastExportFolder;
+            if (dialog.InitialDirectory == "")
+                dialog.InitialDirectory = Properties.Settings.Default.LastFolder;
+            dialog.Filter = "csv files (*.csv)|*.csv";
+            dialog.FileName = defaultName;
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Properties.Settings.Default.LastExportFolder = System.IO.Path.GetFullPath(dialog.FileName);
+                Properties.Settings.Default.Save();
+                return dialog.FileName;
+            }
+            else
+                return null;
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                // Use the RestoreBounds as the current values will be 0, 0 and the size of the screen
+                Properties.Settings.Default.Top = RestoreBounds.Top;
+                Properties.Settings.Default.Left = RestoreBounds.Left;
+                Properties.Settings.Default.Height = RestoreBounds.Height;
+                Properties.Settings.Default.Width = RestoreBounds.Width;
+            }
+            else
+            {
+                Properties.Settings.Default.Top = this.Top;
+                Properties.Settings.Default.Left = this.Left;
+                Properties.Settings.Default.Height = this.Height;
+                Properties.Settings.Default.Width = this.Width;
+            }
+            Properties.Settings.Default.Save();
         }
     }
 }

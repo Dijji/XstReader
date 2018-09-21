@@ -18,17 +18,23 @@ namespace XstReader
     class View : INotifyPropertyChanged
     {
         private Folder selectedFolder = null;
+        private bool isBusy = false;
         private Stack<Message> stackMessage = new Stack<Message>();
         private bool fileAttachmentSelected = false;
         private bool emailAttachmentSelected = false;
         private bool showContent = true;
 
         public ObservableCollection<Folder> RootFolders { get; private set; } = new ObservableCollection<Folder>();
-        public Folder SelectedFolder { get { return selectedFolder; } set { selectedFolder = value; OnPropertyChanged("SelectedFolder"); } }
+        public Folder SelectedFolder {
+            get { return selectedFolder; }
+            set { selectedFolder = value; OnPropertyChanged("SelectedFolder"); OnPropertyChanged("CanExportFolder"); } }
+        public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged("CanExportFolder"); } }
         public Message CurrentMessage { get; private set; } = null;
         public ObservableCollection<Property> CurrentProperties { get; private set; } = null;
         public bool IsMessagePresent { get { return (CurrentMessage != null); } }
         public bool CanPopMessage { get { return (stackMessage.Count > 0); } }
+        public bool CanExportFolder { get { return !IsBusy && SelectedFolder != null; } }
+        public bool CanExportProperties { get { return IsMessagePresent && ShowProperties; } }
         public bool IsAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasAttachment); } }
         public bool IsFileAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasFileAttachment); } }
         public bool IsFileAttachmentSelected { get { return fileAttachmentSelected; } set { fileAttachmentSelected = value; OnPropertyChanged("IsFileAttachmentSelected"); } }
@@ -41,6 +47,7 @@ namespace XstReader
                 showContent = value;
                 OnPropertyChanged("ShowContent");
                 OnPropertyChanged("ShowProperties");
+                OnPropertyChanged("CanExportProperties");
                 OnPropertyChanged("IsAttachmentPresent");
                 OnPropertyChanged("IsFileAttachmentPresent");
                 OnPropertyChanged("IsFileAttachmentSelected");
@@ -105,6 +112,7 @@ namespace XstReader
             OnPropertyChanged("CurrentMessage");
             OnPropertyChanged("CurrentProperties");
             OnPropertyChanged("IsMessagePresent");
+            OnPropertyChanged("CanExportProperties");
             OnPropertyChanged("CanPopMessage");
             OnPropertyChanged("IsAttachmentPresent");
             OnPropertyChanged("IsFileAttachmentPresent");
@@ -328,6 +336,42 @@ namespace XstReader
                     return description;
                 else
                     return null;
+            }
+        }
+
+        public string CsvId
+        {
+            get
+            {
+                if (IsNamed)
+                    // Prefix with 80 In order to ensure they collate last
+                    return String.Format("80{0}{1:x8}", Guid, Lid);
+                else
+                    return String.Format("{0:x4}", (UInt16)Tag);
+            }
+        }
+
+
+        public string CsvDescription
+        {
+            get
+            {
+                string description;
+                if (IsNamed)
+                {
+                    return String.Format("{0}: {1}",
+                        GuidName != null ? GuidName : Guid,
+                        Name != null ? Name : String.Format("0x{0:x8}", Lid));
+                }
+                else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
+                {
+                    if (description.StartsWith("undocumented"))
+                        return "undocumented " + DisplayId;
+                    else
+                        return description;
+                }
+                else
+                    return DisplayId;
             }
         }
 
