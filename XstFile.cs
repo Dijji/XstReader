@@ -331,7 +331,20 @@ namespace XstReader
 
             foreach (var m in messages)
             {
-                ReadMessageDetails(m);
+                // Do not reread properties for current message as it will fail updating the display
+                if (m != view.CurrentMessage)
+                {
+                    try
+                    {
+                        ReadMessageDetails(m);
+                    }
+                    catch (XstException ex)
+                    {
+                        // Ignore file exceptions to get as much as we can
+                    }
+                }
+
+
                 foreach (var p in m.Properties)
                 {
                     Queue<LineProp> queue;
@@ -466,15 +479,29 @@ namespace XstReader
                 value = value.Replace("\r\n", "; ").Replace("\r", "; ").Replace("\n", "; ");
                 if (value.Contains(','))    
                 {
+                    // We need to quote the value, and therefore get rid of quotes in it
+                    // Excel is also fooled by spaces after embedded commas
+                    var val = value.Replace("\"", "'");
+                    while (val.Contains(", "))
+                        val = val.Replace(", ", ",");
                     sb.Append("\"");
-                    sb.Append(value);
+                    sb.Append(EnforceCsvValueLengthLimit(val));
                     sb.Append("\"");
                 }
                 else
-                    sb.Append(value);
+                    sb.Append(EnforceCsvValueLengthLimit(value));
             }
 
             hasValue = true;
+        }
+
+        private static int valueLengthLimit = (int)Math.Pow(2, 15) - 12;
+        private string EnforceCsvValueLengthLimit(string value)
+        {
+            if (value.Length < valueLengthLimit)
+                return value;
+            else
+                return value.Substring(0, valueLengthLimit) + "…";
         }
 
         #endregion

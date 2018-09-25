@@ -34,13 +34,11 @@
                     </Style>
                 </TreeView.ItemContainerStyle>
             </TreeView>
-            <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal">
                 <Button Content="Open..." Height="20" HorizontalAlignment="Left" Margin="10,5,0,0" Name="btnOpen" VerticalAlignment="Top" Width="75" Click="btnOpen_Click" />
-                <Grid Margin="10,0,0,0" >
-                    <TextBlock Name="txtStatus" Margin="10,7,0,0" Width="100" />
-                    <Button Content="Export Folder..." Height="20" Margin="10,0,0,5" Name="btnExportFolder" VerticalAlignment="Bottom" Width="100" Click="btnExportFolder_Click"
+                <Button Content="Export Folder..." Height="20" Margin="10,0,0,5" Name="btnExportFolder" VerticalAlignment="Bottom" Width="100" Click="btnExportFolder_Click"
                         Visibility="{Binding CanExportFolder, Converter={StaticResource VisibleIfTrue}}"/>
-                </Grid>    
+                <TextBlock Name="txtStatus" Margin="10,7,0,0" Width="150" />
             </StackPanel>
         </Grid>
         <GridSplitter Grid.Column="1" Width="3" HorizontalAlignment="Stretch" />
