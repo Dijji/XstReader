@@ -183,31 +183,34 @@ namespace XstReader
                                             ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0))); } }
         public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
 
-        public string EmbedAttachments(XstFile xst)
+        public string GetBodyAsHtmlString()
         {
-            string raw = null;
-
             if (BodyHtml != null)
-                raw = BodyHtml;
+                return BodyHtml; // This will be plain ASCII
             else if (Html != null)
             {
                 var e = GetEncoding();
                 if (e != null)
                 {
-                    raw = new String(e.GetChars(Html));
+                    return EscapeUnicodeCharacters(new String(e.GetChars(Html)));
                 }
             }
-            else if (Body != null)
-                raw = Body;
+            else if (Body != null) // Not really expecting this as a source of HTML
+                return EscapeUnicodeCharacters(Body);
 
-            if (raw == null)
+            return null;
+        }
+
+        public string EmbedAttachments(string body, XstFile xst)
+        {
+            if (body == null)
                 return null;
 
             var dict = new Dictionary<string, Attachment>();
             foreach (var a in Attachments.Where(x => x.HasContentId))
                 dict.Add(a.ContentId, a);
 
-            return Regex.Replace(raw, @"(="")cid:(.*?)("")", match =>
+            return Regex.Replace(body, @"(="")cid:(.*?)("")", match =>
             {
                 Attachment a;
                 
@@ -249,6 +252,28 @@ namespace XstReader
             Attachments.Clear();
             foreach (var a in atts)
                 Attachments.Add(a);
+        }
+
+        private static string EscapeUnicodeCharacters(string source)
+        {
+            int length = source.Length;
+            var escaped = new StringBuilder();
+
+            for (int i = 0; i < length; i++)
+            {
+                char ch = source[i];
+
+                if (ch >= '\x00a0')
+                {
+                    escaped.AppendFormat("&#x{0};", ((int)ch).ToString("X4"));
+                }
+                else
+                {
+                    escaped.Append(ch);
+                }
+            }
+
+            return escaped.ToString();
         }
 
         private string EscapeString(string s)
