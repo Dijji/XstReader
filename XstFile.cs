@@ -355,6 +355,15 @@ namespace XstReader
                     }
                     queue.Enqueue(new LineProp { line = lines, p = p });
                 }
+
+                queue = new Queue<LineProp>();
+                dict[ "Body" ] = queue;
+                queue.Enqueue(new LineProp { line = lines, p = m.Body });
+
+                queue = new Queue<LineProp>();
+                dict[ "NativeBody" ] = queue;
+                queue.Enqueue(new LineProp { line = lines, p = m.NativeBody });
+
                 lines++;
             }
 
