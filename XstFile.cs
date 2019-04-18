@@ -476,14 +476,11 @@ namespace XstReader
 
             if (value != null)
             {
-                value = value.Replace("\r\n", "; ").Replace("\r", "; ").Replace("\n", "; ");
-                if (value.Contains(','))    
+                if (value.Contains(',') || value.Contains('"') || value.Contains("\n") || value.Contains("\n") )    
                 {
                     // We need to quote the value, and therefore get rid of quotes in it
                     // Excel is also fooled by spaces after embedded commas
-                    var val = value.Replace("\"", "'");
-                    while (val.Contains(", "))
-                        val = val.Replace(", ", ",");
+                    var val = value.Replace("\"", "\"\"");
                     sb.Append("\"");
                     sb.Append(EnforceCsvValueLengthLimit(val));
                     sb.Append("\"");
