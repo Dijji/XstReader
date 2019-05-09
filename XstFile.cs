@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Text.RegularExpressions;
 
 namespace XstReader
 {
@@ -329,6 +330,15 @@ namespace XstReader
             var dict = new Dictionary<string, Queue<LineProp>>();
             int lines = 1;
 
+            Queue<LineProp> queue_body = new Queue<LineProp>();
+            dict["0000Body"] = queue_body;
+            Queue<LineProp> queue_html_utf8 = new Queue<LineProp>();
+            dict["0000HTML_utf8"] = queue_html_utf8;
+            Queue<LineProp> queue_html_base64 = new Queue<LineProp>();
+            dict["0000HTML_base64"] = queue_html_base64;
+            Queue<LineProp> queue_rtf = new Queue<LineProp>();
+            dict["0000RTF"] = queue_rtf;
+            
             foreach (var m in messages)
             {
                 // Do not reread properties for current message as it will fail updating the display
@@ -356,13 +366,47 @@ namespace XstReader
                     queue.Enqueue(new LineProp { line = lines, p = p });
                 }
 
-                queue = new Queue<LineProp>();
-                dict[ "Body" ] = queue;
-                queue.Enqueue(new LineProp { line = lines, p = m.Body });
+                if ( m.Body != null )
+                {
+                    queue_body.Enqueue(new LineProp { line = lines, p = new Property { Tag = EpropertyTag.PidTagBody, Value = m.Body } });
+                }
 
-                queue = new Queue<LineProp>();
-                dict[ "NativeBody" ] = queue;
-                queue.Enqueue(new LineProp { line = lines, p = m.NativeBody });
+                if (m.Html != null)
+                {
+                    var body_html_utf8string = System.Text.Encoding.UTF8.GetString(m.Html);
+                    // queue_html_default.Enqueue(new LineProp { line = lines, p = new Property { Tag = EpropertyTag.PidTagHtml, Value = System.Text.Encoding.GetEncodingi("sjis") } });
+                    // queue_html_default.Enqueue(new LineProp { line = lines, p = new Property { Tag = EpropertyTag.PidTagHtml, Value = System.Text.Encoding.Default.GetString( m.Html) } });
+                    // queue_html_unicode.Enqueue(new LineProp { line = lines, p = new Property { Tag = EpropertyTag.PidTagHtml, Value = System.Text.Encoding.Unicode.GetString(m.Html) } });
+                    queue_html_utf8   .Enqueue(new LineProp { line = lines, p = new Property { Tag = EpropertyTag.PidTagNativeBody, Value = body_html_utf8string } });  // Tag is misuse but no appropriate one --HAL
+
+                    var charset = "utf-8";
+                    var r = new Regex(@"charset=""?([-_a-zA-Z0-9]+)");
+                    var match = r.Match(body_html_utf8string);
+                    //System.Text.RegularExpressions.Match m = r.Match(text);
+
+                    if (match.Success)
+                    {
+                        charset = match.Groups[1].Value;
+                    }
+
+                    queue_html_base64.Enqueue(new LineProp { line = lines,
+                                                           p = new Property { Tag = EpropertyTag.PidTagHtml,
+                                                                              Value = "Content-Type: text/html; charset=" + charset + "\nContent-Transfer-Encoding: base64\n\n" + 
+                                                                                      Convert.ToBase64String(m.Html, Base64FormattingOptions.InsertLineBreaks) } });
+                }
+
+                if (m.RtfCompressed != null)
+                {
+                    queue_rtf.Enqueue(new LineProp {
+                        line = lines,
+                        p = new Property {
+                            Tag = EpropertyTag.PidTagRtfCompressed, 
+                            Value = "Content-Type: application/ms-tnef; name = \"winmail.dat\"\nContent-Transfer-Encoding: base64\n\n" +
+                                                                            Convert.ToBase64String(m.RtfCompressed, Base64FormattingOptions.InsertLineBreaks)
+                        }
+                    });
+                }
+
 
                 lines++;
             }
