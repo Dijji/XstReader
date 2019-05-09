@@ -410,6 +410,57 @@ namespace XstReader
 
                 lines++;
             }
+            if (queue_body.Count == 0)
+            {
+                queue_body.Enqueue(new LineProp
+                {
+                    line = 0,
+                    p = new Property
+                    {
+                        Tag = EpropertyTag.PidTagBody,
+                        Value = ""
+                    }
+                });
+            }
+
+            if (queue_html_utf8.Count == 0)
+            {
+                queue_html_utf8.Enqueue(new LineProp
+                {
+                    line = 0,
+                    p = new Property
+                    {
+                        Tag = EpropertyTag.PidTagNativeBody,
+                        Value = ""
+                    }
+                });
+            }
+
+            if (queue_html_base64.Count == 0)
+            {
+                queue_html_base64.Enqueue(new LineProp
+                {
+                    line = 0,
+                    p = new Property
+                    {
+                        Tag = EpropertyTag.PidTagHtml,
+                        Value = ""
+                    }
+                });
+            }
+
+            if (queue_rtf.Count == 0)
+            {
+                queue_rtf.Enqueue(new LineProp
+                {
+                    line = 0,
+                    p = new Property
+                    {
+                        Tag = EpropertyTag.PidTagRtfCompressed,
+                        Value = ""
+                    }
+                });
+            }
 
             // Now we sort the columns by ID
             var columns = dict.Keys.OrderBy(x => x).ToArray();
