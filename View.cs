@@ -184,6 +184,7 @@ namespace XstReader
         public bool ShowHtml { get { return NativeBody == BodyType.HTML || (NativeBody == BodyType.Undefined && 
                                             ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0))); } }
         public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
+        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
         public string ToDisplayList
         {
             get

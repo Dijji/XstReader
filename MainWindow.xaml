@@ -126,7 +126,7 @@
                     <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=From}"
                                FontSize="12"/>
                     <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=ToDisplayList}"
-                               FontSize="12"/>
+                               FontSize="12" Visibility="{Binding Path=HasToDisplayList, Converter={StaticResource VisibleIfTrue}}"/>
                     <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=CcDisplayList}"
                                FontSize="12" Visibility="{Binding Path=HasCcDisplayList, Converter={StaticResource VisibleIfTrue}}"/>
                     <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=BccDisplayList}"
