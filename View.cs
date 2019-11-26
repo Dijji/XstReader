@@ -184,6 +184,35 @@ namespace XstReader
         public bool ShowHtml { get { return NativeBody == BodyType.HTML || (NativeBody == BodyType.Undefined && 
                                             ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0))); } }
         public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
+        public string ToDisplayList
+        {
+            get
+            {
+                var s = String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.To)
+                    .Select(r => r.DisplayName));
+                return s.Length == 0 ? s : "To:  " + s;  
+            }
+        }
+        public bool HasCcDisplayList { get { return CcDisplayList.Length > 0; } }
+        public string CcDisplayList
+        {
+            get
+            {
+                var s = String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.Cc)
+                    .Select(r => r.DisplayName));
+                return s.Length == 0 ? s : "Cc:  " + s;
+            }
+        }
+        public bool HasBccDisplayList { get { return BccDisplayList.Length > 0; } }
+        public string BccDisplayList
+        {
+            get
+            {
+                var s = String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.Bcc)
+                    .Select(r => r.DisplayName));
+                return s.Length == 0 ? s : "Bcc: " + s;
+            }
+        }
 
         public bool IsSelected
         {

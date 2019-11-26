@@ -114,11 +114,26 @@
         <GridSplitter Grid.Column="3" Width="3" HorizontalAlignment="Stretch" />
         <Grid Grid.Column="4">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Visibility="{Binding ShowContent, Converter={StaticResource VisibleIfTrue}}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <StackPanel Grid.Row="0" Orientation="Vertical">
+                    <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=Subject}"
+                               FontSize="14" FontWeight="Bold"/>
+                    <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=From}"
+                               FontSize="12"/>
+                    <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=ToDisplayList}"
+                               FontSize="12"/>
+                    <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=CcDisplayList}"
+                               FontSize="12" Visibility="{Binding Path=HasCcDisplayList, Converter={StaticResource VisibleIfTrue}}"/>
+                    <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=BccDisplayList}"
+                               FontSize="12" Visibility="{Binding Path=HasBccDisplayList, Converter={StaticResource VisibleIfTrue}}"/>
+                </StackPanel>
+            </ScrollViewer>
+            <Grid Grid.Row="1" Visibility="{Binding ShowContent, Converter={StaticResource VisibleIfTrue}}">
                 <TextBox  DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=Body}"
                      Visibility="{Binding ShowText, Converter={StaticResource VisibleIfTrue}}"/>
                 <WebBrowser Name="wbMessage" DataContext="{Binding Path=CurrentMessage}" 
@@ -126,7 +141,7 @@
                 <RichTextBox Name="rtfMessage" DataContext="{Binding Path=CurrentMessage}" 
                      Visibility="{Binding ShowRtf, Converter={StaticResource VisibleIfTrue}}"/>
             </Grid>
-            <Grid Grid.Row="0" Visibility="{Binding ShowProperties, Converter={StaticResource VisibleIfTrue}}">
+            <Grid Grid.Row="1" Visibility="{Binding ShowProperties, Converter={StaticResource VisibleIfTrue}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="3"/>
@@ -189,7 +204,7 @@
                     </ListView.View>
                 </ListView>
             </Grid>
-            <ListView Grid.Row="1"  Name="listAttachments" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Attachments}" MaxHeight="200"
+            <ListView Grid.Row="2"  Name="listAttachments" Margin="0,0,0,0" ItemsSource="{Binding Path=CurrentMessage.Attachments}" MaxHeight="200"
                       SelectionChanged="listAttachments_SelectionChanged" FontSize="12" Visibility="{Binding IsAttachmentPresent, Converter={StaticResource VisibleIfTrue}}">
                 <ListView.View>
                     <GridView>
@@ -217,7 +232,7 @@
                     </GridView>
                 </ListView.View>
             </ListView>
-            <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <StackPanel Grid.Row="3" Orientation="Horizontal">
                 <Button Content="Save File..." Height="20" Margin="10,5,0,0" Name="btnSave" VerticalAlignment="Top" Width="75" Click="btnSave_Click"
                         Visibility="{Binding IsFileAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsFileAttachmentSelected}"/>
                 <Button Content="Save All Files..." Height="20" Margin="10,5,0,0" Name="btnSaveAll" VerticalAlignment="Top" Width="90" Click="btnSaveAll_Click" 
@@ -229,7 +244,7 @@
                 <Button Content="Export Properties..." Height="20" Margin="10,0,0,5" Name="btnExportProperties" VerticalAlignment="Bottom" Width="105" Click="btnExportProperties_Click"
                         Visibility="{Binding CanExportProperties, Converter={StaticResource VisibleIfTrue}}" />
             </StackPanel>
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
                 <RadioButton x:Name="rbContent" Content="Content" Margin="0,10,10,0" IsChecked="True" Click="rbContent_Click"
                               Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
                 <RadioButton x:Name="rbProperties" Content="Properties" Margin="0,10,10,0" Click="rbProperties_Click"
