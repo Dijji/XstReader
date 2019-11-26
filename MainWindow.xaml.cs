@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
+using SearchTextBox;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,11 +23,16 @@ namespace XstReader
         private XstFile xstFile = null;
         private GridViewColumnHeader listViewSortCol = null;
         private SortAdorner listViewSortAdorner = null;
+        private int searchIndex = -1;
 
         public MainWindow()
         {
             InitializeComponent();
             this.DataContext = view;
+
+            // Supply the Search control with the list of sections
+            searchTextBox.SectionsList = new List<string> { "Subject", "From/To", "Date" };
+
             if (Properties.Settings.Default.Top != 0.0)
             {
                 this.Top = Properties.Settings.Default.Top;
@@ -172,6 +178,8 @@ namespace XstReader
 
         private void listMessages_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            searchIndex = listMessages.SelectedIndex;
+            searchTextBox.ShowSearch = true;
             Message m = (Message)listMessages.SelectedItem;
 
             if (m != null)
@@ -208,6 +216,9 @@ namespace XstReader
             listViewSortAdorner = new SortAdorner(listViewSortCol, newDir);
             AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
             listMessages.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
+
+            searchIndex = listMessages.SelectedIndex;
+            listMessages.ScrollIntoView(listMessages.SelectedItem);
         }
 
         private void listRecipients_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -273,6 +284,78 @@ namespace XstReader
         private void rbProperties_Click(object sender, RoutedEventArgs e)
         {
             view.ShowContent = false;
+        }
+
+        private void searchTextBox_OnSearch(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var args = e as SearchEventArgs;
+                bool subject = args.Sections.Contains("Subject");
+                bool fromTo = args.Sections.Contains("From/To");
+                bool date = args.Sections.Contains("Date");
+                bool found = false;
+                switch (args.SearchEventType)
+                {
+                    case SearchEventType.Search:
+                        for (int i = 0; i < listMessages.Items.Count; i++)
+                        {
+                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date);
+                            if (found)
+                                break;
+                        }
+
+                        if (!found)
+                            searchIndex = -1;
+                        break;
+                    case SearchEventType.Next:
+                        for (int i = searchIndex + 1; i < listMessages.Items.Count; i++)
+                        {
+                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date);
+                            if (found)
+                            {
+                                searchTextBox.ShowSearch = true;
+                                break;
+                            }
+                        }
+                        break;
+                    case SearchEventType.Previous:
+                        for (int i = searchIndex - 1; i >= 0; i--)
+                        {
+                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date);
+                            if (found)
+                            {
+                                searchTextBox.ShowSearch = true;
+                                break;
+                            }
+                        }
+                        break;
+                }
+
+                if (!found)
+                    searchTextBox.IndicateSearchFailed(args.SearchEventType);
+            }
+            catch (Exception ex)
+            {
+                // Unclear what we can do here, as we were invoked by an event from the search text box control
+            }
+        }
+
+        private bool PropertyHitTest(int index, string text, bool subject, bool fromTo, bool date)
+        {
+            Message m = listMessages.Items[index] as Message;
+            if ((subject && m.Subject != null && m.Subject.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (fromTo && m.FromTo != null && m.FromTo.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (date && m.DisplayDate != null && m.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
+            {
+                searchIndex = index;
+                listMessages.UnselectAll();
+                m.IsSelected = true;
+                listMessages.ScrollIntoView(m);
+                return true;
+            }
+            else
+                return false;
         }
 
         private void ShowStatus(string status)

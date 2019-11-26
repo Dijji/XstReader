@@ -149,8 +149,10 @@ namespace XstReader
         }
     }
 
-    class Message 
+    class Message : INotifyPropertyChanged
     {
+        private bool isSelected = false;
+        
         public Folder Folder { get; set; }
         public string From { get; set; }
         public string To { get; set; }
@@ -182,6 +184,19 @@ namespace XstReader
         public bool ShowHtml { get { return NativeBody == BodyType.HTML || (NativeBody == BodyType.Undefined && 
                                             ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0))); } }
         public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
+
+        public bool IsSelected
+        {
+            get { return isSelected; }
+            set
+            {
+                if (value != isSelected)
+                {
+                    isSelected = value;
+                    OnPropertyChanged(nameof(IsSelected));
+                }
+            }
+        }
 
         public string GetBodyAsHtmlString()
         {
@@ -306,6 +321,16 @@ namespace XstReader
             }
 
             return null;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(String info)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(info));
+            }
         }
     }
 

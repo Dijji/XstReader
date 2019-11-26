@@ -2,10 +2,22 @@
 <Window x:Class="XstReader.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:stb="clr-namespace:SearchTextBox"
         Title="Xst Reader" Height="800" Width="1500"
         Closing="Window_Closing">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrue"/>
+        <Style x:Key="ListViewSelect" TargetType="{x:Type ListViewItem}">
+            <Setter x:Uid="Setter_10" Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+            <Setter x:Uid="Setter_11" Property="FontWeight" Value="Normal" />
+            <Style.Triggers>
+                <Trigger x:Uid="Trigger_1" Property="IsSelected"
+                              Value="True">
+                    <Setter x:Uid="Setter_12" Property="FontWeight"
+                                    Value="Bold" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -48,7 +60,8 @@
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <ListView Grid.Row="0"  Name="listMessages" Margin="0,0,0,0" DataContext="{Binding Path=SelectedFolder}" ItemsSource="{Binding Path=Messages}"
-                      SelectionChanged="listMessages_SelectionChanged" FontSize="12">
+                      SelectionChanged="listMessages_SelectionChanged" FontSize="12"
+                      ItemContainerStyle="{StaticResource ResourceKey=ListViewSelect}">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Width="15" >
@@ -95,6 +108,8 @@
                     </GridView>
                 </ListView.View>
             </ListView>
+            <stb:SearchTextBox Grid.Row="1" Width="250" x:Name="searchTextBox" SectionsStyle="CheckBoxStyle"
+                                 OnSearch="searchTextBox_OnSearch"/>
         </Grid>
         <GridSplitter Grid.Column="3" Width="3" HorizontalAlignment="Stretch" />
         <Grid Grid.Column="4">
