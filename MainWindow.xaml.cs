@@ -564,10 +564,16 @@ namespace XstReader
             e.CanExecute = a != null && a.IsEmail;
         }
 
-        private void openEmail_Executed(object sender, ExecutedRoutedEventArgs e)
+        //private void openEmail_Executed(object sender, ExecutedRoutedEventArgs e)
+        //{
+        //    var a = listAttachments.SelectedItem as Attachment;
+        //    OpenEmailAttachment(a);
+        //}
+
+        private void attachmentCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             var a = listAttachments.SelectedItem as Attachment;
-            OpenEmailAttachment(a);
+            e.CanExecute = a != null;
         }
 
         private void attachmentFileCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -579,11 +585,18 @@ namespace XstReader
         private void openAttachment_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var a = listAttachments.SelectedItem as Attachment;
-            string fileFullname = SaveAttachmentToTemporaryFile(a);
-            if (fileFullname == null)
-                return;
 
-            using (Process.Start(fileFullname)) { }
+            if (a.IsFile)
+            {
+                string fileFullname = SaveAttachmentToTemporaryFile(a);
+                if (fileFullname == null)
+                    return;
+
+                using (Process.Start(fileFullname)) { }
+            }
+            else if (a.IsEmail)
+                OpenEmailAttachment(a);
+
             e.Handled = true;
         }
 
