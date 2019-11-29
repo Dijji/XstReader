@@ -106,5 +106,17 @@ namespace XstReader.Properties {
                 this["Left"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastSaveAsFolder {
+            get {
+                return ((string)(this["LastSaveAsFolder"]));
+            }
+            set {
+                this["LastSaveAsFolder"] = value;
+            }
+        }
     }
 }

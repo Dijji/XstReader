@@ -231,10 +231,28 @@
                         </GridViewColumn>
                     </GridView>
                 </ListView.View>
+                <ListView.CommandBindings>
+                    <CommandBinding Command="Open" CanExecute="attachmentFileCommand_CanExecute" Executed="openAttachment_Executed"/>
+                    <CommandBinding Command="Search" CanExecute="attachmentFileCommand_CanExecute" Executed="openAttachmentWith_Executed"/>
+                    <CommandBinding Command="Save" CanExecute="attachmentFileCommand_CanExecute" Executed="saveAttachmentAs_Executed"/>
+                    <CommandBinding Command="BrowseHome" CanExecute="attachmentEmailCommand_CanExecute" Executed="openEmail_Executed"/>
+                </ListView.CommandBindings>
+                <ListView.InputBindings>
+                    <KeyBinding Command="Search" Gesture="CTRL+W"/>
+                    <KeyBinding Command="BrowseHome" Gesture="CTRL+E"/>
+                </ListView.InputBindings>
+                <ListView.ContextMenu >
+                    <ContextMenu>
+                        <MenuItem Command="Open"/>
+                        <MenuItem Command="Search" Header="Open With…" InputGestureText="Ctrl+W"/>
+                        <MenuItem Command="Save"/>
+                        <MenuItem Command="BrowseHome" Header="Open Email" InputGestureText="Ctrl+E"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
             </ListView>
             <StackPanel Grid.Row="3" Orientation="Horizontal">
-                <Button Content="Save File..." Height="20" Margin="10,5,0,0" Name="btnSave" VerticalAlignment="Top" Width="75" Click="btnSave_Click"
-                        Visibility="{Binding IsFileAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsFileAttachmentSelected}"/>
+                <!--<Button Content="Save File..." Height="20" Margin="10,5,0,0" Name="btnSave" VerticalAlignment="Top" Width="75" Click="btnSave_Click"
+                        Visibility="{Binding IsFileAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsFileAttachmentSelected}"/>-->
                 <Button Content="Save All Files..." Height="20" Margin="10,5,0,0" Name="btnSaveAll" VerticalAlignment="Top" Width="90" Click="btnSaveAll_Click" 
                         Visibility="{Binding IsFileAttachmentPresent, Converter={StaticResource VisibleIfTrue}}" IsEnabled="{Binding Path=IsFileAttachmentPresent}"/>
                 <Button Content="Open Email" Height="20" Margin="10,5,0,0" Name="btnOpenEmail" VerticalAlignment="Top" Width="75" Click="btnOpenEmail_Click"

@@ -242,9 +242,14 @@ namespace XstReader
             }
         }
 
-        public void SaveAttachment(string path, Attachment a)
+        public void SaveAttachmentToFolder(string folderpath, Attachment a)
         {
-            using (var afs = new FileStream(Path.Combine(path, a.FileName), FileMode.Create, FileAccess.Write))
+            SaveAttachment(Path.Combine(folderpath, a.FileName), a);
+        }
+
+        public void SaveAttachment(string fullFileName, Attachment a)
+        {
+            using (var afs = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
             {
                 SaveAttachment(afs, a);
             }

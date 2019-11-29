@@ -4,7 +4,10 @@ using SearchTextBox;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +24,7 @@ namespace XstReader
     {
         private View view = new View();
         private XstFile xstFile = null;
+        private List<string> tempFileNames = new List<string>();
         private GridViewColumnHeader listViewSortCol = null;
         private SortAdorner listViewSortAdorner = null;
         private int searchIndex = -1;
@@ -257,9 +261,7 @@ namespace XstReader
 
         private void btnOpenEmail_Click(object sender, RoutedEventArgs e)
         {
-            Message m = xstFile.OpenAttachedMessage(listAttachments.Items.Cast<Attachment>().First(a => a.IsEmail));
-            ShowMessage(m);
-            view.PushMessage(m);
+            OpenEmailAttachment(listAttachments.Items.Cast<Attachment>().First(a => a.IsEmail));
         }
 
         private void btnCloseEmail_Click(object sender, RoutedEventArgs e)
@@ -420,6 +422,13 @@ namespace XstReader
             }
         }
 
+        private void OpenEmailAttachment (Attachment a)
+        {
+            Message m = xstFile.OpenAttachedMessage(a);
+            ShowMessage(m);
+            view.PushMessage(m);
+        }
+
         private void SaveAttachments(IEnumerable<Attachment> attachments)
         {
             // Find out where to save the attachments
@@ -440,12 +449,38 @@ namespace XstReader
                 {
                     foreach (var a in attachments)
                     {
-                        xstFile.SaveAttachment(dialog.SelectedPath, a);
+                        xstFile.SaveAttachmentToFolder(dialog.SelectedPath, a);
                     }
                 }
                 catch (System.Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error saving attachments");
+                }
+            }
+        }
+
+        private void SaveAttachmentAs(Attachment attachment)
+        {
+            var dialog = new System.Windows.Forms.SaveFileDialog();
+
+            dialog.Title = "Specify file to save to";
+            dialog.InitialDirectory = Properties.Settings.Default.LastSaveAsFolder;
+            if (dialog.InitialDirectory == "")
+                dialog.InitialDirectory = Properties.Settings.Default.LastFolder;
+            dialog.Filter = "All Files (*.*)|*.*";
+            dialog.FileName = attachment.LongFileName;
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Properties.Settings.Default.LastSaveAsFolder = Path.GetFullPath(dialog.FileName);
+                Properties.Settings.Default.Save();
+                try
+                {
+                    xstFile.SaveAttachment(dialog.FileName, listAttachments.SelectedItem as Attachment);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error saving attachment");
                 }
             }
         }
@@ -473,6 +508,17 @@ namespace XstReader
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            // Clean up temporary files
+            foreach (var fileFullName in tempFileNames)
+            {
+                // Wrap in try in case the file is still open
+                try
+                {
+                    File.Delete(fileFullName);
+                }
+                catch { }
+            }
+            
             if (WindowState == WindowState.Maximized)
             {
                 // Use the RestoreBounds as the current values will be 0, 0 and the size of the screen
@@ -489,6 +535,112 @@ namespace XstReader
                 Properties.Settings.Default.Width = this.Width;
             }
             Properties.Settings.Default.Save();
+        }
+
+        private string SaveAttachmentToTemporaryFile(Attachment a)
+        {
+            if (a == null)
+                return null;
+
+            string fileFullName = Path.ChangeExtension(
+                Path.GetTempPath() + Guid.NewGuid().ToString(), Path.GetExtension(a.FileName)); ;
+
+            try
+            {
+                xstFile.SaveAttachment(fileFullName, listAttachments.SelectedItem as Attachment);
+                tempFileNames.Add(fileFullName);
+                return fileFullName;
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error saving attachment");
+                return null;
+            }
+        }
+
+        private void attachmentEmailCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            var a = listAttachments.SelectedItem as Attachment;
+            e.CanExecute = a != null && a.IsEmail;
+        }
+
+        private void openEmail_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var a = listAttachments.SelectedItem as Attachment;
+            OpenEmailAttachment(a);
+        }
+
+        private void attachmentFileCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            var a = listAttachments.SelectedItem as Attachment;
+            e.CanExecute = a != null && a.IsFile;
+        }
+
+        private void openAttachment_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var a = listAttachments.SelectedItem as Attachment;
+            string fileFullname = SaveAttachmentToTemporaryFile(a);
+            if (fileFullname == null)
+                return;
+
+            using (Process.Start(fileFullname)) { }
+            e.Handled = true;
+        }
+
+        private void openAttachmentWith_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var a = listAttachments.SelectedItem as Attachment;
+            string fileFullname = SaveAttachmentToTemporaryFile(a);
+            if (fileFullname == null)
+                return;
+         
+            if (Environment.OSVersion.Version.Major > 5)
+            {
+                IntPtr hwndParent = Process.GetCurrentProcess().MainWindowHandle;
+                tagOPENASINFO oOAI = new tagOPENASINFO();
+                oOAI.cszFile = fileFullname;
+                oOAI.cszClass = String.Empty;
+                oOAI.oaifInFlags = tagOPEN_AS_INFO_FLAGS.OAIF_ALLOW_REGISTRATION | tagOPEN_AS_INFO_FLAGS.OAIF_EXEC;
+                SHOpenWithDialog(hwndParent, ref oOAI);
+            }
+            else
+            {
+                using (Process.Start("rundll32", "shell32.dll,OpenAs_RunDLL " + fileFullname)) { }
+            }
+            e.Handled = true;
+        }
+
+        private void saveAttachmentAs_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var a = listAttachments.SelectedItem as Attachment;
+            SaveAttachmentAs(a);
+            e.Handled = true;
+        }
+
+        // Plumbing to enable access to SHOpenWithDialog
+        [DllImport("shell32.dll", EntryPoint = "SHOpenWithDialog", CharSet = CharSet.Unicode)]
+        private static extern int SHOpenWithDialog(IntPtr hWndParent, ref tagOPENASINFO oOAI);
+        private struct tagOPENASINFO
+        {
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string cszFile;
+
+            [MarshalAs(UnmanagedType.LPWStr)]
+            public string cszClass;
+
+            [MarshalAs(UnmanagedType.I4)]
+            public tagOPEN_AS_INFO_FLAGS oaifInFlags;
+        }
+        [Flags]
+        private enum tagOPEN_AS_INFO_FLAGS
+        {
+            OAIF_ALLOW_REGISTRATION = 0x00000001,   // Show "Always" checkbox
+            OAIF_REGISTER_EXT = 0x00000002,   // Perform registration when user hits OK
+            OAIF_EXEC = 0x00000004,   // Exec file after registering
+            OAIF_FORCE_REGISTRATION = 0x00000008,   // Force the checkbox to be registration
+            OAIF_HIDE_REGISTRATION = 0x00000020,   // Vista+: Hide the "always use this file" checkbox
+            OAIF_URL_PROTOCOL = 0x00000040,   // Vista+: cszFile is actually a URI scheme; show handlers for that scheme
+            OAIF_FILE_IS_URI = 0x00000080    // Win8+: The location pointed to by the pcszFile parameter is given as a URI
         }
     }
 }
