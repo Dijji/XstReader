@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,6 +34,9 @@ namespace XstReader
         {
             InitializeComponent();
             this.DataContext = view;
+
+            // For testing purposes, set this to true to display print headers
+            //view.DisplayPrintHeaders = true;
 
             // Supply the Search control with the list of sections
             searchTextBox.SectionsList = new List<string> { "Subject", "From/To", "Date" };
@@ -102,9 +106,9 @@ namespace XstReader
             }
         }
 
-        private void btnExportFolder_Click(object sender, RoutedEventArgs e)
+        private void exportAllProperties_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string fileName = GetPropertiesFileName(view.SelectedFolder.Name);
+            string fileName = GetPropertiesExportFileName(view.SelectedFolder.Name);
 
             if (fileName != null)
             {
@@ -135,6 +139,78 @@ namespace XstReader
             }
         }
 
+        private void exportAllEmails_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            string folderName = GetEmailsExportFolderName();
+
+            if (folderName != null)
+            {
+                ShowStatus("Exporting emails...");
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // Export emails on a background thread so we can keep the UI in sync
+                Task.Factory.StartNew<Tuple<int,int>>(() =>
+                {
+                    Message current = null;
+                    int good = 0, bad = 0;
+                    // If files already exist, we overwrite them.
+                    // But if emails within this batch generate the same filename,
+                    // use a numeric suffix to distinguish them
+                    HashSet<string> usedNames = new HashSet<string>();
+                    foreach (Message m in view.SelectedFolder.Messages)
+                    {
+                        try
+                        {
+                            current = m;
+                            string fileName = m.ExportFileName;
+                            for (int i = 1; ; i++)
+                            {
+                                if (!usedNames.Contains(fileName))
+                                {
+                                    usedNames.Add(fileName);
+                                    break;
+                                }
+                                else
+                                    fileName = String.Format("{0} ({1})", m.ExportFileName, i);
+                            }
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
+                            {
+                                ShowStatus("Exporting " + m.ExportFileName);
+                            }));
+                            // Ensure that we have the message contents
+                            xstFile.ReadMessageDetails(m);
+                            var fullFileName = String.Format(@"{0}\{1}.{2}",
+                                        folderName, fileName, m.ExportFileExtension);
+                            m.ExportToFile(fullFileName, xstFile);
+                            SaveAllAttachmentsToAssociatedFolder(fullFileName, m);
+                            good++;
+                        }
+                        catch (System.Exception ex)
+                        {
+                            var result = MessageBox.Show(String.Format("Error '{0}' exporting email '{1}'",
+                                ex.Message, current.Subject), "Error exporting emails",
+                                MessageBoxButton.OKCancel);
+                            bad++;
+                            if (result == MessageBoxResult.Cancel)
+                                break;
+                        }
+                    }
+                    return new Tuple<int, int> (good, bad);
+                })
+                // When exporting completes, update the UI using the UI thread 
+                .ContinueWith((task) =>
+                {
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        ShowStatus(null);
+                        Mouse.OverrideCursor = null;
+                        txtStatus.Text = String.Format("Completed with {0} successes and {1} failures",
+                            task.Result.Item1, task.Result.Item2);
+                    }));
+                });
+            }
+        }
+
         private void treeFolders_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             Folder f = (Folder)e.NewValue;
@@ -142,6 +218,8 @@ namespace XstReader
 
             if (f != null)
             {
+                view.SetMessage(null);
+                ShowMessage(null);
                 f.Messages.Clear();
                 ShowStatus("Reading messages...");
                 Mouse.OverrideCursor = Cursors.Wait;
@@ -249,33 +327,80 @@ namespace XstReader
             }
         }
 
-        private void btnSave_Click(object sender, RoutedEventArgs e)
+        private void exportEmail_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            SaveAttachments(listAttachments.SelectedItems.Cast<Attachment>().Where(a => a.IsFile));
+            string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
+                                        view.CurrentMessage.ExportFileExtension);
+
+            if (fullFileName != null)
+            {
+                try
+                {
+                    view.CurrentMessage.ExportToFile(fullFileName, xstFile);
+                    SaveAllAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error exporting email");
+                }
+            }
         }
 
-        private void btnSaveAll_Click(object sender, RoutedEventArgs e)
+        private void SaveAllAttachmentsToAssociatedFolder(string fullFileName, Message m)
         {
-            SaveAttachments(listAttachments.Items.Cast<Attachment>().Where(a => a.IsFile));
+            if (m.HasFileAttachment)
+            {
+                var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
+                    Path.GetFileNameWithoutExtension (fullFileName) + " Attachments");
+                if (!Directory.Exists(targetFolder))
+                    Directory.CreateDirectory(targetFolder);
+                SaveAllAttachmentsToFolder(targetFolder, m);
+            }
         }
 
-        private void btnOpenEmail_Click(object sender, RoutedEventArgs e)
+        private void SaveAllAttachmentsToFolder(string fullFolderName, Message m)
         {
-            OpenEmailAttachment(listAttachments.Items.Cast<Attachment>().First(a => a.IsEmail));
+            foreach (var a in m.Attachments.Where(a => a.IsFile))
+            {
+                xstFile.SaveAttachmentToFolder(fullFolderName, a);
+            }
         }
+
+        private void exportEmailProperties_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
+
+            if (fileName != null)
+                xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage }, fileName);
+        }
+
+        private void btnSaveAllAttachments_Click(object sender, RoutedEventArgs e)
+        {
+            string folderName = GetAttachmentsSaveFolderName();
+
+            if (folderName != null)
+            {
+                try
+                {
+                    SaveAllAttachmentsToFolder(folderName, view.CurrentMessage);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(String.Format("Error '{0}' saving attachments to '{1}'",
+                        ex.Message, view.CurrentMessage.Subject), "Error saving attachments");
+                }
+            }
+        }
+
+        //private void btnOpenEmail_Click(object sender, RoutedEventArgs e)
+        //{
+        //    OpenEmailAttachment(listAttachments.Items.Cast<Attachment>().First(a => a.IsEmail));
+        //}
 
         private void btnCloseEmail_Click(object sender, RoutedEventArgs e)
         {
             view.PopMessage();
             ShowMessage(view.CurrentMessage);
-        }
-
-        private void btnExportProperties_Click(object sender, RoutedEventArgs e)
-        {
-            string fileName = GetPropertiesFileName(view.CurrentMessage.Subject);
-
-            if (fileName != null)
-                xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage }, fileName);
         }
 
         private void rbContent_Click(object sender, RoutedEventArgs e)
@@ -389,31 +514,46 @@ namespace XstReader
 
                         if (body != null)
                         {
+                            // For testing purposes, can show print header in main visualisation
+                            if (view.DisplayPrintHeaders)
+                                body = m.EmbedHtmlPrintHeader(body, true);
+
                             wbMessage.NavigateToString(body);
                             if (m.MayHaveInlineAttachment)
+                            {
                                 m.SortAndSaveAttachments();  // Re-sort attachments in case any new in-line rendering discovered
+                            }
                         }
                     }
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (m.ShowRtf)
                     {
-                        var decomp = new RtfDecompressor();
+                        var body  = m.GetBodyAsFlowDocument();
 
-                        using (System.IO.MemoryStream ms = decomp.Decompress(m.RtfCompressed, true))
-                        {
-                            ms.Position = 0;
-                            rtfMessage.SelectAll();
-                            rtfMessage.Selection.Load(ms, DataFormats.Rtf);
-                        }
+                        // For testing purposes, can show print header in main visualisation
+                        if (view.DisplayPrintHeaders)
+                            m.EmbedRtfPrintHeader(body, true);
+
+                        rtfMessage.Document = body;
+                    }
+                    // Could bind text content, but use push so that we can optionally add headers
+                    else if (m.ShowText)
+                    {
+                        var body = m.Body;
+
+                        // For testing purposes, can show print header in main visualisation
+                        if (view.DisplayPrintHeaders)
+                            body = m.EmbedTextPrintHeader(body, true);
+
+                        txtMessage.Text = body;
                     }
                 }
                 else
                 {
-                    // Clear the HTML, in case we were showing that before
+                    // Clear the displays, in case we were showing that type before
                     wbMessage.Navigate("about:blank");
-
-                    // Clear the RTF, in case we were showing that before
                     rtfMessage.Document.Blocks.Clear();
+                    txtMessage.Text = "";
                 }
             }
             catch (System.Exception ex)
@@ -429,7 +569,9 @@ namespace XstReader
             view.PushMessage(m);
         }
 
-        private void SaveAttachments(IEnumerable<Attachment> attachments)
+      #region File and folder dialogs
+
+        private string GetAttachmentsSaveFolderName()
         {
             // Find out where to save the attachments
             System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -445,47 +587,77 @@ namespace XstReader
             {
                 Properties.Settings.Default.LastAttachmentFolder = dialog.SelectedPath;
                 Properties.Settings.Default.Save();
-                try
-                {
-                    foreach (var a in attachments)
-                    {
-                        xstFile.SaveAttachmentToFolder(dialog.SelectedPath, a);
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error saving attachments");
-                }
+                return dialog.SelectedPath;
             }
+            else
+                return null;
         }
-
-        private void SaveAttachmentAs(Attachment attachment)
+       
+        private string GetSaveAttachmentFileNam(string defaultFileName)
         {
             var dialog = new System.Windows.Forms.SaveFileDialog();
 
             dialog.Title = "Specify file to save to";
-            dialog.InitialDirectory = Properties.Settings.Default.LastSaveAsFolder;
+            dialog.InitialDirectory = Properties.Settings.Default.LastAttachmentFolder;
             if (dialog.InitialDirectory == "")
                 dialog.InitialDirectory = Properties.Settings.Default.LastFolder;
             dialog.Filter = "All Files (*.*)|*.*";
-            dialog.FileName = attachment.LongFileName;
+            dialog.FileName = defaultFileName;
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Properties.Settings.Default.LastSaveAsFolder = Path.GetFullPath(dialog.FileName);
+                Properties.Settings.Default.LastAttachmentFolder = Path.GetFullPath(dialog.FileName);
                 Properties.Settings.Default.Save();
-                try
-                {
-                    xstFile.SaveAttachment(dialog.FileName, listAttachments.SelectedItem as Attachment);
-                }
-                catch (System.Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error saving attachment");
-                }
+                return dialog.FileName;
             }
+            else
+                return null;
         }
 
-        private string GetPropertiesFileName(string defaultName)
+        private string GetEmailsExportFolderName()
+        {
+            // Find out where to export the emails
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
+
+            dialog.Description = "Choose folder to export emails into";
+            dialog.RootFolder = Environment.SpecialFolder.MyComputer;
+            dialog.SelectedPath = Properties.Settings.Default.LastExportFolder;
+            if (dialog.SelectedPath == "")
+                dialog.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            dialog.ShowNewFolderButton = true;
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Properties.Settings.Default.LastExportFolder = dialog.SelectedPath;
+                Properties.Settings.Default.Save();
+                return dialog.SelectedPath;
+            }
+            else
+                return null;
+        }
+
+        private string GetEmailExportFileName(string defaultFileName, string extension)
+        {
+            var dialog = new System.Windows.Forms.SaveFileDialog();
+
+            dialog.Title = "Specify file to save to";
+            dialog.InitialDirectory = Properties.Settings.Default.LastExportFolder;
+            if (dialog.InitialDirectory == "")
+                dialog.InitialDirectory = Properties.Settings.Default.LastFolder;
+            dialog.Filter = String.Format("{0} Files (*.{0})|*.{0}|All Files (*.*)|*.*", extension);
+            dialog.FileName = defaultFileName;
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Properties.Settings.Default.LastExportFolder = Path.GetFullPath(dialog.FileName);
+                Properties.Settings.Default.Save();
+                return dialog.FileName;
+            }
+            else
+                return null;
+        }
+
+        private string GetPropertiesExportFileName(string defaultName)
         {
             var dialog = new System.Windows.Forms.SaveFileDialog();
 
@@ -505,6 +677,7 @@ namespace XstReader
             else
                 return null;
         }
+        #endregion
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
@@ -626,7 +799,19 @@ namespace XstReader
         private void saveAttachmentAs_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             var a = listAttachments.SelectedItem as Attachment;
-            SaveAttachmentAs(a);
+            var fullFileName = GetSaveAttachmentFileNam(a.LongFileName);
+
+            if (fullFileName != null)
+            {
+                try
+                {
+                    xstFile.SaveAttachment(fullFileName, a);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error saving attachment");
+                }
+            }
             e.Handled = true;
         }
 

@@ -4,10 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace XstReader
@@ -18,6 +15,7 @@ namespace XstReader
     class View : INotifyPropertyChanged
     {
         private Folder selectedFolder = null;
+        private Message currentMessage = null;
         private bool isBusy = false;
         private Stack<Message> stackMessage = new Stack<Message>();
         private bool fileAttachmentSelected = false;
@@ -28,10 +26,12 @@ namespace XstReader
         public Folder SelectedFolder {
             get { return selectedFolder; }
             set { selectedFolder = value; OnPropertyChanged("SelectedFolder"); OnPropertyChanged("CanExportFolder"); } }
-        public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged("CanExportFolder"); } }
-        public Message CurrentMessage { get; private set; } = null;
-        public ObservableCollection<Property> CurrentProperties { get; private set; } = null;
+        public bool DisplayPrintHeaders { get; set; } = false;
+        public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged(nameof(IsBusy)); OnPropertyChanged(nameof(IsNotBusy)); OnPropertyChanged("CanExportFolder"); } }
+        public bool IsNotBusy { get { return !isBusy; } }
+        public ObservableCollection<Property> CurrentProperties { get; private set; } = new ObservableCollection<Property>();
         public bool IsMessagePresent { get { return (CurrentMessage != null); } }
+        public bool CanSaveEmail { get { return ShowContent && CurrentMessage != null; } }
         public bool CanPopMessage { get { return (stackMessage.Count > 0); } }
         public bool CanExportFolder { get { return !IsBusy && SelectedFolder != null; } }
         public bool CanExportProperties { get { return IsMessagePresent && ShowProperties; } }
@@ -40,6 +40,22 @@ namespace XstReader
         public bool IsFileAttachmentSelected { get { return fileAttachmentSelected; } set { fileAttachmentSelected = value; OnPropertyChanged("IsFileAttachmentSelected"); } }
         public bool IsEmailAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment); } }
         public bool IsEmailAttachmentSelected { get { return emailAttachmentSelected; } set { emailAttachmentSelected = value; OnPropertyChanged("IsEmailAttachmentSelected"); } }
+
+        public Message CurrentMessage
+        {
+            get { return currentMessage; }
+            private set
+            {
+                currentMessage = value;
+                OnPropertyChanged(nameof(IsMessagePresent));
+                OnPropertyChanged(nameof(CanSaveEmail));
+                OnPropertyChanged(nameof(IsAttachmentPresent));
+                OnPropertyChanged(nameof(IsFileAttachmentPresent));
+                OnPropertyChanged(nameof(IsEmailAttachmentPresent));
+            }
+        }
+
+        public bool ShowProperties { get { return !showContent; } }
         public bool ShowContent {
             get { return showContent; }
             set
@@ -47,6 +63,7 @@ namespace XstReader
                 showContent = value;
                 OnPropertyChanged("ShowContent");
                 OnPropertyChanged("ShowProperties");
+                OnPropertyChanged("CanSaveEmail");
                 OnPropertyChanged("CanExportProperties");
                 OnPropertyChanged("IsAttachmentPresent");
                 OnPropertyChanged("IsFileAttachmentPresent");
@@ -55,13 +72,12 @@ namespace XstReader
                 OnPropertyChanged("IsEmailAttachmentSelected");
             }
         }
-        public bool ShowProperties { get { return !showContent; } }
 
         public void SelectedRecipientChanged(Recipient recipient)
         {
             if (recipient != null)
             {
-                CurrentProperties = recipient.Properties;
+                CurrentProperties.PopulateWith(recipient.Properties);
                 OnPropertyChanged("CurrentProperties");
             }
         }
@@ -74,7 +90,7 @@ namespace XstReader
             var firstAttachment = selection.FirstOrDefault(a => (a.IsFile || a.IsEmail));
             if (firstAttachment != null)
             {
-                CurrentProperties = firstAttachment.Properties;
+                CurrentProperties.PopulateWith(firstAttachment.Properties);
                 OnPropertyChanged("CurrentProperties");
             }
         }
@@ -107,8 +123,11 @@ namespace XstReader
         private void UpdateCurrentMessage(Message m)
         {
             CurrentMessage = m;
-            CurrentProperties = m != null ? m.Properties : null;
-            
+            if (m != null)
+                CurrentProperties.PopulateWith(m.Properties);
+            else
+                CurrentProperties.Clear();
+
             OnPropertyChanged("CurrentMessage");
             OnPropertyChanged("CurrentProperties");
             OnPropertyChanged("IsMessagePresent");
@@ -149,227 +168,12 @@ namespace XstReader
         }
     }
 
-    class Message : INotifyPropertyChanged
-    {
-        private bool isSelected = false;
-        
-        public Folder Folder { get; set; }
-        public string From { get; set; }
-        public string To { get; set; }
-        public string Cc { get; set; }
-        public string FromTo { get { return Folder.Name.StartsWith("Sent") ? To : From; } }
-        public string Subject { get; set; }
-        public MessageFlags Flags { get; set; }
-        public DateTime? Received { get; set; }
-        public DateTime? Submitted { get; set; }
-        public DateTime? Modified { get; set; }  // When any attachment was last modified
-        public DateTime? Date { get { return Received ?? Submitted; } }
-        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToShortDateString() : "<unknown>"; } }
-        public NID Nid { get; set; }
-        public BodyType NativeBody { get; set; }
-        public string Body { get; set; }
-        public string BodyHtml { get; set; }
-        public byte[] Html { get; set; }
-        public byte[] RtfCompressed { get; set; }
-        public ObservableCollection<Attachment> Attachments { get; private set; } = new ObservableCollection<Attachment>();
-        public ObservableCollection<Recipient> Recipients { get; private set; } = new ObservableCollection<Recipient>();
-        public ObservableCollection<Property> Properties { get; private set; } = new ObservableCollection<Property>();
-        public bool MayHaveInlineAttachment { get { return (Attachments.FirstOrDefault(a => a.HasContentId) != null); } }
-
-        // The following properties are used in XAML bindings to control the UI
-        public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
-        public bool HasFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile) != null); } }
-        public bool HasEmailAttachment { get { return (Attachments.FirstOrDefault(a => a.IsEmail) != null); } }
-        public bool ShowText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
-        public bool ShowHtml { get { return NativeBody == BodyType.HTML || (NativeBody == BodyType.Undefined && 
-                                            ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0))); } }
-        public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
-        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
-        public string ToDisplayList
-        {
-            get
-            {
-                var s = String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.To)
-                    .Select(r => r.DisplayName));
-                return s.Length == 0 ? s : "To:  " + s;  
-            }
-        }
-        public bool HasCcDisplayList { get { return CcDisplayList.Length > 0; } }
-        public string CcDisplayList
-        {
-            get
-            {
-                var s = String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.Cc)
-                    .Select(r => r.DisplayName));
-                return s.Length == 0 ? s : "Cc:  " + s;
-            }
-        }
-        public bool HasBccDisplayList { get { return BccDisplayList.Length > 0; } }
-        public string BccDisplayList
-        {
-            get
-            {
-                var s = String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.Bcc)
-                    .Select(r => r.DisplayName));
-                return s.Length == 0 ? s : "Bcc: " + s;
-            }
-        }
-
-        public bool IsSelected
-        {
-            get { return isSelected; }
-            set
-            {
-                if (value != isSelected)
-                {
-                    isSelected = value;
-                    OnPropertyChanged(nameof(IsSelected));
-                }
-            }
-        }
-
-        public string GetBodyAsHtmlString()
-        {
-            if (BodyHtml != null)
-                return BodyHtml; // This will be plain ASCII
-            else if (Html != null)
-            {
-                var e = GetEncoding();
-                if (e != null)
-                {
-                    return EscapeUnicodeCharacters(new String(e.GetChars(Html)));
-                }
-            }
-            else if (Body != null) // Not really expecting this as a source of HTML
-                return EscapeUnicodeCharacters(Body);
-
-            return null;
-        }
-
-        public string EmbedAttachments(string body, XstFile xst)
-        {
-            if (body == null)
-                return null;
-
-            var dict = new Dictionary<string, Attachment>();
-            foreach (var a in Attachments.Where(x => x.HasContentId))
-                dict.Add(a.ContentId, a);
-
-            return Regex.Replace(body, @"(="")cid:(.*?)("")", match =>
-            {
-                Attachment a;
-                
-                if (dict.TryGetValue(match.Groups[2].Value, out a))
-                {
-                    // There are limits to what we can push into an inline data image, 
-                    // but we don't know exactly what
-                    // Todo handle limit when known
-                    a.WasRenderedInline = true;
-                    var s = new MemoryStream();
-                    xst.SaveAttachment(s, a);
-                    s.Seek(0, SeekOrigin.Begin);
-                    var cooked = match.Groups[1] + @"data:image/jpg;base64," + EscapeString(Convert.ToBase64String(s.ToArray())) + match.Groups[3];
-                    return cooked;
-                }
-
-                return match.Value;
-            }, RegexOptions.Singleline | RegexOptions.IgnoreCase);
-        }
-
-        public void SortAndSaveAttachments(List<Attachment> atts = null)
-        {
-            // If no attachments are supplied, sort the list we already have
-            if (atts == null)
-                atts = new List<Attachment>(Attachments);
-
-            atts.Sort((a, b) =>
-            {
-                if (a == null)
-                    return -1;
-                else if (b == null)
-                    return 1;
-                else if (a.Hide != b.Hide)
-                    return a.Hide ? 1 : -1;
-                else
-                    return 0;
-            });
-
-            Attachments.Clear();
-            foreach (var a in atts)
-                Attachments.Add(a);
-        }
-
-        private static string EscapeUnicodeCharacters(string source)
-        {
-            int length = source.Length;
-            var escaped = new StringBuilder();
-
-            for (int i = 0; i < length; i++)
-            {
-                char ch = source[i];
-
-                if (ch >= '\x00a0')
-                {
-                    escaped.AppendFormat("&#x{0};", ((int)ch).ToString("X4"));
-                }
-                else
-                {
-                    escaped.Append(ch);
-                }
-            }
-
-            return escaped.ToString();
-        }
-
-        private string EscapeString(string s)
-        {
-            var sb = new StringBuilder(s.Length);
-            for (int i = 0; i < s.Length;)
-            {
-                int len = Math.Min(s.Length - i, 32766);
-                sb.Append(Uri.EscapeDataString(s.Substring(i, len)));
-                i += len;
-            }
-            return sb.ToString();
-        }
-
-        private Encoding GetEncoding()
-        {
-            var p = Properties.FirstOrDefault(x => x.Guid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
-            if (p != null)
-            {
-
-                Match m = Regex.Match((string)p.Value, @".*charset=""(.*?)""");
-                if (m.Success)
-                     return Encoding.GetEncoding(m.Groups[1].Value);
-            }
-
-            p = Properties.FirstOrDefault(x => x.Tag == EpropertyTag.PidTagInternetCodepage);
-            if (p != null)
-            {
-                return Encoding.GetEncoding((int)p.Value);
-            }
-
-            return null;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(String info)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
-            }
-        }
-    }
-
     class Recipient
     {
         public RecipientType RecipientType { get; set; }
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
-        public ObservableCollection<Property> Properties { get; private set; } = new ObservableCollection<Property>();
+        public List<Property> Properties { get; private set; } = new List<Property>();
     }
 
     class Property
@@ -477,7 +281,7 @@ namespace XstReader
 
     class Attachment
     {
-        private ObservableCollection<Property> properties = null;
+        private List<Property> properties = null;
 
         public XstFile XstFile { get; set; }
         public Message Parent { get; set; }
@@ -539,14 +343,14 @@ namespace XstReader
             }
         }
 
-        public ObservableCollection<Property> Properties
+        public List<Property> Properties
         {
             get
             {
                 // We read the full set of attachment property values only on demand
                 if (properties == null)
                 {
-                    properties = new ObservableCollection<Property>();
+                    properties = new List<Property>();
                     foreach (var p in XstFile.ReadAttachmentProperties(this))
                     {
                         properties.Add(p);

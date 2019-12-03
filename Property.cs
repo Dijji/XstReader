@@ -44,6 +44,7 @@ namespace XstReader
         PidTagDisplayToW = 0x0E04,
         PidTagMessageFlags = 0x0E07,
         PidTagMessageDeliveryTime = 0x0E06,
+        PidTagReceivedByName = 0x0040,
         PidTagSentRepresentingNameW = 0x0042,
         PidTagSentRepresentingEmailAddress = 0x0065,
         PidTagSenderName = 0x0C1A,

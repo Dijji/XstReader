@@ -242,9 +242,20 @@ namespace XstReader
             }
         }
 
+        const int MaxPath = 260;
         public void SaveAttachmentToFolder(string folderpath, Attachment a)
         {
-            SaveAttachment(Path.Combine(folderpath, a.FileName), a);
+            var fullFileName = Path.Combine(folderpath, a.FileName);
+
+            // If the result is too long, truncate the attachment name as required
+            if (fullFileName.Length >= MaxPath)
+            {
+                var ext = Path.GetExtension(a.FileName);
+                var att = Path.GetFileNameWithoutExtension(a.FileName)
+                    .Truncate(MaxPath - folderpath.Length - ext.Length - 5) + ext;
+                fullFileName = Path.Combine(folderpath, att);
+            }
+            SaveAttachment(fullFileName, a);
         }
 
         public void SaveAttachment(string fullFileName, Attachment a)
@@ -267,20 +278,23 @@ namespace XstReader
 
                 var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
 
-                // If the value is inline, we just write it out
-                if (a.Content.GetType() == typeof(byte[]))
+                if ((object)a.Content != null)
                 {
-                    s.Write(a.Content, 0, a.Content.Length);
-                }
-                // Otherwise we need to dereference the node pointing to the data,
-                // using the subnode tree belonging to the attachment
-                else if (a.Content.GetType() == typeof(NID))
-                {
-                    var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
+                    // If the value is inline, we just write it out
+                    if (a.Content.GetType() == typeof(byte[]))
+                    {
+                        s.Write(a.Content, 0, a.Content.Length);
+                    }
+                    // Otherwise we need to dereference the node pointing to the data,
+                    // using the subnode tree belonging to the attachment
+                    else if (a.Content.GetType() == typeof(NID))
+                    {
+                        var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
 
-                    // Copy the data to the output file stream without getting it all into memory at once,
-                    // as there can be a lot of data
-                    ndb.CopyDataBlocks(fs, s, nb.DataBid);
+                        // Copy the data to the output file stream without getting it all into memory at once,
+                        // as there can be a lot of data
+                        ndb.CopyDataBlocks(fs, s, nb.DataBid);
+                    }
                 }
             }
         }
@@ -450,6 +464,9 @@ namespace XstReader
             var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
             if (m.HasAttachment)
             {
+                if (!ltp.IsTablePresent(subNodeTree, attachmentsNid))
+                    throw new XstException("Could not find expected Attachment table");
+
                 // Read the attachment table, which is held in the subnode of the message
                 var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
                 foreach (var a in atts)
