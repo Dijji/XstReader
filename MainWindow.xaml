@@ -138,8 +138,9 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                <StackPanel Grid.Row="0" Orientation="Vertical">
+            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                Visibility="{Binding Path=DisplayHeaderFields, Converter={StaticResource VisibleIfTrue}}">
+                <StackPanel Margin="10,0,0,0" Orientation="Vertical">
                     <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=Subject}"
                                FontSize="14" FontWeight="Bold"/>
                     <TextBlock DataContext="{Binding Path=CurrentMessage}" Text="{Binding Path=From}"
@@ -170,11 +171,13 @@
                 </StackPanel>
             </ScrollViewer>
             <Grid Grid.Row="1" Visibility="{Binding ShowContent, Converter={StaticResource VisibleIfTrue}}">
-                <TextBox Name="txtMessage" DataContext="{Binding Path=CurrentMessage}"
+                <ScrollViewer Name="scrollTextMessage" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <TextBox Name="txtMessage" Margin="10,10,0,0" BorderBrush="Transparent" TextWrapping="Wrap" DataContext="{Binding Path=CurrentMessage}"
                      Visibility="{Binding ShowText, Converter={StaticResource VisibleIfTrue}}"/>
+                </ScrollViewer>
                 <WebBrowser Name="wbMessage" DataContext="{Binding Path=CurrentMessage}" 
                      Visibility="{Binding ShowHtml, Converter={StaticResource VisibleIfTrue}}"/>
-                <RichTextBox Name="rtfMessage" DataContext="{Binding Path=CurrentMessage}" 
+                <RichTextBox Name="rtfMessage" Margin="5,10,0,0" BorderBrush="Transparent" DataContext="{Binding Path=CurrentMessage}" 
                      Visibility="{Binding ShowRtf, Converter={StaticResource VisibleIfTrue}}"/>
             </Grid>
             <Grid Grid.Row="1" Visibility="{Binding ShowProperties, Converter={StaticResource VisibleIfTrue}}">

@@ -209,26 +209,26 @@ namespace XstReader
             return doc;
         }
 
-        public string EmbedTextPrintHeader(string body, bool showType = false)
+        public string EmbedTextPrintHeader(string body, bool forDisplay = false, bool showEmailType = false)
         {
-            string row = "{0,-10}:  {1}\r\n";
+            string row = forDisplay ? "{0,-15}\t{1}\r\n" : "{0,-15}{1}\r\n";
             StringBuilder header = new StringBuilder();
-            header.AppendFormat(row, "Sent", String.Format("{0:dd MMMM yyyy HHmm}", Date));
-            header.AppendFormat(row, showType ? "Text From" : "From", From);
-            header.AppendFormat(row, "To", ToDisplayList);
+            header.AppendFormat(row, "Sent:", String.Format("{0:dd MMMM yyyy HHmm}", Date));
+            header.AppendFormat(row, showEmailType ? "Text From:" : "From:", From);
+            header.AppendFormat(row, "To:", ToDisplayList);
             if (HasCcDisplayList)
-                header.AppendFormat(row, "Cc", CcDisplayList);
+                header.AppendFormat(row, "Cc:", CcDisplayList);
             if (HasBccDisplayList)
-                header.AppendFormat(row, "Bcc", BccDisplayList);
-            header.AppendFormat(row, "Subject", Subject);
+                header.AppendFormat(row, "Bcc:", BccDisplayList);
+            header.AppendFormat(row, "Subject:", Subject);
             if (HasFileAttachment)
-                header.AppendFormat(row, "Attachments", FileAttachmentDisplayList);
+                header.AppendFormat(row, "Attachments:", FileAttachmentDisplayList);
             header.Append("\r\n\r\n");
 
             return header.ToString() + body ?? "";
         }
 
-        public string EmbedHtmlPrintHeader(string body, bool showType = false)
+        public string EmbedHtmlPrintHeader(string body, bool showEmailType = false)
         {
             if (body == null)
                 return null;
@@ -248,7 +248,7 @@ namespace XstReader
             //omit MyName and the line under it for now, as we have no reliable source for it
             //header.AppendFormat("<h3>{0}</h3><hr/><table><tbody>", MyName);
             header.Append("<table><tbody style=\"font-family:serif;font-size:12px;\">");
-            header.AppendFormat(row, showType ? "HTML From:" : "From:", From);
+            header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", From);
             header.AppendFormat(row, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
             header.AppendFormat(row, "To:", ToDisplayList);
             if (HasCcDisplayList)
@@ -279,7 +279,7 @@ namespace XstReader
             }
         }
 
-        public void EmbedRtfPrintHeader(FlowDocument doc, bool showType = false)
+        public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
         {
             if (doc == null)
                 return;
@@ -297,7 +297,7 @@ namespace XstReader
             table1.Columns.Add(new TableColumn { Width = new GridLength(500) });
             table1.RowGroups.Add(new TableRowGroup());
 
-            AddRtfTableRow(table1, showType ? "RTF From:" : "From:", From);
+            AddRtfTableRow(table1, showEmailType ? "RTF From:" : "From:", From);
 
             AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
             AddRtfTableRow(table1, "To:", ToDisplayList);

@@ -243,7 +243,7 @@ namespace XstReader
         }
 
         const int MaxPath = 260;
-        public void SaveAttachmentToFolder(string folderpath, Attachment a)
+        public void SaveAttachmentToFolder(string folderpath, DateTime? creationTime, Attachment a)
         {
             var fullFileName = Path.Combine(folderpath, a.FileName);
 
@@ -255,15 +255,17 @@ namespace XstReader
                     .Truncate(MaxPath - folderpath.Length - ext.Length - 5) + ext;
                 fullFileName = Path.Combine(folderpath, att);
             }
-            SaveAttachment(fullFileName, a);
+            SaveAttachment(fullFileName, creationTime, a);
         }
 
-        public void SaveAttachment(string fullFileName, Attachment a)
+        public void SaveAttachment(string fullFileName, DateTime? creationTime, Attachment a)
         {
             using (var afs = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
             {
                 SaveAttachment(afs, a);
             }
+            if (creationTime != null)
+                File.SetCreationTime(fullFileName, (DateTime)creationTime);
         }
 
         public void SaveAttachment(Stream s, Attachment a)

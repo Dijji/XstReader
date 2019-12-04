@@ -27,6 +27,8 @@ namespace XstReader
             get { return selectedFolder; }
             set { selectedFolder = value; OnPropertyChanged("SelectedFolder"); OnPropertyChanged("CanExportFolder"); } }
         public bool DisplayPrintHeaders { get; set; } = false;
+        public bool DisplayEmailType { get; set; } = false;
+        public bool DisplayHeaderFields { get { return !DisplayPrintHeaders; } }
         public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged(nameof(IsBusy)); OnPropertyChanged(nameof(IsNotBusy)); OnPropertyChanged("CanExportFolder"); } }
         public bool IsNotBusy { get { return !isBusy; } }
         public ObservableCollection<Property> CurrentProperties { get; private set; } = new ObservableCollection<Property>();
