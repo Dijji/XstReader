@@ -236,7 +236,7 @@ namespace XstReader
                     try
                     {
                         view.CurrentMessage.ExportToFile(fullFileName, xstFile);
-                        SaveAllAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
+                        SaveVisibleAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
                     }
                     catch (System.Exception ex)
                     {
@@ -289,7 +289,7 @@ namespace XstReader
                             var fullFileName = String.Format(@"{0}\{1}.{2}",
                                         folderName, fileName, m.ExportFileExtension);
                             m.ExportToFile(fullFileName, xstFile);
-                            SaveAllAttachmentsToAssociatedFolder(fullFileName, m);
+                            SaveVisibleAttachmentsToAssociatedFolder(fullFileName, m);
                             good++;
                         }
                         catch (System.Exception ex)
@@ -351,7 +351,25 @@ namespace XstReader
             }
         }
 
-        private void SaveAllAttachmentsToAssociatedFolder(string fullFileName, Message m)
+        private void SaveAttachments(IEnumerable<Attachment> attachments)
+        {
+            string folderName = GetAttachmentsSaveFolderName();
+
+            if (folderName != null)
+            {
+                try
+                {
+                    SaveAttachmentsToFolder(folderName, view.CurrentMessage.Date, attachments);
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(String.Format("Error '{0}' saving attachments to '{1}'",
+                        ex.Message, view.CurrentMessage.Subject), "Error saving attachments");
+                }
+            }
+        }
+
+        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, Message m)
         {
             if (m.HasVisibleFileAttachment)
             {
@@ -363,15 +381,15 @@ namespace XstReader
                     if (m.Date != null)
                         Directory.SetCreationTime(targetFolder, (DateTime)m.Date);
                 }
-                SaveAllAttachmentsToFolder(targetFolder, m);
+                SaveAttachmentsToFolder(targetFolder, m.Date,  m.Attachments.Where(a => a.IsFile && !a.Hide));
             }
         }
 
-        private void SaveAllAttachmentsToFolder(string fullFolderName, Message m)
+        private void SaveAttachmentsToFolder(string fullFolderName, DateTime? creationTime, IEnumerable<Attachment> attachments)
         {
-            foreach (var a in m.Attachments.Where(a => a.IsFile && !a.Hide))
+            foreach (var a in attachments)
             {
-                xstFile.SaveAttachmentToFolder(fullFolderName, m.Date, a);
+                xstFile.SaveAttachmentToFolder(fullFolderName, creationTime, a);
             }
         }
 
@@ -392,27 +410,9 @@ namespace XstReader
 
         private void btnSaveAllAttachments_Click(object sender, RoutedEventArgs e)
         {
-            string folderName = GetAttachmentsSaveFolderName();
-
-            if (folderName != null)
-            {
-                try
-                {
-                    SaveAllAttachmentsToFolder(folderName, view.CurrentMessage);
-                }
-                catch (System.Exception ex)
-                {
-                    MessageBox.Show(String.Format("Error '{0}' saving attachments to '{1}'",
-                        ex.Message, view.CurrentMessage.Subject), "Error saving attachments");
-                }
-            }
+            SaveAttachments(view.CurrentMessage.Attachments);
         }
-
-        //private void btnOpenEmail_Click(object sender, RoutedEventArgs e)
-        //{
-        //    OpenEmailAttachment(listAttachments.Items.Cast<Attachment>().First(a => a.IsEmail));
-        //}
-
+        
         private void btnCloseEmail_Click(object sender, RoutedEventArgs e)
         {
             view.PopMessage();
@@ -837,18 +837,25 @@ namespace XstReader
 
         private void saveAttachmentAs_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
-            var fullFileName = GetSaveAttachmentFileName(a.LongFileName);
-
-            if (fullFileName != null)
+            if (listAttachments.SelectedItems.Count > 1)
             {
-                try
+                SaveAttachments(listAttachments.SelectedItems.Cast<Attachment>());
+            }
+            else
+            {
+                var a = listAttachments.SelectedItem as Attachment;
+                var fullFileName = GetSaveAttachmentFileName(a.LongFileName);
+
+                if (fullFileName != null)
                 {
-                    xstFile.SaveAttachment(fullFileName, view.CurrentMessage.Date, a);
-                }
-                catch (System.Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error saving attachment");
+                    try
+                    {
+                        xstFile.SaveAttachment(fullFileName, view.CurrentMessage.Date, a);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error saving attachment");
+                    }
                 }
             }
             e.Handled = true;
