@@ -96,107 +96,12 @@ namespace XstReader
 
         private void exportAllProperties_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string fileName = GetPropertiesExportFileName(view.SelectedFolder.Name);
-
-            if (fileName != null)
-            {
-                ShowStatus("Exporting properties...");
-                Mouse.OverrideCursor = Cursors.Wait;
-
-                // Export properties on a background thread so we can keep the UI in sync
-                Task.Factory.StartNew(() =>
-                {
-                    try
-                    {
-                        xstFile.ExportMessageProperties(view.SelectedFolder.Messages, fileName);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error exporting properties");
-                    }
-                })
-                // When exporting completes, update the UI using the UI thread 
-                .ContinueWith((task) =>
-                {
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                    {
-                        ShowStatus(null);
-                        Mouse.OverrideCursor = null;
-                    }));
-                });
-            }
+            ExportEmailProperties(view.SelectedFolder.Messages);
         }
 
         private void exportAllEmails_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string folderName = GetEmailsExportFolderName();
-
-            if (folderName != null)
-            {
-                ShowStatus("Exporting emails...");
-                Mouse.OverrideCursor = Cursors.Wait;
-
-                // Export emails on a background thread so we can keep the UI in sync
-                Task.Factory.StartNew<Tuple<int,int>>(() =>
-                {
-                    Message current = null;
-                    int good = 0, bad = 0;
-                    // If files already exist, we overwrite them.
-                    // But if emails within this batch generate the same filename,
-                    // use a numeric suffix to distinguish them
-                    HashSet<string> usedNames = new HashSet<string>();
-                    foreach (Message m in view.SelectedFolder.Messages)
-                    {
-                        try
-                        {
-                            current = m;
-                            string fileName = m.ExportFileName;
-                            for (int i = 1; ; i++)
-                            {
-                                if (!usedNames.Contains(fileName))
-                                {
-                                    usedNames.Add(fileName);
-                                    break;
-                                }
-                                else
-                                    fileName = String.Format("{0} ({1})", m.ExportFileName, i);
-                            }
-                            Application.Current.Dispatcher.Invoke(new Action(() =>
-                            {
-                                ShowStatus("Exporting " + m.ExportFileName);
-                            }));
-                            // Ensure that we have the message contents
-                            xstFile.ReadMessageDetails(m);
-                            var fullFileName = String.Format(@"{0}\{1}.{2}",
-                                        folderName, fileName, m.ExportFileExtension);
-                            m.ExportToFile(fullFileName, xstFile);
-                            SaveAllAttachmentsToAssociatedFolder(fullFileName, m);
-                            good++;
-                        }
-                        catch (System.Exception ex)
-                        {
-                            var result = MessageBox.Show(String.Format("Error '{0}' exporting email '{1}'",
-                                ex.Message, current.Subject), "Error exporting emails",
-                                MessageBoxButton.OKCancel);
-                            bad++;
-                            if (result == MessageBoxResult.Cancel)
-                                break;
-                        }
-                    }
-                    return new Tuple<int, int> (good, bad);
-                })
-                // When exporting completes, update the UI using the UI thread 
-                .ContinueWith((task) =>
-                {
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                    {
-                        ShowStatus(null);
-                        Mouse.OverrideCursor = null;
-                        txtStatus.Text = String.Format("Completed with {0} successes and {1} failures",
-                            task.Result.Item1, task.Result.Item2);
-                    }));
-                });
-            }
+            ExportEmails(view.SelectedFolder.Messages);
         }
 
         private void treeFolders_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -317,38 +222,154 @@ namespace XstReader
 
         private void exportEmail_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
-                                        view.CurrentMessage.ExportFileExtension);
-
-            if (fullFileName != null)
+            if (listMessages.SelectedItems.Count > 1)
             {
-                try
+                ExportEmails(listMessages.SelectedItems.Cast<Message>());
+            }
+            else
+            {
+                string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
+                                            view.CurrentMessage.ExportFileExtension);
+
+                if (fullFileName != null)
                 {
-                    view.CurrentMessage.ExportToFile(fullFileName, xstFile);
-                    SaveAllAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
+                    try
+                    {
+                        view.CurrentMessage.ExportToFile(fullFileName, xstFile);
+                        SaveAllAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error exporting email");
+                    }
                 }
-                catch (System.Exception ex)
+            }
+        }
+
+        private void ExportEmails(IEnumerable<Message>messages)
+        {
+            string folderName = GetEmailsExportFolderName();
+
+            if (folderName != null)
+            {
+                ShowStatus("Exporting emails...");
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // Export emails on a background thread so we can keep the UI in sync
+                Task.Factory.StartNew<Tuple<int, int>>(() =>
                 {
-                    MessageBox.Show(ex.Message, "Error exporting email");
-                }
+                    Message current = null;
+                    int good = 0, bad = 0;
+                    // If files already exist, we overwrite them.
+                    // But if emails within this batch generate the same filename,
+                    // use a numeric suffix to distinguish them
+                    HashSet<string> usedNames = new HashSet<string>();
+                    foreach (Message m in messages)
+                    {
+                        try
+                        {
+                            current = m;
+                            string fileName = m.ExportFileName;
+                            for (int i = 1; ; i++)
+                            {
+                                if (!usedNames.Contains(fileName))
+                                {
+                                    usedNames.Add(fileName);
+                                    break;
+                                }
+                                else
+                                    fileName = String.Format("{0} ({1})", m.ExportFileName, i);
+                            }
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
+                            {
+                                ShowStatus("Exporting " + m.ExportFileName);
+                            }));
+                            // Ensure that we have the message contents
+                            xstFile.ReadMessageDetails(m);
+                            var fullFileName = String.Format(@"{0}\{1}.{2}",
+                                        folderName, fileName, m.ExportFileExtension);
+                            m.ExportToFile(fullFileName, xstFile);
+                            SaveAllAttachmentsToAssociatedFolder(fullFileName, m);
+                            good++;
+                        }
+                        catch (System.Exception ex)
+                        {
+                            var result = MessageBox.Show(String.Format("Error '{0}' exporting email '{1}'",
+                                ex.Message, current.Subject), "Error exporting emails",
+                                MessageBoxButton.OKCancel);
+                            bad++;
+                            if (result == MessageBoxResult.Cancel)
+                                break;
+                        }
+                    }
+                    return new Tuple<int, int>(good, bad);
+                })
+                // When exporting completes, update the UI using the UI thread 
+                .ContinueWith((task) =>
+                {
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        ShowStatus(null);
+                        Mouse.OverrideCursor = null;
+                        txtStatus.Text = String.Format("Completed with {0} successes and {1} failures",
+                            task.Result.Item1, task.Result.Item2);
+                    }));
+                });
+            }
+        }
+
+        private void ExportEmailProperties(IEnumerable<Message> messages)
+        {
+            string fileName = GetPropertiesExportFileName(view.SelectedFolder.Name);
+
+            if (fileName != null)
+            {
+                ShowStatus("Exporting properties...");
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // Export properties on a background thread so we can keep the UI in sync
+                Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        xstFile.ExportMessageProperties(messages, fileName);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Error exporting properties");
+                    }
+                })
+                // When exporting completes, update the UI using the UI thread 
+                .ContinueWith((task) =>
+                {
+                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        ShowStatus(null);
+                        Mouse.OverrideCursor = null;
+                    }));
+                });
             }
         }
 
         private void SaveAllAttachmentsToAssociatedFolder(string fullFileName, Message m)
         {
-            if (m.HasFileAttachment)
+            if (m.HasVisibleFileAttachment)
             {
                 var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
                     Path.GetFileNameWithoutExtension (fullFileName) + " Attachments");
                 if (!Directory.Exists(targetFolder))
+                {
                     Directory.CreateDirectory(targetFolder);
+                    if (m.Date != null)
+                        Directory.SetCreationTime(targetFolder, (DateTime)m.Date);
+                }
                 SaveAllAttachmentsToFolder(targetFolder, m);
             }
         }
 
         private void SaveAllAttachmentsToFolder(string fullFolderName, Message m)
         {
-            foreach (var a in m.Attachments.Where(a => a.IsFile))
+            foreach (var a in m.Attachments.Where(a => a.IsFile && !a.Hide))
             {
                 xstFile.SaveAttachmentToFolder(fullFolderName, m.Date, a);
             }
@@ -356,10 +377,17 @@ namespace XstReader
 
         private void exportEmailProperties_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
+            if (listMessages.SelectedItems.Count > 1)
+            {
+                ExportEmailProperties(listMessages.SelectedItems.Cast<Message>());
+            }
+            else
+            {
+                string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
 
-            if (fileName != null)
-                xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage }, fileName);
+                if (fileName != null)
+                    xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage }, fileName);
+            }
         }
 
         private void btnSaveAllAttachments_Click(object sender, RoutedEventArgs e)

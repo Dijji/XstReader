@@ -47,6 +47,7 @@ namespace XstReader
         // The following properties are used in XAML bindings to control the UI
         public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
         public bool HasFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile) != null); } }
+        public bool HasVisibleFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null); } }
         public bool HasEmailAttachment { get { return (Attachments.FirstOrDefault(a => a.IsEmail) != null); } }
         public bool ShowText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
         public bool ShowHtml
@@ -89,7 +90,7 @@ namespace XstReader
         {
             get
             {
-                return String.Join("; ", Attachments.Where(a => a.IsFile)
+                return String.Join("; ", Attachments.Where(a => a.IsFile && !a.Hide)
                     .Select(a => a.FileName));
             }
         }
@@ -170,6 +171,8 @@ namespace XstReader
                         var bytes = Encoding.UTF8.GetBytes(body);
                         stream.Write(bytes, 0, bytes.Count());
                     }
+                    if (Date != null)
+                        File.SetCreationTime(fullFileName, (DateTime)Date);
                 }
             }
             else if (ShowRtf)
@@ -181,6 +184,8 @@ namespace XstReader
                 {
                     content.Save(stream, DataFormats.Rtf);
                 }
+                if (Date != null)
+                    File.SetCreationTime(fullFileName, (DateTime)Date);
             }
             else
             {
@@ -190,6 +195,8 @@ namespace XstReader
                     var bytes = Encoding.UTF8.GetBytes(body);
                     stream.Write(bytes, 0, bytes.Count());
                 }
+                if (Date != null)
+                    File.SetCreationTime(fullFileName, (DateTime)Date);
             }
         }
 
