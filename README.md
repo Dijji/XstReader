@@ -5,7 +5,7 @@ It presents as a simple, classic, three pane mail viewer:
 
 ![](screenshot5.png)
 
-Xst Reader goes beyond Outlook in that it will allow you to open .ost files, which are the caches created by Outlook to hold a local copy of a mailbox. Wanting to read an .ost file was the original motivation for this project: knowing that documentation of the format existed, I thought it would only take me a couple of days. In fact, it rapidly became clear that I’d bitten into something considerably more complex than that. But once I’d started…
+Xst Reader goes beyond Outlook in that it will allow you to open .ost files, which are the caches created by Outlook to hold a local copy of a mailbox. Wanting to read an .ost file as the original motivation for this project: now it also as the ability to export the header and body of an email in its native format (plain text, HTML, or rich text), and inspect and export all the properties of an email.
 
 It requires only .Net Framework 4, which is installed by default on Windows 8.1 and later, but will need to be installed on Windows 7 and earlier systems before Xst Reader can be run.  .Net Framework 4 can be downloaded from <https://www.microsoft.com/en-us/download/details.aspx?id=17851>
 
@@ -20,6 +20,14 @@ To install a binary:
 
 ## Release History
 
+* 1.7
+    * Allow the contents of emails to be exported. Individual emails, multiple selected emails, or whole folders of emails may be exported. The results have the same format as the email, i.e. either HTML, Rich text format, or plain text.  
+* 1.6
+    * Allow searching through the listed message headers, looking for a given text
+* 1.4
+    * Can export message, contact et cetera properties to a CSV file 
+* 1.2
+    * Show inline attachments in the HTML body 
 * 1.1
     * Add support for showing Recipient and Attachment properties
 * 1.0
