@@ -32,7 +32,7 @@ namespace XstReader
         public DateTime? Submitted { get; set; }
         public DateTime? Modified { get; set; }  // When any attachment was last modified
         public DateTime? Date { get { return Received ?? Submitted; } }
-        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToShortDateString() : "<unknown>"; } }
+        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToShortDateString() + " " + ((DateTime)Date).ToShortTimeString() : "<unknown>"; } }
         public NID Nid { get; set; }
         public BodyType NativeBody { get; set; }
         public string Body { get; set; }
