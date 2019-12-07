@@ -489,7 +489,7 @@ namespace XstReader
             Message m = listMessages.Items[index] as Message;
             if ((subject && m.Subject != null && m.Subject.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
                 (fromTo && m.FromTo != null && m.FromTo.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
-                (date && m.DisplayDate != null && m.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
+                (date && m.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
             {
                 searchIndex = index;
                 listMessages.UnselectAll();

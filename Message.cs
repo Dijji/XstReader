@@ -32,7 +32,7 @@ namespace XstReader
         public DateTime? Submitted { get; set; }
         public DateTime? Modified { get; set; }  // When any attachment was last modified
         public DateTime? Date { get { return Received ?? Submitted; } }
-        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToShortDateString() : "<unknown>"; } }
+        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; } }
         public NID Nid { get; set; }
         public BodyType NativeBody { get; set; }
         public string Body { get; set; }
@@ -262,9 +262,9 @@ namespace XstReader
                 header.AppendFormat(row, "Cc:", CcDisplayList);
             if (HasBccDisplayList)
                 header.AppendFormat(row, "Bcc:", BccDisplayList);
+            header.AppendFormat(row, "Subject:", Subject);
             if (HasFileAttachment)
                 header.AppendFormat(row, "Attachments:", FileAttachmentDisplayList);
-            header.AppendFormat(row, "Subject:", Subject);
             header.Append("</tbody></table><p/><p/>");
 
             return body.Insert(insertAt, header.ToString());
@@ -312,9 +312,9 @@ namespace XstReader
                 AddRtfTableRow(table1, "Cc:", CcDisplayList);
             if (HasBccDisplayList)
                 AddRtfTableRow(table1, "Bcc:", BccDisplayList);
+            AddRtfTableRow(table1, "Subject:", Subject);
             if (HasFileAttachment)
                 AddRtfTableRow(table1, "Attachments:", FileAttachmentDisplayList);
-            AddRtfTableRow(table1, "Subject:", Subject);
 
             // Cope with the empty document case
             if (doc.Blocks.Count == 0)
