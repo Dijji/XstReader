@@ -5,4 +5,4 @@ Two things are required to build the project: the source code and the tool to bu
 
 Once installed, double click XstReader.sln in the root folder of the source code to open the project in Visual Studio.
 
-At this point, you should be able to build the solution (type F6), and run it from within Visual Studio (type F5).
+At this point, you should be able to build the solution (Build/Build Solution in the Visual Studio menus), and run it from within Visual Studio (Debug/Start Debugging).
