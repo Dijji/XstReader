@@ -344,6 +344,21 @@ namespace SearchTextBox
             set { SetValue(SectionsListProperty, value); }
         }
 
+        public static DependencyProperty SectionsInitiallySelectedProperty =
+            DependencyProperty.Register(
+                nameof(SectionsInitiallySelected),
+                typeof(List<bool>),
+                typeof(SearchTextBox),
+                new FrameworkPropertyMetadata(null,
+                                                FrameworkPropertyMetadataOptions.None)
+             );
+
+        public List<bool> SectionsInitiallySelected
+        {
+            get { return (List<bool>)GetValue(SectionsInitiallySelectedProperty); }
+            set { SetValue(SectionsInitiallySelectedProperty, value); }
+        }
+
         private bool m_showSectionButton = true;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,10 +430,25 @@ namespace SearchTextBox
                 m_listSection.Items.Clear();
                 // add items into the list
                 // is there any smarter way?
-                if(SectionsList!=null)
-                    foreach (string item in SectionsList)
-                        m_listSection.Items.Add(item);
-                m_listSection.SelectAll();
+                if (SectionsList != null)
+                {
+                    if (SectionsInitiallySelected != null &&
+                        SectionsList.Count() == SectionsInitiallySelected.Count)
+                    {
+                        for (int i = 0; i < SectionsList.Count(); i++)
+                        {
+                            m_listSection.Items.Add(SectionsList[i]);
+                            if (SectionsInitiallySelected[i])
+                                m_listSection.SelectedItems.Add(m_listSection.Items[i]);
+                        }
+                    }
+                    else
+                    {
+                        foreach (string item in SectionsList)
+                            m_listSection.Items.Add(item);
+                        m_listSection.SelectAll();
+                    }
+                }
                 //////////////////////////////////////////////////////////////////////////
 
                 m_listSection.Width = this.Width;

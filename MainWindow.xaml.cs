@@ -40,7 +40,8 @@ namespace XstReader
             //view.DisplayEmailType = true;
 
             // Supply the Search control with the list of sections
-            searchTextBox.SectionsList = new List<string> { "Subject", "From/To", "Date" };
+            searchTextBox.SectionsList = new List<string> { "Subject", "From/To", "Date", "Cc", "Bcc" };
+            searchTextBox.SectionsInitiallySelected = new List<bool> { true, true, true, false, false };
 
             if (Properties.Settings.Default.Top != 0.0)
             {
@@ -437,13 +438,15 @@ namespace XstReader
                 bool subject = args.Sections.Contains("Subject");
                 bool fromTo = args.Sections.Contains("From/To");
                 bool date = args.Sections.Contains("Date");
+                bool cc = args.Sections.Contains("Cc");
+                bool bcc = args.Sections.Contains("Bcc");
                 bool found = false;
                 switch (args.SearchEventType)
                 {
                     case SearchEventType.Search:
                         for (int i = 0; i < listMessages.Items.Count; i++)
                         {
-                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date);
+                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date, cc, bcc);
                             if (found)
                                 break;
                         }
@@ -454,7 +457,7 @@ namespace XstReader
                     case SearchEventType.Next:
                         for (int i = searchIndex + 1; i < listMessages.Items.Count; i++)
                         {
-                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date);
+                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date, cc, bcc);
                             if (found)
                             {
                                 searchTextBox.ShowSearch = true;
@@ -465,7 +468,7 @@ namespace XstReader
                     case SearchEventType.Previous:
                         for (int i = searchIndex - 1; i >= 0; i--)
                         {
-                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date);
+                            found = PropertyHitTest(i, args.Keyword, subject, fromTo, date, cc, bcc);
                             if (found)
                             {
                                 searchTextBox.ShowSearch = true;
@@ -484,12 +487,14 @@ namespace XstReader
             }
         }
 
-        private bool PropertyHitTest(int index, string text, bool subject, bool fromTo, bool date)
+        private bool PropertyHitTest(int index, string text, bool subject, bool fromTo, bool date, bool cc, bool bcc)
         {
             Message m = listMessages.Items[index] as Message;
             if ((subject && m.Subject != null && m.Subject.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
                 (fromTo && m.FromTo != null && m.FromTo.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
-                (date && m.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
+                (date && m.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (cc && m.CcDisplayList.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (bcc && m.BccDisplayList.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
             {
                 searchIndex = index;
                 listMessages.UnselectAll();
