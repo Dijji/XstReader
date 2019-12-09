@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using SearchTextBox;
 using System;
@@ -36,7 +36,7 @@ namespace XstReader
             this.DataContext = view;
 
             // For testing purposes, use these flags to control the display of print headers
-            //view.DisplayPrintHeaders = true;
+            view.DisplayPrintHeaders = true;
             //view.DisplayEmailType = true;
 
             // Supply the Search control with the list of sections
@@ -890,6 +890,19 @@ namespace XstReader
             OAIF_HIDE_REGISTRATION = 0x00000020,   // Vista+: Hide the "always use this file" checkbox
             OAIF_URL_PROTOCOL = 0x00000040,   // Vista+: cszFile is actually a URI scheme; show handlers for that scheme
             OAIF_FILE_IS_URI = 0x00000080    // Win8+: The location pointed to by the pcszFile parameter is given as a URI
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            string msg = "View Microsoft Outlook Mail files" + Environment.NewLine;
+            msg = msg + Environment.NewLine;
+            string Repository = "https://github.com/Dijji/XstReader";
+            msg = msg + "Repository: " + Repository + Environment.NewLine;
+            msg = msg + "Version: ";
+            //Version version = new Version(Application.ProductVersion);
+            //MessageBox.Show(msg + version.ToString(), "About XstReader");
+            MessageBox.Show(msg, "About XstReader");
+                        
         }
     }
 }
