@@ -36,7 +36,7 @@ namespace XstReader
             this.DataContext = view;
 
             // For testing purposes, use these flags to control the display of print headers
-            view.DisplayPrintHeaders = true;
+            //view.DisplayPrintHeaders = true;
             //view.DisplayEmailType = true;
 
             // Supply the Search control with the list of sections
@@ -892,17 +892,29 @@ namespace XstReader
             OAIF_FILE_IS_URI = 0x00000080    // Win8+: The location pointed to by the pcszFile parameter is given as a URI
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void btnInfo_Click(object sender, RoutedEventArgs e)
         {
-            string msg = "View Microsoft Outlook Mail files" + Environment.NewLine;
-            msg = msg + Environment.NewLine;
+            MessageBoxResult Option;
             string Repository = "https://github.com/Dijji/XstReader";
-            msg = msg + "Repository: " + Repository + Environment.NewLine;
-            msg = msg + "Version: ";
+            string msg = "View Microsoft Outlook Mail files" + Environment.NewLine
+            + Environment.NewLine
+            + "Version: " + Environment.NewLine
+            + Environment.NewLine
+            + Environment.NewLine
+            + "Open Repository: " + Repository;
             //Version version = new Version(Application.ProductVersion);
             //MessageBox.Show(msg + version.ToString(), "About XstReader");
-            MessageBox.Show(msg, "About XstReader");
-                        
+            Option = MessageBox.Show(
+                msg,
+                "About XstReader",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question,
+                MessageBoxResult.No);
+            
+            if (Option == MessageBoxResult.Yes)
+            {
+                Process.Start(Repository);
+            }
         }
     }
 }
