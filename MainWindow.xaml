@@ -61,9 +61,8 @@
         </TreeView>
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
             <StackPanel Grid.Row="1"  Orientation="Horizontal">
-                <Button Content="Open..." Height="20" Width="75" Margin="40,0,0,0" Name="btnOpen" Click="btnOpen_Click" />
+                <Button Content="Open..." Height="20" Width="75" Margin="10,0,0,0" Name="btnOpen" Click="btnOpen_Click" />
                 <TextBlock Name="txtStatus" Margin="10,7,0,0"/>
-                <Button Content="i" Width="20" Margin="150,0,0,0" Click="Button_Click" Height="20" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>
         <GridSplitter Grid.Row="0" Grid.Column="1" Width="3" HorizontalAlignment="Stretch" />
@@ -299,6 +298,7 @@
                               Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
             <RadioButton x:Name="rbProperties" Content="Properties" Margin="0,7,10,0" Click="rbProperties_Click"
                               Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
+            <Button Content="i" Width="20" Margin="0,0,5,0" Click="Button_Click" Height="20" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Right"/>
         </StackPanel>
     </Grid>
 </Window>
