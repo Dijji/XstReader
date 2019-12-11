@@ -298,7 +298,7 @@
                               Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
             <RadioButton x:Name="rbProperties" Content="Properties" Margin="0,7,10,0" Click="rbProperties_Click"
                               Visibility="{Binding MessagePresent, Converter={StaticResource VisibleIfTrue}}"/>
-            <Button Content="i" Width="20" Margin="0,0,5,0" Click="Button_Click" Height="20" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Right"/>
+            <Button Content="i" Width="20" Margin="0,0,5,0" Click="btnInfo_Click" Height="20" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Right"/>
         </StackPanel>
     </Grid>
 </Window>
