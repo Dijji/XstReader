@@ -895,7 +895,7 @@ namespace XstReader
 
         private void btnInfo_Click(object sender, RoutedEventArgs e)
         {
-            Version version = new Version(Application.ProductVersion);
+            Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             string Repository = "https://github.com/Dijji/XstReader";
 
             StringBuilder msg = new StringBuilder(100);
