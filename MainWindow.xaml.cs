@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using SearchTextBox;
 using System;
@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -890,6 +891,21 @@ namespace XstReader
             OAIF_HIDE_REGISTRATION = 0x00000020,   // Vista+: Hide the "always use this file" checkbox
             OAIF_URL_PROTOCOL = 0x00000040,   // Vista+: cszFile is actually a URI scheme; show handlers for that scheme
             OAIF_FILE_IS_URI = 0x00000080    // Win8+: The location pointed to by the pcszFile parameter is given as a URI
+        }
+
+        private void btnInfo_Click(object sender, RoutedEventArgs e)
+        {
+            Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            string Repository = "https://github.com/Dijji/XstReader";
+
+            StringBuilder msg = new StringBuilder(100);
+            msg.AppendLine("View Microsoft Outlook Mail files");
+            msg.Append("Version: ");
+            msg.AppendLine(version.ToString());
+            msg.Append("Repository: ");
+            msg.AppendLine(Repository);
+
+            MessageBox.Show(msg.ToString(), "About XstReader");
         }
     }
 }
