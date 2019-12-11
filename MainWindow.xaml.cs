@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -894,27 +895,17 @@ namespace XstReader
 
         private void btnInfo_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult Option;
+            Version version = new Version(Application.ProductVersion);
             string Repository = "https://github.com/Dijji/XstReader";
-            string msg = "View Microsoft Outlook Mail files" + Environment.NewLine
-            + Environment.NewLine
-            + "Version: " + Environment.NewLine
-            + Environment.NewLine
-            + Environment.NewLine
-            + "Open Repository: " + Repository;
-            //Version version = new Version(Application.ProductVersion);
-            //MessageBox.Show(msg + version.ToString(), "About XstReader");
-            Option = MessageBox.Show(
-                msg,
-                "About XstReader",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question,
-                MessageBoxResult.No);
-            
-            if (Option == MessageBoxResult.Yes)
-            {
-                Process.Start(Repository);
-            }
+
+            StringBuilder msg = new StringBuilder(100);
+            msg.AppendLine("View Microsoft Outlook Mail files");
+            msg.Append("Version: ");
+            msg.AppendLine(version.ToString());
+            msg.Append("Repository: ");
+            msg.AppendLine(Repository);
+
+            MessageBox.Show(msg.ToString(), "About XstReader");
         }
     }
 }
