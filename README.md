@@ -20,6 +20,10 @@ To install a binary:
 
 ## Release History
 
+* 1.8
+    * Allow searching within Cc and Bcc names
+    * Show email time as well as date in list of emails in folder
+    * Add an Info button in the bottom right-hand corner of the main window
 * 1.7
     * Allow the contents of emails to be exported. Individual emails, multiple selected emails, or whole folders of emails may be exported. The results have the same format as the email, i.e. either HTML, Rich text format, or plain text.  
 * 1.6
