@@ -108,48 +108,55 @@ namespace XstReader
 
         private void treeFolders_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            Folder f = (Folder)e.NewValue;
-            view.SelectedFolder = f;
-
-            if (f != null)
+            try
             {
-                view.SetMessage(null);
-                ShowMessage(null);
-                f.Messages.Clear();
-                ShowStatus("Reading messages...");
-                Mouse.OverrideCursor = Cursors.Wait;
+                Folder f = (Folder)e.NewValue;
+                view.SelectedFolder = f;
 
-                // Read messages on a background thread so we can keep the UI in sync
-                Task.Factory.StartNew(() =>
+                if (f != null)
                 {
-                    try
-                    {
-                        xstFile.ReadMessages(f);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error reading messages");
-                    }
-                })
-                // When loading completes, update the UI using the UI thread 
-                .ContinueWith((task) =>
-                {
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                    {
-                        ShowStatus(null);
-                        Mouse.OverrideCursor = null;
-                    }));
-                });
+                    view.SetMessage(null);
+                    ShowMessage(null);
+                    f.Messages.Clear();
+                    ShowStatus("Reading messages...");
+                    Mouse.OverrideCursor = Cursors.Wait;
 
-                // If there is no sort in effect, sort by date in descending order
-                if (listViewSortCol == null)
-                {
-                    string tag = "Date";
-                    listViewSortCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header).Where(h => h.Tag.ToString() == tag).First();
-                    listViewSortAdorner = new SortAdorner(listViewSortCol, ListSortDirection.Descending);
-                    AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
-                    listMessages.Items.SortDescriptions.Add(new SortDescription(tag, ListSortDirection.Descending));
+                    // Read messages on a background thread so we can keep the UI in sync
+                    Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            xstFile.ReadMessages(f);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            MessageBox.Show(ex.Message, "Error reading messages");
+                        }
+                    })
+                    // When loading completes, update the UI using the UI thread 
+                    .ContinueWith((task) =>
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            ShowStatus(null);
+                            Mouse.OverrideCursor = null;
+                        }));
+                    });
+
+                    // If there is no sort in effect, sort by date in descending order
+                    if (listViewSortCol == null)
+                    {
+                        string tag = "Date";
+                        listViewSortCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header).Where(h => h.Tag.ToString() == tag).First();
+                        listViewSortAdorner = new SortAdorner(listViewSortCol, ListSortDirection.Descending);
+                        AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
+                        listMessages.Items.SortDescriptions.Add(new SortDescription(tag, ListSortDirection.Descending));
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Unexpected error reading messages");
             }
         }
 
