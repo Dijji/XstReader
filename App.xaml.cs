@@ -28,13 +28,13 @@ namespace XstReader
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
             Exception ex = (Exception)e.Exception;
-            MessageBox.Show(ex.Message, "Unhandled thread exception");
+            MessageBox.Show(ex.ToString(), "Unhandled thread exception");
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
-            MessageBox.Show(ex.Message, "Unhandled exception");
+            MessageBox.Show(ex.ToString(), "Unhandled exception");
         }
     }
 }

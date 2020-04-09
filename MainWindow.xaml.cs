@@ -130,7 +130,7 @@ namespace XstReader
                         }
                         catch (System.Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Error reading messages");
+                            MessageBox.Show(ex.ToString(), "Error reading messages");
                         }
                     })
                     // When loading completes, update the UI using the UI thread 
