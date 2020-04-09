@@ -193,7 +193,8 @@ namespace XstReader
                     // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
                     var ms = ltp.ReadTable<Message>(fs, NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
                                                     ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
-                                .Select(m => ndb.IsUnicode4K ? Add4KMessageProperties(fs, m) : m);
+                                .Select(m => ndb.IsUnicode4K ? Add4KMessageProperties(fs, m) : m)
+                                .ToList(); // to force complete execution on the current thread
 
                     // We may be called on a background thread, so we need to dispatch this to the UI thread
                     Application.Current.Dispatcher.Invoke(new Action(() =>
