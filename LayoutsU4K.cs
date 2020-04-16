@@ -49,7 +49,7 @@ namespace XstReader
         public UInt16 cbStored;
         public UInt16 cbInflated;
         public UInt16 cRef;
-        public UInt32 dwPadding;
+        public UInt16 wPadding;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]

@@ -240,7 +240,7 @@ namespace XstReader
                     BTENTRYUnicode e;
                     unsafe
                     {
-                        e = Map.MapType<BTENTRYUnicode>(p.rgentries, LayoutsU.BTPAGEEntryBytes, i * p.cbEnt);
+                        e = Map.MapType<BTENTRYUnicode>(p.rgentries, LayoutsU.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                     }
                     var inter = new TreeIntermediate { Key = e.btkey };
                     parent.Children.Add(inter);
@@ -260,7 +260,7 @@ namespace XstReader
                     {
                         unsafe
                         {
-                            var e = Map.MapType<NBTENTRYUnicode>(p.rgentries, LayoutsU.BTPAGEEntryBytes, i * p.cbEnt);
+                            var e = Map.MapType<NBTENTRYUnicode>(p.rgentries, LayoutsU.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                             var nb = new Node { Key = e.nid.dwValue, Type = e.nid.nidType, DataBid = e.bidData, SubDataBid = e.bidSub, Parent = e.nidParent };
                             parent.Children.Add(nb);
                         }
@@ -269,7 +269,7 @@ namespace XstReader
                     {
                         unsafe
                         {
-                            var e = Map.MapType<BBTENTRYUnicode>(p.rgentries, LayoutsU.BTPAGEEntryBytes, i * p.cbEnt);
+                            var e = Map.MapType<BBTENTRYUnicode>(p.rgentries, LayoutsU.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                             parent.Children.Add(new DataRef { Key = e.BREF.bid, Offset = e.BREF.ib, Length = e.cb });
                         }
                     }
@@ -293,7 +293,7 @@ namespace XstReader
                     BTENTRYUnicode e;
                     unsafe
                     {
-                        e = Map.MapType<BTENTRYUnicode>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt);
+                        e = Map.MapType<BTENTRYUnicode>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                     }
                     var inter = new TreeIntermediate { Key = e.btkey };
                     parent.Children.Add(inter);
@@ -313,7 +313,7 @@ namespace XstReader
                     {
                         unsafe
                         {
-                            var e = Map.MapType<NBTENTRYUnicode>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt);
+                            var e = Map.MapType<NBTENTRYUnicode>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                             var nb = new Node { Key = e.nid.dwValue, Type = e.nid.nidType, DataBid = e.bidData, SubDataBid = e.bidSub, Parent = e.nidParent };
                             parent.Children.Add(nb);
                         }
@@ -322,7 +322,7 @@ namespace XstReader
                     {
                         unsafe
                         {
-                            var e = Map.MapType<BBTENTRYUnicode4K>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt);
+                            var e = Map.MapType<BBTENTRYUnicode4K>(p.rgentries, LayoutsU4K.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                             parent.Children.Add(new DataRef { Key = e.BREF.bid, Offset = e.BREF.ib, Length = e.cbStored, InflatedLength = e.cbInflated });
                         }
                     }
@@ -345,7 +345,7 @@ namespace XstReader
                     BTENTRYANSI e;
                     unsafe
                     {
-                        e = Map.MapType<BTENTRYANSI>(p.rgentries, LayoutsA.BTPAGEEntryBytes, i * p.cbEnt);
+                        e = Map.MapType<BTENTRYANSI>(p.rgentries, LayoutsA.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                     }
                     var inter = new TreeIntermediate { Key = e.btkey };
                     parent.Children.Add(inter);
@@ -365,7 +365,7 @@ namespace XstReader
                     {
                         unsafe
                         {
-                            var e = Map.MapType<NBTENTRYANSI>(p.rgentries, LayoutsA.BTPAGEEntryBytes, i * p.cbEnt);
+                            var e = Map.MapType<NBTENTRYANSI>(p.rgentries, LayoutsA.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                             var nb = new Node { Key = e.nid.dwValue, Type = e.nid.nidType, DataBid = e.bidData, SubDataBid = e.bidSub, Parent = e.nidParent };
                             parent.Children.Add(nb);
                         }
@@ -374,7 +374,7 @@ namespace XstReader
                     {
                         unsafe
                         {
-                            var e = Map.MapType<BBTENTRYANSI>(p.rgentries, LayoutsA.BTPAGEEntryBytes, i * p.cbEnt);
+                            var e = Map.MapType<BBTENTRYANSI>(p.rgentries, LayoutsA.BTPAGEEntryBytes, i * p.cbEnt, p.cbEnt);
                             parent.Children.Add(new DataRef { Key = e.BREF.bid, Offset = e.BREF.ib, Length = e.cb });
                         }
                     }
