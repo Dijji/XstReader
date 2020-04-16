@@ -72,7 +72,7 @@ namespace XstReader
                 }
                 catch (System.Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Error reading xst file");
+                    MessageBox.Show(ex.ToString(), "Error reading xst file");
                 }
             })
             // When loading completes, update the UI using the UI thread 
@@ -156,7 +156,7 @@ namespace XstReader
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Unexpected error reading messages");
+                MessageBox.Show(ex.ToString(), "Unexpected error reading messages");
             }
         }
 
@@ -175,7 +175,7 @@ namespace XstReader
                 }
                 catch (System.Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Error reading message details");
+                    MessageBox.Show(ex.ToString(), "Error reading message details");
                 }
             }
             view.SetMessage(m);
@@ -213,7 +213,7 @@ namespace XstReader
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error reading recipient");
+                MessageBox.Show(ex.ToString(), "Error reading recipient");
             }
         }
 
@@ -225,7 +225,7 @@ namespace XstReader
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error reading attachment");
+                MessageBox.Show(ex.ToString(), "Error reading attachment");
             }
         }
 
@@ -249,7 +249,7 @@ namespace XstReader
                     }
                     catch (System.Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Error exporting email");
+                        MessageBox.Show(ex.ToString(), "Error exporting email");
                     }
                 }
             }
@@ -345,7 +345,7 @@ namespace XstReader
                     }
                     catch (System.Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Error exporting properties");
+                        MessageBox.Show(ex.ToString(), "Error exporting properties");
                     }
                 })
                 // When exporting completes, update the UI using the UI thread 
@@ -588,7 +588,7 @@ namespace XstReader
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error reading message body");
+                MessageBox.Show(ex.ToString(), "Error reading message body");
             }
         }
 
@@ -778,7 +778,7 @@ namespace XstReader
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error saving attachment");
+                MessageBox.Show(ex.ToString(), "Error saving attachment");
                 return null;
             }
         }
@@ -867,7 +867,7 @@ namespace XstReader
                     }
                     catch (System.Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Error saving attachment");
+                        MessageBox.Show(ex.ToString(), "Error saving attachment");
                     }
                 }
             }

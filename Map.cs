@@ -46,10 +46,13 @@ namespace XstReader
             return temp;
         }
 
-        //  Map part of an unsafe data buffer onto the specified type T
-        public static unsafe T MapType<T>(byte* buffer, int buflen, int offset)
+        // Map part of an unsafe data buffer onto the specified type T
+        // The optional entry size can be offered as a crosscheck on the accuracy of the layouts
+        public static unsafe T MapType<T>(byte* buffer, int buflen, int offset, int entrySize = 0)
         {
             int size = Marshal.SizeOf(typeof(T));
+            if (entrySize != 0 && size > entrySize)
+                throw new XstException($"Mapping error: requested map of {typeof(T).Name} whose size is {size} but entry size is only {entrySize}");
             if (offset < 0 || offset + size > buflen)
                 throw new XstException($"Out of bounds error attempting to map {typeof(T).Name} from buffer length {buflen} at offset {offset}");
             return (T)Marshal.PtrToStructure(new IntPtr(buffer + offset), typeof(T));
