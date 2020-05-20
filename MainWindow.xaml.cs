@@ -27,8 +27,6 @@ namespace XstReader
         private View view = new View();
         private XstFile xstFile = null;
         private List<string> tempFileNames = new List<string>();
-        private GridViewColumnHeader listViewSortCol = null;
-        private SortAdorner listViewSortAdorner = null;
         private int searchIndex = -1;
 
         public MainWindow()
@@ -144,14 +142,7 @@ namespace XstReader
                     });
 
                     // If there is no sort in effect, sort by date in descending order
-                    if (listViewSortCol == null)
-                    {
-                        string tag = "Date";
-                        listViewSortCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header).Where(h => h.Tag.ToString() == tag).First();
-                        listViewSortAdorner = new SortAdorner(listViewSortCol, ListSortDirection.Descending);
-                        AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
-                        listMessages.Items.SortDescriptions.Add(new SortDescription(tag, ListSortDirection.Descending));
-                    }
+                    SortMessages("Date", ListSortDirection.Descending, ifNoneAlready: true);
                 }
             }
             catch (Exception ex)
@@ -185,22 +176,8 @@ namespace XstReader
         {
             // Sort the messages by the clicked on column
             GridViewColumnHeader column = (sender as GridViewColumnHeader);
-            string sortBy = column.Tag.ToString();
-            if (listViewSortCol != null)
-            {
-                AdornerLayer.GetAdornerLayer(listViewSortCol).Remove(listViewSortAdorner);
-                listMessages.Items.SortDescriptions.Clear();
-            }
-
-            ListSortDirection newDir = ListSortDirection.Ascending;
-            if (listViewSortCol == column && listViewSortAdorner.Direction == newDir)
-                newDir = ListSortDirection.Descending;
-
-            listViewSortCol = column;
-            listViewSortAdorner = new SortAdorner(listViewSortCol, newDir);
-            AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
-            listMessages.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
-
+            SortMessages(column.Tag.ToString(), ListSortDirection.Ascending);
+      
             searchIndex = listMessages.SelectedIndex;
             listMessages.ScrollIntoView(listMessages.SelectedItem);
         }
@@ -253,6 +230,61 @@ namespace XstReader
                     }
                 }
             }
+        }
+
+        private void SortMessages(string property, ListSortDirection direction, bool ifNoneAlready = false)
+        {
+            var targetCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header)
+                            .First(h => h.Tag.ToString() == property);
+
+            // See if we have any sorts applied, in which case, we may be done
+            var sorts = listMessages.Items.SortDescriptions;
+            if (ifNoneAlready && sorts.Count > 0)
+                return;
+
+            // Look for a sort on the target columm
+            var matches = sorts.Where(s => s.PropertyName == property);
+            if (matches.Count() > 0)
+            {
+                // If there is one, just toggle it
+                var sort = matches.First();
+                direction = ((sort.Direction == ListSortDirection.Ascending) ?
+                                ListSortDirection.Descending : ListSortDirection.Ascending);
+                sorts.Remove(sort);
+            }
+            //else
+            //{
+            //    // If there is not one, see if we have the maximum number of sorts applied already
+            //    // The algorithm works for any limit with no changes other than this test
+            //    if (sorts.Count >= 2)
+            //    {
+            //        // If so, remove the oldest one
+            //        var oldSort = sorts.Last();
+            //        var oldCol = ((GridView)listMessages.View).Columns.Select(c => (GridViewColumnHeader)c.Header)
+            //               .First(h => h.Tag.ToString() == oldSort.PropertyName);
+            //        sorts.Remove(oldSort);
+
+            //        // And the adorner that went with it
+            //        var oldAdorners = AdornerLayer.GetAdornerLayer(oldCol);
+            //        var oldAdorner = oldAdorners.GetAdorners(oldCol)?.Cast<SortAdorner>()?.FirstOrDefault(s => s != null);
+            //        if (oldAdorner != null)
+            //            oldAdorners.Remove(oldAdorner);
+            //    }
+            //}
+
+            // Apply the requested sort as the dominant one, whatever it was before
+            sorts.Insert(0, new SortDescription(property, direction));
+
+            // Find any sort adorner applied to the target column
+            var adorners = AdornerLayer.GetAdornerLayer(targetCol);
+            var adorner = adorners.GetAdorners(targetCol)?.Cast<SortAdorner>()?.FirstOrDefault(s => s != null);
+            // If there is one, remove it
+            if (adorner != null)
+                adorners.Remove(adorner);
+
+            // Create and apply the requested adorner
+            adorner = new SortAdorner(targetCol, direction);
+            adorners.Add(adorner);
         }
 
         private void ExportEmails(IEnumerable<Message>messages)
