@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -384,7 +385,7 @@ namespace XstReader
             var columns = dict.Keys.OrderBy(x => x).ToArray();
 
             // And finally output the CSV file line by line
-            using (var sw = new System.IO.StreamWriter(fileName, false,  /* Encoding.Default */ System.Text.Encoding.GetEncoding("utf-8") ))
+            using (var sw = new System.IO.StreamWriter(fileName, false, Encoding.UTF8))
 
             {
                 StringBuilder sb = new StringBuilder();
@@ -498,22 +499,16 @@ namespace XstReader
         private void AddCsvValue(StringBuilder sb, string value, ref bool hasValue)
         {
             if (hasValue)
-                sb.Append(",");
+                sb.Append(CultureInfo.CurrentCulture.TextInfo.ListSeparator); // aka comma
 
             if (value != null)
             {
-                // multilingual character should be quoted, so almost always quotation is necessary
-                // if (value.Contains(',') || value.Contains('"') || value.Contains("\n") || value.Contains("\n") )    
-                {
-                    // We need to quote the value, and therefore get rid of quotes in it
-                    // Excel is also fooled by spaces after embedded commas
-                    var val = value.Replace("\"", "\"\"");
-                    sb.Append("\"");
-                    sb.Append(EnforceCsvValueLengthLimit(val));
-                    sb.Append("\"");
-                }
-                // else
-                //    sb.Append(EnforceCsvValueLengthLimit(value));
+                // Multilingual characters should be quoted, so We will just quote all values,
+                // which means we need to double quotes in the value
+                var val = value.Replace("\"", "\"\"");
+                sb.Append("\"");
+                sb.Append(EnforceCsvValueLengthLimit(val));
+                sb.Append("\"");
             }
 
             hasValue = true;
