@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace XstReader
 {
@@ -19,10 +20,18 @@ namespace XstReader
             currentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-                MainWindow wnd = new MainWindow();
+            EventManager.RegisterClassHandler(typeof(TreeViewItem), TreeViewItem.PreviewMouseRightButtonDownEvent, new RoutedEventHandler(TreeViewItem_PreviewMouseRightButtonDownEvent));
+
+            MainWindow wnd = new MainWindow();
             if (e.Args.Length == 1)
                 wnd.OpenFile(e.Args[0]);
             wnd.Show();
+        }
+
+        // In tree views, select item on right click
+        private void TreeViewItem_PreviewMouseRightButtonDownEvent(object sender, RoutedEventArgs e)
+        {
+            (sender as TreeViewItem).IsSelected = true;
         }
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
