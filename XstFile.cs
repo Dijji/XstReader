@@ -384,7 +384,8 @@ namespace XstReader
             var columns = dict.Keys.OrderBy(x => x).ToArray();
 
             // And finally output the CSV file line by line
-            using (var sw = new System.IO.StreamWriter(fileName, false))
+            using (var sw = new System.IO.StreamWriter(fileName, false,  /* Encoding.Default */ System.Text.Encoding.GetEncoding("utf-8") ))
+
             {
                 StringBuilder sb = new StringBuilder();
                 bool hasValue = false;
@@ -501,20 +502,18 @@ namespace XstReader
 
             if (value != null)
             {
-                value = value.Replace("\r\n", "; ").Replace("\r", "; ").Replace("\n", "; ");
-                if (value.Contains(','))    
+                // multilingual character should be quoted, so almost always quotation is necessary
+                // if (value.Contains(',') || value.Contains('"') || value.Contains("\n") || value.Contains("\n") )    
                 {
                     // We need to quote the value, and therefore get rid of quotes in it
                     // Excel is also fooled by spaces after embedded commas
-                    var val = value.Replace("\"", "'");
-                    while (val.Contains(", "))
-                        val = val.Replace(", ", ",");
+                    var val = value.Replace("\"", "\"\"");
                     sb.Append("\"");
                     sb.Append(EnforceCsvValueLengthLimit(val));
                     sb.Append("\"");
                 }
-                else
-                    sb.Append(EnforceCsvValueLengthLimit(value));
+                // else
+                //    sb.Append(EnforceCsvValueLengthLimit(value));
             }
 
             hasValue = true;
