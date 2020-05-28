@@ -329,7 +329,9 @@ namespace XstReader
         }
 
         public bool Hide { get { return (Hidden || IsInlineAttachment); } }
+#if !NETCOREAPP
         public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
+#endif
         public bool HasContentId { get { return (ContentId != null); } }
 
         // To do: case where ContentLocation property is used instead of ContentId

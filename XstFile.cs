@@ -176,7 +176,7 @@ namespace XstReader
                 foreach (var f in root.Folders)
                 {
                     // We may be called on a background thread, so we need to dispatch this to the UI thread
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    DispatchIfNeeded(new Action(() =>
                     {
                         view.RootFolders.Add(f);
                     }));
@@ -198,7 +198,7 @@ namespace XstReader
                                 .ToList(); // to force complete execution on the current thread
 
                     // We may be called on a background thread, so we need to dispatch this to the UI thread
-                    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    DispatchIfNeeded(new Action(() =>
                     {
                         f.Messages.Clear();
                         foreach (var m in ms)
@@ -208,6 +208,16 @@ namespace XstReader
                     }));
                 }
             }
+        }
+
+        // We may be called on a background thread, so we need to dispatch this to the UI thread
+        private void DispatchIfNeeded(Action action)
+        {
+#if !NETCOREAPP
+            Application.Current.Dispatcher.Invoke(action);
+#else
+            action();
+#endif
         }
 
         public void ReadMessageDetails(Message m)
@@ -417,9 +427,9 @@ namespace XstReader
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region Private methods
+#region Private methods
 
         // Recurse down the folder tree, building a structure of Folder classes
         private Folder ReadFolderStructure(FileStream fs, NID nid)
@@ -523,7 +533,7 @@ namespace XstReader
                 return value.Substring(0, valueLengthLimit) + "…";
         }
 
-        #endregion
+#endregion
     }
 
     public class XstException : Exception

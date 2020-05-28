@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\BTree.cs">
+      <Link>XstReader\BTree.cs</Link>
+    </Compile>
+    <Compile Include="..\XstFile.cs">
+      <Link>XstReader\XstFile.cs</Link>
+    </Compile>
+    <Compile Include="..\View.cs">
+      <Link>XstReader\View.cs</Link>
+    </Compile>
+    <Compile Include="..\StandardProperties.cs">
+      <Link>XstReader\StandardProperties.cs</Link>
+    </Compile>
+    <Compile Include="..\RtfDecompressor.cs">
+      <Link>XstReader\RtfDecompressor.cs</Link>
+    </Compile>
+    <Compile Include="..\Property.cs">
+      <Link>XstReader\Property.cs</Link>
+    </Compile>
+    <Compile Include="..\NamedProperties.cs">
+      <Link>XstReader\NamedProperties.cs</Link>
+    </Compile>
+    <Compile Include="..\NDB.cs">
+      <Link>XstReader\NDB.cs</Link>
+    </Compile>
+    <Compile Include="..\Message.cs">
+      <Link>XstReader\Message.cs</Link>
+    </Compile>
+    <Compile Include="..\Map.cs">
+      <Link>XstReader\Map.cs</Link>
+    </Compile>
+    <Compile Include="..\LayoutsU4K.cs">
+      <Link>XstReader\LayoutsU4K.cs</Link>
+    </Compile>
+    <Compile Include="..\LayoutsU.cs">
+      <Link>XstReader\LayoutsU.cs</Link>
+    </Compile>
+    <Compile Include="..\LayoutsA.cs">
+      <Link>XstReader\LayoutsA.cs</Link>
+    </Compile>
+    <Compile Include="..\Layouts.cs">
+      <Link>XstReader\Layouts.cs</Link>
+    </Compile>
+    <Compile Include="..\LTP.cs">
+      <Link>XstReader\LTP.cs</Link>
+    </Compile>
+    <Compile Include="..\Extensions.cs">
+      <Link>XstReader\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Crypto.cs">
+      <Link>XstReader\Crypto.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>
