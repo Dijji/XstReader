@@ -44,7 +44,7 @@ namespace PstFileExporter
 
         private static string RemoveInvalidChars(string filename)
         {
-            return string.Concat(filename.Split(System.IO.Path.GetInvalidFileNameChars())).TrimEnd();
+            return string.Concat(filename.Split(System.IO.Path.GetInvalidFileNameChars())).TrimEnd().TrimEnd('.');
         }
 
         private static void ExtractAttachmentsInFolder(View xstView, XstFile xstFile, XstReader.Folder folder, string exportDirectoryBase)
