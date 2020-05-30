@@ -16,10 +16,8 @@ namespace PstFileExporter
             }
 
             var fileName = args[0];
-            var exportDirectory = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(fileName),
+            var exportDirectory = CreateDirectoryIfNeeded(System.IO.Path.GetDirectoryName(fileName),
                 System.IO.Path.GetFileNameWithoutExtension(fileName) + "_Export");
-            if (!System.IO.Directory.Exists(exportDirectory))
-                System.IO.Directory.CreateDirectory(exportDirectory);
 
             var xstView = new XstReader.View();
             var xstFile = new XstReader.XstFile(xstView, fileName);
@@ -33,24 +31,41 @@ namespace PstFileExporter
 
         }
 
-        private static void ExtractAttachmentsInFolder(View xstView, XstFile xstFile, XstReader.Folder folder, string exportDirectoryBase)
+        private static string CreateDirectoryIfNeeded(string rootDirName, string dirName)
         {
-            //Console.WriteLine("Folder : " +folder.Name);
-            string exportDirectory = System.IO.Path.Combine(exportDirectoryBase, folder.Name);
+            string exportDirectory = System.IO.Path.Combine(rootDirName, 
+                RemoveInvalidChars(System.IO.Path.GetFileName(dirName)));
             if (!System.IO.Directory.Exists(exportDirectory))
                 System.IO.Directory.CreateDirectory(exportDirectory);
+            return exportDirectory;
+        }
+
+
+
+        private static string RemoveInvalidChars(string filename)
+        {
+            return string.Concat(filename.Split(System.IO.Path.GetInvalidFileNameChars())).TrimEnd();
+        }
+
+        private static void ExtractAttachmentsInFolder(View xstView, XstFile xstFile, XstReader.Folder folder, string exportDirectoryBase)
+        {
+            var exportDirectory = CreateDirectoryIfNeeded(exportDirectoryBase, RemoveInvalidChars(folder.Name));
 
             xstFile.ReadMessages(folder);
             foreach (var message in folder.Messages)
             {
                 xstFile.ReadMessageDetails(message);
-                //Console.WriteLine("Message : " + message.Subject);
                 foreach(var att in message.Attachments)
                 {
                     if (att.IsFile)
                     {
-                        Console.WriteLine("Extract : " + System.IO.Path.Combine(exportDirectory , att.FileName));
-                        xstFile.SaveAttachmentToFolder(exportDirectory, null, att);
+                        var attachmentExpectedName = System.IO.Path.Combine(exportDirectory, att.FileName);
+                        var exists = System.IO.File.Exists(attachmentExpectedName);
+                        string actionName = exists ? "Skip" : "Extract";
+                            Console.WriteLine(String.Format("{0} : {1}" , actionName, attachmentExpectedName));
+                        if (!exists) { 
+                            xstFile.SaveAttachment(attachmentExpectedName, message.Received, att);
+                        } 
                     }
                 }
             }
