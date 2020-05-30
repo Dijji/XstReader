@@ -20,7 +20,7 @@ This tool is written in .Net Core for maximum portability and is using Xst Reade
 2. cd PstFileAttachmentExporter
 3. dotnet build
 4. dotnet run path_to_a_pst_file.pst
-5. All attachments will be extracted in the pst directory, respecting the directory structure inside the pst
+5. All attachments will be extracted in the pst directory, respecting the directory structure inside the pst. We keep only the last version (overwrite old version of same attachment from different emails)
 
 ## Installation
 
