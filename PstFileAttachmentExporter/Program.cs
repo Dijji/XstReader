@@ -60,12 +60,32 @@ namespace PstFileExporter
                     if (att.IsFile)
                     {
                         var attachmentExpectedName = System.IO.Path.Combine(exportDirectory, att.FileName);
-                        var exists = System.IO.File.Exists(attachmentExpectedName);
-                        string actionName = exists ? "Skip" : "Extract";
-                            Console.WriteLine(String.Format("{0} : {1}" , actionName, attachmentExpectedName));
-                        if (!exists) { 
-                            xstFile.SaveAttachment(attachmentExpectedName, message.Received, att);
-                        } 
+                        var fi = new System.IO.FileInfo(attachmentExpectedName);
+                        var actionName = string.Empty;
+
+                        if (!fi.Exists) 
+                        {
+                            actionName = "Create";
+                        } else
+                        {
+                            if (fi.CreationTime < message.Received)
+                            {
+                                actionName = "CreateNewer";
+                            } 
+                            else { 
+                                actionName = "Skip";
+                            }
+                        }
+                        Console.WriteLine(String.Format("{0} : {1}" , actionName, attachmentExpectedName));
+                        switch (actionName)
+                        {
+                            case "Create":
+                            case "CreateNewer":
+                                xstFile.SaveAttachment(attachmentExpectedName, message.Received, att);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             }
