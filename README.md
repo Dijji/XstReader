@@ -11,6 +11,17 @@ It requires only .Net Framework 4, which is installed by default on Windows 8.1 
 
 Xst Reader is based on Microsoft’s documentation of the Outlook file formats in [MS-PST], first published in 2010 as part of the anti-trust settlement with the DOJ and the EU: <https://msdn.microsoft.com/en-us/library/ff385210(v=office.12).aspx>
 
+## PstFileAttachmentExporter
+
+Export all attachments from a given pst file from command line.
+This tool is written in .Net Core for maximum portability and is using Xst Reader classes without the UI. It has been tested on MacOs Catalina with VisualStudio for Mac.
+
+1. Open a Command Line
+2. cd PstFileAttachmentExporter
+3. dotnet build
+4. dotnet run path_to_a_pst_file.pst
+5. All attachments will be extracted in the pst directory, respecting the directory structure inside the pst. We keep only the last version (overwrite old version of same attachment from different emails)
+
 ## Installation
 
 To install a binary:

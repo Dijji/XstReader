@@ -8,8 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
+#if !NETCOREAPP
 using System.Windows.Documents;
 using System.Windows.Media;
+#endif
 
 namespace XstReader
 {
@@ -177,6 +179,8 @@ namespace XstReader
             }
             else if (ShowRtf)
             {
+#if !NETCOREAPP
+
                 var doc = GetBodyAsFlowDocument();
                 EmbedRtfPrintHeader(doc);
                 TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
@@ -186,6 +190,9 @@ namespace XstReader
                 }
                 if (Date != null)
                     File.SetCreationTime(fullFileName, (DateTime)Date);
+#else
+                throw new PlatformNotSupportedException();
+#endif
             }
             else
             {
@@ -200,6 +207,7 @@ namespace XstReader
             }
         }
 
+#if !NETCOREAPP
         public FlowDocument GetBodyAsFlowDocument()
         {
             FlowDocument doc = new FlowDocument();
@@ -215,7 +223,7 @@ namespace XstReader
             //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
             return doc;
         }
-
+#endif
         public string EmbedTextPrintHeader(string body, bool forDisplay = false, bool showEmailType = false)
         {
             string row = forDisplay ? "{0,-15}\t{1}\r\n" : "{0,-15}{1}\r\n";
@@ -286,6 +294,8 @@ namespace XstReader
             }
         }
 
+#if !NETCOREAPP
+
         public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
         {
             if (doc == null)
@@ -327,6 +337,8 @@ namespace XstReader
             //omit MyName and the line under it for now, as we have no reliable source for it
             //doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, p);
         }
+#endif
+#if !NETCOREAPP
 
         private void AddRtfTableRow(Table table, string c0, string c1)
         {
@@ -338,7 +350,7 @@ namespace XstReader
             currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c1))
             { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
         }
-
+#endif
         public string EmbedAttachments(string body, XstFile xst)
         {
             if (body == null)
