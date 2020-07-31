@@ -99,6 +99,8 @@ namespace XstReader
 
         public void SetMessage(Message m)
         {
+            if (CurrentMessage != null)
+                CurrentMessage.ClearContents();
             stackMessage.Clear();
             UpdateCurrentMessage(m);
         }
@@ -299,6 +301,7 @@ namespace XstReader
         public int Size { get; set; }
         public NID Nid { get; set; }  
         public AttachMethods AttachMethod { get; set; }
+        public byte[] AttachmentBytes { get; set; }
         public dynamic Content { get; set; }  
         public bool IsFile { get { return AttachMethod == AttachMethods.afByValue; } }
         public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethods.afEmbeddedMessage; } }
@@ -351,11 +354,14 @@ namespace XstReader
             {
                 // We read the full set of attachment property values only on demand
                 if (properties == null)
-                {
+                { 
                     properties = new List<Property>();
-                    foreach (var p in XstFile.ReadAttachmentProperties(this))
-                    {
-                        properties.Add(p);
+                    if (AttachmentBytes == null)
+                    { 
+                        foreach (var p in XstFile.ReadAttachmentProperties(this))
+                        {
+                            properties.Add(p);
+                        }
                     }
                 }
                 return properties;

@@ -137,6 +137,15 @@ namespace XstReader
             }
         }
 
+        public void ClearContents()
+        {
+            // Clear out any previous content   
+            Body = null;
+            BodyHtml = null;
+            Html = null;
+            Attachments.Clear();
+        }
+
         public string GetBodyAsHtmlString()
         {
             if (BodyHtml != null)
@@ -205,6 +214,7 @@ namespace XstReader
             FlowDocument doc = new FlowDocument();
 
             var decomp = new RtfDecompressor();
+
             using (System.IO.MemoryStream ms = decomp.Decompress(RtfCompressed, true))
             {
                 ms.Position = 0;
