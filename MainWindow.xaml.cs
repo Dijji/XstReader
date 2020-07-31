@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -566,6 +565,48 @@ namespace XstReader
             {
                 if (m != null)
                 {
+                    //email is signed and/or encrypted and no body was included
+                    if (m.Attachments.Count() == 1 && m.Attachments[0].FileName == "smime.p7m" && m.GetBodyAsHtmlString() == null)
+                    {
+                        Attachment a = m.Attachments[0];
+
+                        //get attachment bytes
+                        var ms = new MemoryStream();
+                        xstFile.SaveAttachment(ms, a);
+                        byte[] attachmentBytes = ms.ToArray();
+                        string messageFromBytes = System.Text.Encoding.Default.GetString(attachmentBytes);
+
+                        // the message is not encrypted just signed
+                        if (messageFromBytes.Contains("application/x-pkcs7-signature"))
+                        {
+                            MailMessageMimeParser.parseMessage(m, messageFromBytes);
+                        }
+                        else
+                        {
+                            var decryptedMessage = MailMessageMimeParser.decryptMessage(attachmentBytes);
+                            string cleartextMessage = "";
+
+                            //Message is only signed
+                            if (decryptedMessage.Contains("filename=smime.p7m"))
+                            {
+                                cleartextMessage = MailMessageMimeParser.DecodeSignedMessage(decryptedMessage);
+                            }
+                            // message is only encrypted not signed
+                            else
+                            {
+                                cleartextMessage = decryptedMessage;
+                            }
+                            MailMessageMimeParser.parseMessage(m, cleartextMessage);
+                        }
+
+                        //remove P7M encrypted file from attachments list
+                        m.Attachments.RemoveAt(0);
+                        // if no attachments left unset the has attachments flag
+                        if (m.Attachments.Count == 0)
+                        {
+                            m.Flags ^= MessageFlags.mfHasAttach;
+                        }
+                    }
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (m.ShowHtml)
                     {
