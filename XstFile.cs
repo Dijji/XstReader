@@ -340,7 +340,6 @@ namespace XstReader
                     }
 
                     ReadMessageTables(fs, childSubNodeTree, m, true);
-                    var mine = System.Text.Encoding.Default.GetString(m.RtfCompressed);
 
                     return m;
                 }
