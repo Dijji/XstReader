@@ -276,9 +276,9 @@ namespace XstReader
 
         public void SaveAttachment(Stream s, Attachment a)
         {
-            if (a.AttachmentBytes != null)
+            if (a.WasLoadedFromMime)
             {
-                s.Write(a.AttachmentBytes, 0, a.AttachmentBytes.Length);
+                s.Write(a.Content, 0, a.Content.Length);
             }
             else
             {

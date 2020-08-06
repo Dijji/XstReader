@@ -471,18 +471,18 @@ namespace XstReader
         }
 
         // Take encrypted or signed bytes and parse into message object
-        public void ReadSignedOrEncryptedMessage(byte[] attachmentBytes)
+        public void ReadSignedOrEncryptedMessage(byte[] messageBytes)
         {
-            string messageFromBytes = System.Text.Encoding.Default.GetString(attachmentBytes);
+            string messageFromBytes = System.Text.Encoding.ASCII.GetString(messageBytes);
 
             // the message is not encrypted just signed
             if (messageFromBytes.Contains("application/x-pkcs7-signature"))
             {
-                ParseMessage(messageFromBytes);
+                ParseMimeMessage(messageFromBytes);
             }
             else
             {
-                var decryptedMessage = DecryptMessage(attachmentBytes);
+                string decryptedMessage = DecryptMessage(messageBytes);
                 string cleartextMessage;
 
                 //Message is only signed
@@ -495,7 +495,7 @@ namespace XstReader
                 {
                     cleartextMessage = decryptedMessage;
                 }
-                ParseMessage(cleartextMessage);
+                ParseMimeMessage(cleartextMessage);
             }
 
             //remove P7M encrypted file from attachments list
@@ -508,7 +508,7 @@ namespace XstReader
         }
 
         //parse mime message into a given message object adds alll attachments and inserts inline content to message body
-        public void ParseMessage(String mimeText)
+        public void ParseMimeMessage(String mimeText)
         {
             string[] messageParts = GetMimeParts(mimeText);
 
@@ -525,34 +525,23 @@ namespace XstReader
                 else if (partHeaders.Keys.Contains("content-disposition") && partHeaders["content-disposition"].Trim().Contains("attachment;"))
                 {
                     string filename = Regex.Match(partHeaders["content-disposition"], @"filename=""(.*?)""", RegexOptions.IgnoreCase).Groups[1].Value;
-                    //add base64 content to an attachement on the message.
-                    Attachment a = new Attachment();
-                    a.LongFileName = filename;
-                    a.AttachMethod = AttachMethods.afByValue;
-                    a.AttachmentBytes = Convert.FromBase64String(partHeaders["mimeBody"]);
-                    a.Size = a.AttachmentBytes.Length;
-                    Attachments.Add(a);
+                    byte[] content = Convert.FromBase64String(partHeaders["mimeBody"]);
+                    Attachments.Add(new Attachment(filename, content));
                 }
                 //inline images
                 else if (partHeaders.Keys.Contains("content-id"))
                 {
-                    Attachment a = new Attachment();
-                    string contentid = Regex.Match(partHeaders["content-id"], @"<(.*)>", RegexOptions.IgnoreCase).Groups[1].Value;
-                    string name = Regex.Match(partHeaders["content-type"], @".*name=""(.*)""", RegexOptions.IgnoreCase).Groups[1].Value;
-                    a.AttachMethod = AttachMethods.afByValue;
-                    a.ContentId = contentid;
-                    a.LongFileName = name;
-                    a.Flags = AttachFlags.attRenderedInBody;
-                    a.AttachmentBytes = Convert.FromBase64String(partHeaders["mimeBody"]);
-                    a.Size = a.AttachmentBytes.Length;
-                    Attachments.Add(a);
+                    string fileName = Regex.Match(partHeaders["content-type"], @".*name=""(.*)""", RegexOptions.IgnoreCase).Groups[1].Value;
+                    string contentId = Regex.Match(partHeaders["content-id"], @"<(.*)>", RegexOptions.IgnoreCase).Groups[1].Value;
+                    byte[] content = Convert.FromBase64String(partHeaders["mimeBody"]);
+                    Attachments.Add(new Attachment(fileName, contentId, content));
                 }
             }
         }
 
         //decrpts mime message bytes with a valid cert in the user cert store
         // returns the decrypted message as a string
-        public string DecryptMessage(byte[] encryptedMessageBytes)
+        private string DecryptMessage(byte[] encryptedMessageBytes)
         {
             //get cert store and collection of valid certs
             X509Store store = new X509Store("MY", StoreLocation.CurrentUser);
@@ -571,8 +560,8 @@ namespace XstReader
 
         //Signed messages are base64 endcoded and broken up with \r\n 
         //This extracts the base64 content from signed message that has been wrapped in an encrypted message and decodes it
-        // returns the decoded message string
-        public string DecodeSignedMessage(string s)
+        // returns the decoded message as a string
+        private string DecodeSignedMessage(string s)
         {
             //parse out base64 encoded content in "signed-data"
             string base64Message = s.Split(new string[] { "filename=smime.p7m" }, StringSplitOptions.None)[1];
@@ -630,7 +619,7 @@ namespace XstReader
             return test;
         }
 
-        //decodes quoted printable text into UTF-8
+        // decodes quoted printable text
         // returns the decoded text
         private string DecodeQuotedPrintable(string input)
         {
@@ -640,7 +629,7 @@ namespace XstReader
         }
 
         //converts hex endcoded values to UTF-8
-        //returns the UTF-8 representation of the hex encoded value
+        //returns the string representation of the hex encoded value
         private string HexDecoderEvaluator(Match m)
         {
             if (m.Groups[1].Success)
