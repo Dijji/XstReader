@@ -563,20 +563,29 @@ namespace XstReader
         {
             try
             {
+                //clear any existing status
+                ShowStatus(null);
+
                 if (m != null)
                 {
                     //email is signed and/or encrypted and no body was included
                     if (m.IsEncryptedOrSigned)
                     {
-                        
-                        Attachment a = m.Attachments[0];
+                        try
+                        {
+                            Attachment a = m.Attachments[0];
 
-                        //get attachment bytes
-                        var ms = new MemoryStream();
-                        xstFile.SaveAttachment(ms, a);
-                        byte[] attachmentBytes = ms.ToArray();
+                            //get attachment bytes
+                            var ms = new MemoryStream();
+                            xstFile.SaveAttachment(ms, a);
+                            byte[] attachmentBytes = ms.ToArray();
 
-                        m.ReadSignedOrEncryptedMessage(attachmentBytes);
+                            m.ReadSignedOrEncryptedMessage(attachmentBytes);
+                        }
+                        catch
+                        {
+                            ShowStatus("Message Failed to Decrypt");
+                        }
                     }
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (m.ShowHtml)
