@@ -5,8 +5,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Windows;
+
+
 
 namespace XstReader
 {
@@ -272,32 +276,39 @@ namespace XstReader
 
         public void SaveAttachment(Stream s, Attachment a)
         {
-            using (FileStream fs = ndb.GetReadStream())
+            if (a.WasLoadedFromMime)
             {
-                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
-
-                if (subNodeTreeMessage == null)
-                    // No subNodeTree given: assume we can look it up in the main tree
-                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
-
-                var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
-
-                if ((object)a.Content != null)
+                s.Write(a.Content, 0, a.Content.Length);
+            }
+            else
+            {
+                using (FileStream fs = ndb.GetReadStream())
                 {
-                    // If the value is inline, we just write it out
-                    if (a.Content.GetType() == typeof(byte[]))
-                    {
-                        s.Write(a.Content, 0, a.Content.Length);
-                    }
-                    // Otherwise we need to dereference the node pointing to the data,
-                    // using the subnode tree belonging to the attachment
-                    else if (a.Content.GetType() == typeof(NID))
-                    {
-                        var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
+                    BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
 
-                        // Copy the data to the output file stream without getting it all into memory at once,
-                        // as there can be a lot of data
-                        ndb.CopyDataBlocks(fs, s, nb.DataBid);
+                    if (subNodeTreeMessage == null)
+                        // No subNodeTree given: assume we can look it up in the main tree
+                        ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+
+                    var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
+
+                    if ((object)a.Content != null)
+                    {
+                        // If the value is inline, we just write it out
+                        if (a.Content.GetType() == typeof(byte[]))
+                        {
+                            s.Write(a.Content, 0, a.Content.Length);
+                        }
+                        // Otherwise we need to dereference the node pointing to the data,
+                        // using the subnode tree belonging to the attachment
+                        else if (a.Content.GetType() == typeof(NID))
+                        {
+                            var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
+
+                            // Copy the data to the output file stream without getting it all into memory at once,
+                            // as there can be a lot of data
+                            ndb.CopyDataBlocks(fs, s, nb.DataBid);
+                        }
                     }
                 }
             }
@@ -305,6 +316,7 @@ namespace XstReader
 
         public Message OpenAttachedMessage(Attachment a)
         {
+
             using (FileStream fs = ndb.GetReadStream())
             {
                 BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
@@ -314,7 +326,6 @@ namespace XstReader
                     ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
 
                 var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
-
                 if (a.Content.GetType() == typeof(PtypObjectValue))
                 {
                     Message m = new Message { Nid = new NID(((PtypObjectValue)a.Content).Nid) };
@@ -336,6 +347,7 @@ namespace XstReader
                     throw new XstException("Unexpected data type for attached message");
             }
         }
+
 
         private struct LineProp
         {

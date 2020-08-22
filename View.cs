@@ -99,6 +99,8 @@ namespace XstReader
 
         public void SetMessage(Message m)
         {
+            if (CurrentMessage != null)
+                CurrentMessage.ClearContents();
             stackMessage.Clear();
             UpdateCurrentMessage(m);
         }
@@ -303,6 +305,7 @@ namespace XstReader
         public bool IsFile { get { return AttachMethod == AttachMethods.afByValue; } }
         public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethods.afEmbeddedMessage; } }
         public bool WasRenderedInline { get; set; } = false;
+        public bool WasLoadedFromMime { get; set; } = false;
 
         public string Type
         {
@@ -351,15 +354,40 @@ namespace XstReader
             {
                 // We read the full set of attachment property values only on demand
                 if (properties == null)
-                {
+                { 
                     properties = new List<Property>();
-                    foreach (var p in XstFile.ReadAttachmentProperties(this))
+                    if (!WasLoadedFromMime)
                     {
-                        properties.Add(p);
+                        foreach (var p in XstFile.ReadAttachmentProperties(this))
+                        {
+                            properties.Add(p);
+                        }
                     }
                 }
                 return properties;
             }
         }
+        
+        public Attachment()
+        {
+
+        }
+
+        public Attachment(string fileName, byte[] content)
+        {
+            LongFileName = fileName;
+            AttachMethod = AttachMethods.afByValue;
+            Size = content.Length;
+            this.Content = content;
+            WasLoadedFromMime = true;
+        }
+
+        public Attachment(string fileName, string contentId, Byte[] content)
+            : this(fileName, content)
+        {
+            ContentId = contentId;
+            Flags = AttachFlags.attRenderedInBody;
+        }
+
     }
 }
