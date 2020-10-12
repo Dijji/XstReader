@@ -30,7 +30,7 @@ namespace XstReader
         public fixed Byte rgbFP[128];
         public Byte bSentinel;
         public EbCryptMethod bCryptMethod;
-        public UInt32 rgbReserved;
+        public UInt16 rgbReserved;
         public UInt64 bidNextB;
         public UInt32 dwCRCFull;
         public UInt32 rgbReserved2;
