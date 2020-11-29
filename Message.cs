@@ -359,7 +359,10 @@ namespace XstReader
 
             var dict = new Dictionary<string, Attachment>();
             foreach (var a in Attachments.Where(x => x.HasContentId))
-                dict.Add(a.ContentId, a);
+            {
+                if (!dict.ContainsKey(a.ContentId))
+                    dict.Add(a.ContentId, a);
+            }
 
             return Regex.Replace(body, @"(="")cid:(.*?)("")", match =>
             {

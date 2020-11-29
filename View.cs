@@ -333,7 +333,7 @@ namespace XstReader
 
         public bool Hide { get { return (Hidden || IsInlineAttachment); } }
         public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
-        public bool HasContentId { get { return (ContentId != null); } }
+        public bool HasContentId { get { return (ContentId != null && ContentId.Length > 0); } }
 
         // To do: case where ContentLocation property is used instead of ContentId
         public bool IsInlineAttachment
