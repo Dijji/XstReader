@@ -515,9 +515,11 @@ namespace XstReader
 
             if (value != null)
             {
-                // Multilingual characters should be quoted, so We will just quote all values,
+                // Multilingual characters should be quoted, so we will just quote all values,
                 // which means we need to double quotes in the value
-                var val = value.Replace("\"", "\"\"");
+                // Excel cannot cope with Unicode files with values containing
+                // new line characters, so remove those as well
+                var val = value.Replace("\"", "\"\"").Replace("\r\n", "; ").Replace("\r", " ").Replace("\n", " ");
                 sb.Append("\"");
                 sb.Append(EnforceCsvValueLengthLimit(val));
                 sb.Append("\"");
