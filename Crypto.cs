@@ -82,8 +82,6 @@ namespace XstReader
 
                 case EbCryptMethod.NDB_CRYPT_CYCLIC:
                     {
-                        // We've never seen an actual example of this
-                        // This is what we hope is a valid implementation 
                         UInt16 salt = (UInt16)(((key & 0xffff0000) >> 16) ^ (key & 0x0000ffff));
 
                         for (int i = offset; i < offset + length; i++)
@@ -103,9 +101,7 @@ namespace XstReader
                             salt++;
                         }
 
-                        // Throw until the code has been validated
-                        throw new XstException("Decryption of Cyclic algorithm not validated");
-                        //break;
+                        break;
                     }
 
                 default:
