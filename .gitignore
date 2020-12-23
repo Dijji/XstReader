@@ -13,3 +13,5 @@
 /.vs/PstFileAttachmentExporter
 /PstFileAttachmentExporter/bin/Debug/netcoreapp3.1
 /PstFileAttachmentExporter/obj
+/.vs
+/.cr
