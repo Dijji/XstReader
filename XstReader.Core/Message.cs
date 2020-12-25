@@ -9,16 +9,15 @@ using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Media;
+//using System.Windows.Documents;
+//using System.Windows.Media;
 
 namespace XstReader
 {
     // Part of the view of the xst (.ost and .pst) file rendered by XAML
     // The data layer is effectively provided by the xst file itself
 
-    class Message : INotifyPropertyChanged
+    public class Message : INotifyPropertyChanged
     {
         private bool isSelected = false;
         private string exportFileName = null;
@@ -189,15 +188,16 @@ namespace XstReader
             }
             else if (ShowRtf)
             {
-                var doc = GetBodyAsFlowDocument();
-                EmbedRtfPrintHeader(doc);
-                TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
-                using (var stream = new FileStream(fullFileName, FileMode.Create))
-                {
-                    content.Save(stream, DataFormats.Rtf);
-                }
-                if (Date != null)
-                    File.SetCreationTime(fullFileName, (DateTime)Date);
+                //TODO: RTF Savings
+                //var doc = GetBodyAsFlowDocument();
+                //EmbedRtfPrintHeader(doc);
+                //TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
+                //using (var stream = new FileStream(fullFileName, FileMode.Create))
+                //{
+                //    content.Save(stream, DataFormats.Rtf);
+                //}
+                //if (Date != null)
+                //    File.SetCreationTime(fullFileName, (DateTime)Date);
             }
             else
             {
@@ -212,22 +212,23 @@ namespace XstReader
             }
         }
 
-        public FlowDocument GetBodyAsFlowDocument()
-        {
-            FlowDocument doc = new FlowDocument();
+        //TODO: RTF Savings
+        //public FlowDocument GetBodyAsFlowDocument()
+        //{
+        //    FlowDocument doc = new FlowDocument();
 
-            var decomp = new RtfDecompressor();
+        //    var decomp = new RtfDecompressor();
 
-            using (System.IO.MemoryStream ms = decomp.Decompress(RtfCompressed, true))
-            {
-                ms.Position = 0;
-                TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
-                selection.Load(ms, DataFormats.Rtf);
-            }
-            // For debug, a way to look at the document
-            //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
-            return doc;
-        }
+        //    using (System.IO.MemoryStream ms = decomp.Decompress(RtfCompressed, true))
+        //    {
+        //        ms.Position = 0;
+        //        TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
+        //        selection.Load(ms, DataFormats.Rtf);
+        //    }
+        //    // For debug, a way to look at the document
+        //    //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
+        //    return doc;
+        //}
 
         public string EmbedTextPrintHeader(string body, bool forDisplay = false, bool showEmailType = false)
         {
@@ -299,58 +300,59 @@ namespace XstReader
             }
         }
 
-        public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
-        {
-            if (doc == null)
-                return;
+        //TODO: RTF Savings
+        //public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
+        //{
+        //    if (doc == null)
+        //        return;
 
-            //omit MyName and the line under it for now, as we have no reliable source for it
-            //Paragraph p = new Paragraph(new Run(MyName));
-            //p.FontSize = 14;
-            //p.FontWeight = FontWeights.Bold;
-            //p.TextDecorations = TextDecorations.Underline;
+        //    //omit MyName and the line under it for now, as we have no reliable source for it
+        //    //Paragraph p = new Paragraph(new Run(MyName));
+        //    //p.FontSize = 14;
+        //    //p.FontWeight = FontWeights.Bold;
+        //    //p.TextDecorations = TextDecorations.Underline;
 
-            // Create the Table...
-            var table1 = new Table();
+        //    // Create the Table...
+        //    var table1 = new Table();
 
-            table1.Columns.Add(new TableColumn { Width = new GridLength(150) });
-            table1.Columns.Add(new TableColumn { Width = new GridLength(500) });
-            table1.RowGroups.Add(new TableRowGroup());
+        //    table1.Columns.Add(new TableColumn { Width = new GridLength(150) });
+        //    table1.Columns.Add(new TableColumn { Width = new GridLength(500) });
+        //    table1.RowGroups.Add(new TableRowGroup());
 
-            AddRtfTableRow(table1, showEmailType ? "RTF From:" : "From:", From);
+        //    AddRtfTableRow(table1, showEmailType ? "RTF From:" : "From:", From);
 
-            AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
-            AddRtfTableRow(table1, "To:", ToDisplayList);
-            if (HasCcDisplayList)
-                AddRtfTableRow(table1, "Cc:", CcDisplayList);
-            if (HasBccDisplayList)
-                AddRtfTableRow(table1, "Bcc:", BccDisplayList);
-            AddRtfTableRow(table1, "Subject:", Subject);
-            if (HasFileAttachment)
-                AddRtfTableRow(table1, "Attachments:", FileAttachmentDisplayList);
+        //    AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
+        //    AddRtfTableRow(table1, "To:", ToDisplayList);
+        //    if (HasCcDisplayList)
+        //        AddRtfTableRow(table1, "Cc:", CcDisplayList);
+        //    if (HasBccDisplayList)
+        //        AddRtfTableRow(table1, "Bcc:", BccDisplayList);
+        //    AddRtfTableRow(table1, "Subject:", Subject);
+        //    if (HasFileAttachment)
+        //        AddRtfTableRow(table1, "Attachments:", FileAttachmentDisplayList);
 
-            // Cope with the empty document case
-            if (doc.Blocks.Count == 0)
-                doc.Blocks.Add(new Paragraph(new Run("")));
-            else
-                doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
-            doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
-            doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, table1);
+        //    // Cope with the empty document case
+        //    if (doc.Blocks.Count == 0)
+        //        doc.Blocks.Add(new Paragraph(new Run("")));
+        //    else
+        //        doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
+        //    doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
+        //    doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, table1);
 
-            //omit MyName and the line under it for now, as we have no reliable source for it
-            //doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, p);
-        }
+        //    //omit MyName and the line under it for now, as we have no reliable source for it
+        //    //doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, p);
+        //}
 
-        private void AddRtfTableRow(Table table, string c0, string c1)
-        {
-            var currentRow = new TableRow();
-            table.RowGroups[0].Rows.Add(currentRow);
+        //private void AddRtfTableRow(Table table, string c0, string c1)
+        //{
+        //    var currentRow = new TableRow();
+        //    table.RowGroups[0].Rows.Add(currentRow);
 
-            currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c0))
-            { FontFamily = new FontFamily("Arial"), FontSize = 12, FontWeight = FontWeights.Bold }));
-            currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c1))
-            { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
-        }
+        //    currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c0))
+        //    { FontFamily = new FontFamily("Arial"), FontSize = 12, FontWeight = FontWeights.Bold }));
+        //    currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c1))
+        //    { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
+        //}
 
         public string EmbedAttachments(string body, XstFile xst)
         {

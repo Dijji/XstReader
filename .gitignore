@@ -10,4 +10,6 @@
 /documents
 /PstFileAttachmentExporter/bin
 /PstFileAttachmentExporter/obj
-
+/XstReader.Core/bin
+/XstReader.Core/obj
+/XstReader.csproj.user

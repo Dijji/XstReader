@@ -12,7 +12,7 @@ namespace XstReader
     //
 
     //  Generic handling for all trees
-    class BTree<T> where T : TreeNode
+    public class BTree<T> where T : TreeNode
     {
         public TreeIntermediate Root { get; private set; } = new TreeIntermediate();
 
@@ -67,13 +67,13 @@ namespace XstReader
     }
 
     // The only thing that a tree node must have is a key
-    class TreeNode
+    public class TreeNode
     {
         public UInt64 Key;
     }
 
     // Non-terminal tree nodes have children
-    class TreeIntermediate : TreeNode
+    public class TreeIntermediate : TreeNode
     {
         public List<TreeNode> Children = new List<TreeNode>();
         public ulong? fileOffset = null;
@@ -83,7 +83,7 @@ namespace XstReader
     // Terminal node in node tree
     // Key is NID, contains BIDs
     // BIDs are always held as 64-bit values, even though only 32 bits are used in ANSI files
-    class Node : TreeNode
+    public class Node : TreeNode
     {
         public EnidType Type;
         public UInt64 DataBid;
@@ -93,7 +93,7 @@ namespace XstReader
 
     // Terminal node in data tree
     // Key is BID, contains IB
-    class DataRef : TreeNode
+    public class DataRef : TreeNode
     {
         public UInt64 Offset;
         public int Length;

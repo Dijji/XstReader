@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
+using System.Text;
 
 namespace XstReader
 {
     // These classes are the view of the xst (.ost and .pst) file rendered by XAML
     // The data layer is effectively provided by the xst file itself
 
-    class View : INotifyPropertyChanged
+    public class View : INotifyPropertyChanged
     {
         private Folder selectedFolder = null;
         private Message currentMessage = null;
@@ -155,7 +155,7 @@ namespace XstReader
         }
     }
 
-    class Folder
+    public class Folder
     {
         public string Name { get; set; }
         public uint ContentCount { get; set; } = 0;
@@ -172,7 +172,7 @@ namespace XstReader
         }
     }
 
-    class Recipient
+    public class Recipient
     {
         public RecipientType RecipientType { get; set; }
         public string DisplayName { get; set; }
@@ -180,7 +180,7 @@ namespace XstReader
         public List<Property> Properties { get; private set; } = new List<Property>();
     }
 
-    class Property
+    public class Property
     {
  
         public EpropertyTag Tag { get; set; }
@@ -267,8 +267,8 @@ namespace XstReader
         {
             get
             {
-                if (Value is byte[])
-                    return BitConverter.ToString(Value);
+                if (Value is byte[] valBytes)
+                    return BitConverter.ToString(valBytes);
                 else if (Value is Int32[])
                     return String.Join(", ", Value);
                 else if (Value is string[])
@@ -283,7 +283,7 @@ namespace XstReader
         }
     }
 
-    class Attachment
+    public class Attachment
     {
         private List<Property> properties = null;
 
@@ -332,7 +332,7 @@ namespace XstReader
         }
 
         public bool Hide { get { return (Hidden || IsInlineAttachment); } }
-        public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
+        //public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
         public bool HasContentId { get { return (ContentId != null && ContentId.Length > 0); } }
 
         // To do: case where ContentLocation property is used instead of ContentId
