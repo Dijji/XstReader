@@ -352,7 +352,7 @@ namespace XstReader
                     {
                         ReadMessageDetails(m);
                     }
-                    catch //(XstException ex)
+                    catch (XstException)
                     {
                         // Ignore file exceptions to get as much as we can
                     }

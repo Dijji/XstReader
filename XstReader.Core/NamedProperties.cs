@@ -274,7 +274,7 @@ namespace XstReader
                         p.Name = name;
                 }
             }
-            catch //(InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 // not found
                 //name = "Named property not found";

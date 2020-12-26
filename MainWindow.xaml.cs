@@ -537,7 +537,7 @@ namespace XstReader
                 if (!found)
                     searchTextBox.IndicateSearchFailed(args.SearchEventType);
             }
-            catch //(Exception ex)
+            catch 
             {
                 // Unclear what we can do here, as we were invoked by an event from the search text box control
             }
