@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader", "XstReader.csproj", "{BB8E0530-8EA6-4E02-9399-03A9AB13705F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader.Core", "XstReader.Core\XstReader.Core.csproj", "{0C6DEF3C-39B5-4CC7-B0B7-7E870B00BF96}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader.Core", "XstReader.Core\XstReader.Core.csproj", "{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{BB8E0530-8EA6-4E02-9399-03A9AB13705F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB8E0530-8EA6-4E02-9399-03A9AB13705F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB8E0530-8EA6-4E02-9399-03A9AB13705F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0C6DEF3C-39B5-4CC7-B0B7-7E870B00BF96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0C6DEF3C-39B5-4CC7-B0B7-7E870B00BF96}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0C6DEF3C-39B5-4CC7-B0B7-7E870B00BF96}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0C6DEF3C-39B5-4CC7-B0B7-7E870B00BF96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

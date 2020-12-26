@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace XstReader
 {
@@ -128,5 +130,240 @@ namespace XstReader
     // T is the target object, Action arguments are target object, column value 
     class PropertyGetters<T> : Dictionary<EpropertyTag, Action<T, dynamic>>
     {
+    }
+
+
+    public class Recipient
+    {
+        public RecipientType RecipientType { get; set; }
+        public string DisplayName { get; set; }
+        public string EmailAddress { get; set; }
+        public List<Property> Properties { get; private set; } = new List<Property>();
+    }
+
+    public class Property
+    {
+
+        public EpropertyTag Tag { get; set; }
+        public dynamic Value { get; set; }
+
+        // Standard properties have a Tag value less than 0x8000,
+        // and identify a particular property
+        //
+        // Tag values from 0x8000 to 0x8fff are named properties,
+        // where the Tag Is the key into a per .ost or .pst dictionary of properties
+        // identified by a GUID (identifying a Property Set) and a name (identifying a property Within that set), 
+        // which can be a string or a 32-bit value
+        //
+        public string Guid { get; set; }        // String representation of hex GUID
+        public string GuidName { get; set; }    // Equivalent name, where known e.g. PSETID_Common 
+        public UInt32? Lid { get; set; }        // Property identifier, when we know it
+        public string Name { get; set; }        // String name of property, when we know it
+
+        public bool IsNamed { get { return (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff; } }
+
+        public string DisplayId
+        {
+            get
+            {
+                return String.Format("0x{0:x4}", (UInt16)Tag);
+            }
+        }
+
+        public string Description
+        {
+            get
+            {
+                string description;
+                if (IsNamed)
+                {
+                    return String.Format("Guid: {0}\r\nName: {1}",
+                        GuidName != null ? GuidName : Guid,
+                        Name != null ? Name : String.Format("0x{0:x8}", Lid));
+                }
+                else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
+                    return description;
+                else
+                    return null;
+            }
+        }
+
+        public string CsvId
+        {
+            get
+            {
+                if (IsNamed)
+                    // Prefix with 80 In order to ensure they collate last
+                    return String.Format("80{0}{1:x8}", Guid, Lid);
+                else
+                    return String.Format("{0:x4}", (UInt16)Tag);
+            }
+        }
+
+
+        public string CsvDescription
+        {
+            get
+            {
+                string description;
+                if (IsNamed)
+                {
+                    return String.Format("{0}: {1}",
+                        GuidName != null ? GuidName : Guid,
+                        Name != null ? Name : String.Format("0x{0:x8}", Lid));
+                }
+                else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
+                {
+                    if (description.StartsWith("undocumented"))
+                        return "undocumented " + DisplayId;
+                    else
+                        return description;
+                }
+                else
+                    return DisplayId;
+            }
+        }
+
+        public string DisplayValue
+        {
+            get
+            {
+                if (Value is byte[] valBytes)
+                    return BitConverter.ToString(valBytes);
+                else if (Value is Int32[])
+                    return String.Join(", ", Value);
+                else if (Value is string[])
+                    return String.Join(",\r\n", Value);
+                else if (Value is List<byte[]>)
+                    return String.Join(",\r\n", ((List<byte[]>)Value).Select(v => BitConverter.ToString(v)));
+                else if (Value == null)
+                    return null;
+                else
+                    return Value.ToString();
+            }
+        }
+    }
+
+    public class Attachment
+    {
+        private List<Property> properties = null;
+
+        public XstFile XstFile { get; set; }
+        public Message Parent { get; set; }
+        public BTree<Node> subNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
+        public string DisplayName { get; set; }
+        public string FileNameW { get; set; }
+        public string LongFileName { get; set; }
+        public AttachFlags Flags { get; set; }
+        public string MimeTag { get; set; }
+        public string ContentId { get; set; }
+        public bool Hidden { get; set; }
+        public string FileName { get { return LongFileName ?? FileNameW; } }
+        public int Size { get; set; }
+        public NID Nid { get; set; }
+        public AttachMethods AttachMethod { get; set; }
+        public dynamic Content { get; set; }
+        public bool IsFile { get { return AttachMethod == AttachMethods.afByValue; } }
+        public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethods.afEmbeddedMessage; } }
+        public bool WasRenderedInline { get; set; } = false;
+        public bool WasLoadedFromMime { get; set; } = false;
+
+        public string Type
+        {
+            get
+            {
+                if (IsFile)
+                    return "File";
+                else if (IsEmail)
+                    return "Email";
+                else
+                    return "Other";
+            }
+        }
+
+        public string Description
+        {
+            get
+            {
+                if (IsFile)
+                    return FileName;
+                else
+                    return DisplayName;
+            }
+        }
+
+        public bool Hide { get { return (Hidden || IsInlineAttachment); } }
+        //public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
+        public bool HasContentId { get { return (ContentId != null && ContentId.Length > 0); } }
+
+        // To do: case where ContentLocation property is used instead of ContentId
+        public bool IsInlineAttachment
+        {
+            get
+            {
+                // It is an in-line attachment either if the flags say it is, or the content ID
+                // matched a reference in the body and it was rendered inline
+                return ((Flags & AttachFlags.attRenderedInBody) == AttachFlags.attRenderedInBody ||
+                        WasRenderedInline) &&
+                       HasContentId;
+            }
+        }
+
+        public List<Property> Properties
+        {
+            get
+            {
+                // We read the full set of attachment property values only on demand
+                if (properties == null)
+                {
+                    properties = new List<Property>();
+                    if (!WasLoadedFromMime)
+                    {
+                        foreach (var p in XstFile.ReadAttachmentProperties(this))
+                        {
+                            properties.Add(p);
+                        }
+                    }
+                }
+                return properties;
+            }
+        }
+
+        public Attachment()
+        {
+
+        }
+
+        public Attachment(string fileName, byte[] content)
+        {
+            LongFileName = fileName;
+            AttachMethod = AttachMethods.afByValue;
+            Size = content.Length;
+            this.Content = content;
+            WasLoadedFromMime = true;
+        }
+
+        public Attachment(string fileName, string contentId, Byte[] content)
+            : this(fileName, content)
+        {
+            ContentId = contentId;
+            Flags = AttachFlags.attRenderedInBody;
+        }
+    }
+    public class Folder
+    {
+        public string Name { get; set; }
+        public uint ContentCount { get; set; } = 0;
+        public bool HasSubFolders { get; set; } = false;
+        public string Description { get { return String.Format("{0} ({1})", Name, ContentCount); } }
+        public NID Nid { get; set; }  // Where folder data is held
+        public ObservableCollection<Folder> Folders { get; private set; } = new ObservableCollection<Folder>();
+        public ObservableCollection<Message> Messages { get; private set; } = new ObservableCollection<Message>();
+
+        public void AddMessage(Message m)
+        {
+            m.Folder = this;
+            Messages.Add(m);
+        }
     }
 }

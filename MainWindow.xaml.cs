@@ -64,7 +64,7 @@ namespace XstReader
             {
                 try
                 {
-                    xstFile = new XstFile(view, fileName);
+                    xstFile = new XstFile(fileName);
                     var root = xstFile.ReadFolderTree();
                     foreach (var f in root.Folders)
                     {
@@ -537,7 +537,7 @@ namespace XstReader
                 if (!found)
                     searchTextBox.IndicateSearchFailed(args.SearchEventType);
             }
-            catch (Exception ex)
+            catch //(Exception ex)
             {
                 // Unclear what we can do here, as we were invoked by an event from the search text box control
             }
@@ -627,14 +627,13 @@ namespace XstReader
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (m.ShowRtf)
                     {
-                        //TODO: RTF View
-                        //var body  = m.GetBodyAsFlowDocument();
+                        var body = m.GetBodyAsFlowDocument();
 
-                        //// For testing purposes, can show print header in main visualisation
-                        //if (view.DisplayPrintHeaders)
-                        //    m.EmbedRtfPrintHeader(body, view.DisplayEmailType);
+                        // For testing purposes, can show print header in main visualisation
+                        if (view.DisplayPrintHeaders)
+                            m.EmbedRtfPrintHeader(body, view.DisplayEmailType);
 
-                        //rtfMessage.Document = body;
+                        rtfMessage.Document = body;
                     }
                     // Could bind text content, but use push so that we can optionally add headers
                     else if (m.ShowText)

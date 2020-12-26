@@ -25,8 +25,6 @@ namespace XstReader
     {
         private NDB ndb;
         private LTP ltp;
-        private View view;
-
 
         // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
 
@@ -159,11 +157,10 @@ namespace XstReader
 
         #region Public methods
 
-        public XstFile(View view, string fullName)
+        public XstFile(string fullName)
         {
             this.ndb = new NDB(fullName);
             this.ltp = new LTP(ndb);
-            this.view = view;
         }
 
         public Folder ReadFolderTree()
@@ -173,18 +170,7 @@ namespace XstReader
             using (var fs = ndb.GetReadStream())
             {
                 var root = ReadFolderStructure(fs, new NID(EnidSpecial.NID_ROOT_FOLDER));
-
                 return root;
-                //TODO: Review UI Link
-                //foreach (var f in root.Folders)
-                //{
-                //    //TODO: UI LINK
-                //    //// We may be called on a background thread, so we need to dispatch this to the UI thread
-                //    //Application.Current.Dispatcher.Invoke(new Action(() =>
-                //    //{
-                //    //    view.RootFolders.Add(f);
-                //    //}));
-                //}
             }
         }
 
@@ -202,16 +188,6 @@ namespace XstReader
                                 .ToList(); // to force complete execution on the current thread
 
                     return ms;
-                    //TODO: Review UI Link
-                    //// We may be called on a background thread, so we need to dispatch this to the UI thread
-                    //Application.Current.Dispatcher.Invoke(new Action(() =>
-                    //{
-                    //    f.Messages.Clear();
-                    //    foreach (var m in ms)
-                    //    {
-                    //        f.AddMessage(m);
-                    //    }
-                    //}));
                 }
             }
             return new List<Message>();
@@ -369,8 +345,8 @@ namespace XstReader
 
             foreach (var m in messages)
             {
-                // Do not reread properties for current message as it will fail updating the display
-                if (m != view.CurrentMessage)
+                //// Do not reread properties for current message as it will fail updating the display
+                //if (m != view.CurrentMessage)
                 {
                     try
                     {
