@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace XstReader
@@ -212,13 +213,14 @@ namespace XstReader
         }
 
         //nested types
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct RtfHeader
         {
             //fields
-            public uint compSize;
-            public uint rawSize;
-            public uint compType;
-            public uint crc;
+            public UInt32 compSize;
+            public UInt32 rawSize;
+            public UInt32 compType;
+            public UInt32 crc;
         }
     }
 }
