@@ -18,7 +18,7 @@ namespace XstReader
     // Part of the view of the xst (.ost and .pst) file rendered by XAML
     // The data layer is effectively provided by the xst file itself
 
-    class Message : INotifyPropertyChanged
+    public class Message : INotifyPropertyChanged
     {
         private bool isSelected = false;
         private string exportFileName = null;

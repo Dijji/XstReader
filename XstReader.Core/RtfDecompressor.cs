@@ -180,7 +180,7 @@ namespace XstReader
                             i += offset;
                         }
                     }
-                    catch (IndexOutOfRangeException ex)
+                    catch //(IndexOutOfRangeException ex)
                     {
                         throw new XstException("Input stream is corrupt: index out of range");
                     }

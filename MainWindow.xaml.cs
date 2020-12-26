@@ -64,8 +64,16 @@ namespace XstReader
             {
                 try
                 {
-                    xstFile = new XstFile(view, fileName);
-                    xstFile.ReadFolderTree();
+                    xstFile = new XstFile(fileName);
+                    var root = xstFile.ReadFolderTree();
+                    foreach (var f in root.Folders)
+                    {
+                        // We may be called on a background thread, so we need to dispatch this to the UI thread
+                        Application.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            view.RootFolders.Add(f);
+                        }));
+                    }
                 }
                 catch (System.Exception ex)
                 {
@@ -123,7 +131,16 @@ namespace XstReader
                     {
                         try
                         {
-                            xstFile.ReadMessages(f);
+                            var ms = xstFile.ReadMessages(f);
+                            // We may be called on a background thread, so we need to dispatch this to the UI thread
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
+                            {
+                                f.Messages.Clear();
+                                foreach (var m in ms)
+                                {
+                                    f.AddMessage(m);
+                                }
+                            }));
                         }
                         catch (System.Exception ex)
                         {
@@ -176,7 +193,7 @@ namespace XstReader
             // Sort the messages by the clicked on column
             GridViewColumnHeader column = (sender as GridViewColumnHeader);
             SortMessages(column.Tag.ToString(), ListSortDirection.Ascending);
-      
+
             searchIndex = listMessages.SelectedIndex;
             listMessages.ScrollIntoView(listMessages.SelectedItem);
         }
@@ -286,7 +303,7 @@ namespace XstReader
             adorners.Add(adorner);
         }
 
-        private void ExportEmails(IEnumerable<Message>messages)
+        private void ExportEmails(IEnumerable<Message> messages)
         {
             string folderName = GetEmailsExportFolderName();
 
@@ -414,14 +431,14 @@ namespace XstReader
             if (m.HasVisibleFileAttachment)
             {
                 var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
-                    Path.GetFileNameWithoutExtension (fullFileName) + " Attachments");
+                    Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
                 if (!Directory.Exists(targetFolder))
                 {
                     Directory.CreateDirectory(targetFolder);
                     if (m.Date != null)
                         Directory.SetCreationTime(targetFolder, (DateTime)m.Date);
                 }
-                SaveAttachmentsToFolder(targetFolder, m.Date,  m.Attachments.Where(a => a.IsFile && !a.Hide));
+                SaveAttachmentsToFolder(targetFolder, m.Date, m.Attachments.Where(a => a.IsFile && !a.Hide));
             }
         }
 
@@ -452,7 +469,7 @@ namespace XstReader
         {
             SaveAttachments(view.CurrentMessage.Attachments);
         }
-        
+
         private void btnCloseEmail_Click(object sender, RoutedEventArgs e)
         {
             view.PopMessage();
@@ -520,7 +537,7 @@ namespace XstReader
                 if (!found)
                     searchTextBox.IndicateSearchFailed(args.SearchEventType);
             }
-            catch (Exception ex)
+            catch //(Exception ex)
             {
                 // Unclear what we can do here, as we were invoked by an event from the search text box control
             }
@@ -610,7 +627,7 @@ namespace XstReader
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (m.ShowRtf)
                     {
-                        var body  = m.GetBodyAsFlowDocument();
+                        var body = m.GetBodyAsFlowDocument();
 
                         // For testing purposes, can show print header in main visualisation
                         if (view.DisplayPrintHeaders)
@@ -645,7 +662,7 @@ namespace XstReader
             }
         }
 
-        private void OpenEmailAttachment (Attachment a)
+        private void OpenEmailAttachment(Attachment a)
         {
             Message m = xstFile.OpenAttachedMessage(a);
             ShowMessage(m);
@@ -682,7 +699,7 @@ namespace XstReader
             System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
 
             dialog.Description = "Choose folder for saving attachments";
-            dialog.RootFolder = Environment.SpecialFolder.MyComputer; 
+            dialog.RootFolder = Environment.SpecialFolder.MyComputer;
             dialog.SelectedPath = Properties.Settings.Default.LastAttachmentFolder;
             if (dialog.SelectedPath == "")
                 dialog.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -697,7 +714,7 @@ namespace XstReader
             else
                 return null;
         }
-       
+
         private string GetSaveAttachmentFileName(string defaultFileName)
         {
             var dialog = new System.Windows.Forms.SaveFileDialog();
@@ -796,7 +813,7 @@ namespace XstReader
                 }
                 catch { }
             }
-            
+
             if (WindowState == WindowState.Maximized)
             {
                 // Use the RestoreBounds as the current values will be 0, 0 and the size of the screen
@@ -884,7 +901,7 @@ namespace XstReader
             string fileFullname = SaveAttachmentToTemporaryFile(a);
             if (fileFullname == null)
                 return;
-         
+
             if (Environment.OSVersion.Version.Major > 5)
             {
                 IntPtr hwndParent = Process.GetCurrentProcess().MainWindowHandle;
