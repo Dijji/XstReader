@@ -350,15 +350,15 @@ namespace XstReader
             Flags = AttachFlags.attRenderedInBody;
         }
     }
+
     public class Folder
     {
         public string Name { get; set; }
         public uint ContentCount { get; set; } = 0;
         public bool HasSubFolders { get; set; } = false;
-        public string Description { get { return String.Format("{0} ({1})", Name, ContentCount); } }
         public NID Nid { get; set; }  // Where folder data is held
-        public ObservableCollection<Folder> Folders { get; private set; } = new ObservableCollection<Folder>();
-        public ObservableCollection<Message> Messages { get; private set; } = new ObservableCollection<Message>();
+        public List<Folder> Folders { get; private set; } = new List<Folder>();
+        public List<Message> Messages { get; private set; } = new List<Message>();
 
         public void AddMessage(Message m)
         {

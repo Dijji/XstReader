@@ -12,16 +12,16 @@ namespace XstReader
 
     public class View : INotifyPropertyChanged
     {
-        private Folder selectedFolder = null;
-        private Message currentMessage = null;
+        private FolderView selectedFolder = null;
+        private MessageView currentMessage = null;
         private bool isBusy = false;
-        private Stack<Message> stackMessage = new Stack<Message>();
+        private Stack<MessageView> stackMessage = new Stack<MessageView>();
         private bool fileAttachmentSelected = false;
         private bool emailAttachmentSelected = false;
         private bool showContent = true;
 
-        public ObservableCollection<Folder> RootFolders { get; private set; } = new ObservableCollection<Folder>();
-        public Folder SelectedFolder
+        public ObservableCollection<FolderView> RootFolderViews { get; private set; } = new ObservableCollection<FolderView>();
+        public FolderView SelectedFolder
         {
             get { return selectedFolder; }
             set { selectedFolder = value; OnPropertyChanged(nameof(SelectedFolder), nameof(CanExportFolder)); }
@@ -43,7 +43,7 @@ namespace XstReader
         public bool IsEmailAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment); } }
         public bool IsEmailAttachmentSelected { get { return emailAttachmentSelected; } set { emailAttachmentSelected = value; OnPropertyChanged(nameof(IsEmailAttachmentSelected)); } }
 
-        public Message CurrentMessage
+        public MessageView CurrentMessage
         {
             get { return currentMessage; }
             private set
@@ -102,18 +102,18 @@ namespace XstReader
             }
         }
 
-        public void SetMessage(Message m)
+        public void SetMessage(MessageView mv)
         {
             if (CurrentMessage != null)
                 CurrentMessage.ClearContents();
             stackMessage.Clear();
-            UpdateCurrentMessage(m);
+            UpdateCurrentMessage(mv);
         }
 
-        public void PushMessage(Message m)
+        public void PushMessage(MessageView mv)
         {
             stackMessage.Push(CurrentMessage);
-            UpdateCurrentMessage(m);
+            UpdateCurrentMessage(mv);
         }
 
         public void PopMessage()
@@ -125,15 +125,15 @@ namespace XstReader
         {
             SelectedFolder = null;
             CurrentMessage = null;
-            RootFolders.Clear();
+            RootFolderViews.Clear();
             stackMessage.Clear();
         }
 
-        private void UpdateCurrentMessage(Message m)
+        private void UpdateCurrentMessage(MessageView mv)
         {
-            CurrentMessage = m;
-            if (m != null)
-                CurrentProperties.PopulateWith(m.Properties);
+            CurrentMessage = mv;
+            if (mv != null)
+                CurrentProperties.PopulateWith(mv.Properties);
             else
                 CurrentProperties.Clear();
 
