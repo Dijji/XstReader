@@ -30,5 +30,15 @@ namespace XstReader
         {
             MessageViews.Add(new MessageView(m));
         }
+
+        /// <summary>
+        /// Updates the MessageViews List with the information from Core (inside Folder.Messages)
+        /// </summary>
+        public void UpdateMessageViews()
+        {
+            MessageViews.Clear();
+            foreach (var message in Folder.Messages)
+                MessageViews.Add(new MessageView(message));
+        }
     }
 }

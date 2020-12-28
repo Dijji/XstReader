@@ -163,19 +163,23 @@ namespace XstReader
             this.ltp = new LTP(ndb);
         }
 
+        public Folder RootFolder { get; private set; }
+
         public Folder ReadFolderTree()
         {
+            RootFolder = null;
             ndb.Initialise();
 
             using (var fs = ndb.GetReadStream())
             {
-                var root = ReadFolderStructure(fs, new NID(EnidSpecial.NID_ROOT_FOLDER));
-                return root;
+                RootFolder = ReadFolderStructure(fs, new NID(EnidSpecial.NID_ROOT_FOLDER));
+                return RootFolder;
             }
         }
 
         public List<Message> ReadMessages(Folder f)
         {
+            f.Messages.Clear();
             if (f.ContentCount > 0)
             {
                 using (var fs = ndb.GetReadStream())
@@ -187,6 +191,10 @@ namespace XstReader
                                 .Select(m => ndb.IsUnicode4K ? Add4KMessageProperties(fs, m) : m)
                                 .ToList(); // to force complete execution on the current thread
 
+                    foreach (var m in ms)
+                    {
+                        f.AddMessage(m);
+                    }
                     return ms;
                 }
             }
