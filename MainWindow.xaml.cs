@@ -71,7 +71,7 @@ namespace XstReader
                         // We may be called on a background thread, so we need to dispatch this to the UI thread
                         Application.Current.Dispatcher.Invoke(new Action(() =>
                         {
-                            view.RootFolders.Add(f);
+                            view.RootFolderViews.Add(new FolderView(f));
                         }));
                     }
                 }
@@ -103,26 +103,26 @@ namespace XstReader
 
         private void exportAllProperties_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            ExportEmailProperties(view.SelectedFolder.Messages);
+            ExportEmailProperties(view.SelectedFolder.MessageViews);
         }
 
         private void exportAllEmails_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            ExportEmails(view.SelectedFolder.Messages);
+            ExportEmails(view.SelectedFolder.MessageViews);
         }
 
         private void treeFolders_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             try
             {
-                Folder f = (Folder)e.NewValue;
-                view.SelectedFolder = f;
+                FolderView fv = (FolderView)e.NewValue;
+                view.SelectedFolder = fv;
 
-                if (f != null)
+                if (fv != null)
                 {
                     view.SetMessage(null);
                     ShowMessage(null);
-                    f.Messages.Clear();
+                    fv.MessageViews.Clear();
                     ShowStatus("Reading messages...");
                     Mouse.OverrideCursor = Cursors.Wait;
 
@@ -131,14 +131,15 @@ namespace XstReader
                     {
                         try
                         {
-                            var ms = xstFile.ReadMessages(f);
+                            var ms = xstFile.ReadMessages(fv.Folder);
                             // We may be called on a background thread, so we need to dispatch this to the UI thread
                             Application.Current.Dispatcher.Invoke(new Action(() =>
                             {
-                                f.Messages.Clear();
+                                fv.MessageViews.Clear();
                                 foreach (var m in ms)
                                 {
-                                    f.AddMessage(m);
+                                    fv.Folder.AddMessage(m);
+                                    fv.AddMessage(m);
                                 }
                             }));
                         }
@@ -171,21 +172,21 @@ namespace XstReader
         {
             searchIndex = listMessages.SelectedIndex;
             searchTextBox.ShowSearch = true;
-            Message m = (Message)listMessages.SelectedItem;
+            MessageView mv = (MessageView)listMessages.SelectedItem;
 
-            if (m != null)
+            if (mv != null)
             {
                 try
                 {
-                    xstFile.ReadMessageDetails(m);
-                    ShowMessage(m);
+                    xstFile.ReadMessageDetails(mv.Message);
+                    ShowMessage(mv);
                 }
                 catch (System.Exception ex)
                 {
                     MessageBox.Show(ex.ToString(), "Error reading message details");
                 }
             }
-            view.SetMessage(m);
+            view.SetMessage(mv);
         }
 
         private void listMessagesColumnHeader_Click(object sender, RoutedEventArgs e)
@@ -226,18 +227,18 @@ namespace XstReader
         {
             if (listMessages.SelectedItems.Count > 1)
             {
-                ExportEmails(listMessages.SelectedItems.Cast<Message>());
+                ExportEmails(listMessages.SelectedItems.Cast<MessageView>());
             }
             else
             {
                 string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
-                                            view.CurrentMessage.ExportFileExtension);
+                                            view.CurrentMessage.Message.ExportFileExtension);
 
                 if (fullFileName != null)
                 {
                     try
                     {
-                        view.CurrentMessage.ExportToFile(fullFileName, xstFile);
+                        view.CurrentMessage.Message.ExportToFile(fullFileName, xstFile);
                         SaveVisibleAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
                     }
                     catch (System.Exception ex)
@@ -303,7 +304,7 @@ namespace XstReader
             adorners.Add(adorner);
         }
 
-        private void ExportEmails(IEnumerable<Message> messages)
+        private void ExportEmails(IEnumerable<MessageView> messages)
         {
             string folderName = GetEmailsExportFolderName();
 
@@ -315,18 +316,18 @@ namespace XstReader
                 // Export emails on a background thread so we can keep the UI in sync
                 Task.Factory.StartNew<Tuple<int, int>>(() =>
                 {
-                    Message current = null;
+                    MessageView current = null;
                     int good = 0, bad = 0;
                     // If files already exist, we overwrite them.
                     // But if emails within this batch generate the same filename,
                     // use a numeric suffix to distinguish them
                     HashSet<string> usedNames = new HashSet<string>();
-                    foreach (Message m in messages)
+                    foreach (MessageView mv in messages)
                     {
                         try
                         {
-                            current = m;
-                            string fileName = m.ExportFileName;
+                            current = mv;
+                            string fileName = mv.ExportFileName;
                             for (int i = 1; ; i++)
                             {
                                 if (!usedNames.Contains(fileName))
@@ -335,18 +336,18 @@ namespace XstReader
                                     break;
                                 }
                                 else
-                                    fileName = String.Format("{0} ({1})", m.ExportFileName, i);
+                                    fileName = String.Format("{0} ({1})", mv.ExportFileName, i);
                             }
                             Application.Current.Dispatcher.Invoke(new Action(() =>
                             {
-                                ShowStatus("Exporting " + m.ExportFileName);
+                                ShowStatus("Exporting " + mv.ExportFileName);
                             }));
                             // Ensure that we have the message contents
-                            xstFile.ReadMessageDetails(m);
+                            xstFile.ReadMessageDetails(mv.Message);
                             var fullFileName = String.Format(@"{0}\{1}.{2}",
-                                        folderName, fileName, m.ExportFileExtension);
-                            m.ExportToFile(fullFileName, xstFile);
-                            SaveVisibleAttachmentsToAssociatedFolder(fullFileName, m);
+                                        folderName, fileName, mv.Message.ExportFileExtension);
+                            mv.Message.ExportToFile(fullFileName, xstFile);
+                            SaveVisibleAttachmentsToAssociatedFolder(fullFileName, mv);
                             good++;
                         }
                         catch (System.Exception ex)
@@ -375,7 +376,7 @@ namespace XstReader
             }
         }
 
-        private void ExportEmailProperties(IEnumerable<Message> messages)
+        private void ExportEmailProperties(IEnumerable<MessageView> messages)
         {
             string fileName = GetPropertiesExportFileName(view.SelectedFolder.Name);
 
@@ -389,7 +390,7 @@ namespace XstReader
                 {
                     try
                     {
-                        xstFile.ExportMessageProperties(messages, fileName);
+                        xstFile.ExportMessageProperties(messages.Select(v => v.Message), fileName);
                     }
                     catch (System.Exception ex)
                     {
@@ -426,7 +427,7 @@ namespace XstReader
             }
         }
 
-        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, Message m)
+        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, MessageView m)
         {
             if (m.HasVisibleFileAttachment)
             {
@@ -454,14 +455,14 @@ namespace XstReader
         {
             if (listMessages.SelectedItems.Count > 1)
             {
-                ExportEmailProperties(listMessages.SelectedItems.Cast<Message>());
+                ExportEmailProperties(listMessages.SelectedItems.Cast<MessageView>());
             }
             else
             {
                 string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
 
                 if (fileName != null)
-                    xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage }, fileName);
+                    xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage.Message }, fileName);
             }
         }
 
@@ -545,17 +546,17 @@ namespace XstReader
 
         private bool PropertyHitTest(int index, string text, bool subject, bool fromTo, bool date, bool cc, bool bcc)
         {
-            Message m = listMessages.Items[index] as Message;
-            if ((subject && m.Subject != null && m.Subject.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
-                (fromTo && m.FromTo != null && m.FromTo.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
-                (date && m.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
-                (cc && m.CcDisplayList.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
-                (bcc && m.BccDisplayList.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
+            MessageView mv = listMessages.Items[index] as MessageView;
+            if ((subject && mv.Subject != null && mv.Subject.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (fromTo && mv.FromTo != null && mv.FromTo.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (date && mv.DisplayDate.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (cc && mv.CcDisplayList.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0) ||
+                (bcc && mv.BccDisplayList.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) >= 0))
             {
                 searchIndex = index;
                 listMessages.UnselectAll();
-                m.IsSelected = true;
-                listMessages.ScrollIntoView(m);
+                mv.IsSelected = true;
+                listMessages.ScrollIntoView(mv);
                 return true;
             }
             else
@@ -576,73 +577,70 @@ namespace XstReader
             }
         }
 
-        private void ShowMessage(Message m)
+        private void ShowMessage(MessageView mv)
         {
             try
             {
                 //clear any existing status
                 ShowStatus(null);
 
-                if (m != null)
+                if (mv != null)
                 {
                     //email is signed and/or encrypted and no body was included
-                    if (m.IsEncryptedOrSigned)
+                    if (mv.IsEncryptedOrSigned)
                     {
                         try
                         {
-                            Attachment a = m.Attachments[0];
-
-                            //get attachment bytes
-                            var ms = new MemoryStream();
-                            xstFile.SaveAttachment(ms, a);
-                            byte[] attachmentBytes = ms.ToArray();
-
-                            m.ReadSignedOrEncryptedMessage(attachmentBytes);
+                            mv.ReadSignedOrEncryptedMessage(xstFile);
                         }
                         catch
                         {
                             ShowStatus("Message Failed to Decrypt");
                         }
                     }
+
+                    // Populate the view of the attachments
+                    mv.SortAndSaveAttachments(mv.Message.Attachments);
+
                     // Can't bind HTML content, so push it into the control, if the message is HTML
-                    if (m.ShowHtml)
+                    if (mv.ShowHtml)
                     {
-                        string body = m.GetBodyAsHtmlString();
-                        if (m.MayHaveInlineAttachment)
-                            body = m.EmbedAttachments(body, xstFile);  // Returns null if this is not appropriate
+                        string body = mv.Message.GetBodyAsHtmlString();
+                        if (mv.MayHaveInlineAttachment)
+                            body = mv.Message.EmbedAttachments(body, xstFile);  // Returns null if this is not appropriate
 
                         if (body != null)
                         {
                             // For testing purposes, can show print header in main visualisation
                             if (view.DisplayPrintHeaders)
-                                body = m.EmbedHtmlPrintHeader(body, view.DisplayEmailType);
+                                body = mv.Message.EmbedHtmlPrintHeader(body, view.DisplayEmailType);
 
                             wbMessage.NavigateToString(body);
-                            if (m.MayHaveInlineAttachment)
+                            if (mv.MayHaveInlineAttachment)
                             {
-                                m.SortAndSaveAttachments();  // Re-sort attachments in case any new in-line rendering discovered
+                                mv.SortAndSaveAttachments();  // Re-sort attachments in case any new in-line rendering discovered
                             }
                         }
                     }
                     // Can't bind RTF content, so push it into the control, if the message is RTF
-                    else if (m.ShowRtf)
+                    else if (mv.ShowRtf)
                     {
-                        var body = m.GetBodyAsFlowDocument();
+                        var body = mv.Message.GetBodyAsFlowDocument();
 
                         // For testing purposes, can show print header in main visualisation
                         if (view.DisplayPrintHeaders)
-                            m.EmbedRtfPrintHeader(body, view.DisplayEmailType);
+                            mv.Message.EmbedRtfPrintHeader(body, view.DisplayEmailType);
 
                         rtfMessage.Document = body;
                     }
                     // Could bind text content, but use push so that we can optionally add headers
-                    else if (m.ShowText)
+                    else if (mv.ShowText)
                     {
-                        var body = m.Body;
+                        var body = mv.Body;
 
                         // For testing purposes, can show print header in main visualisation
                         if (view.DisplayPrintHeaders)
-                            body = m.EmbedTextPrintHeader(body, true, view.DisplayEmailType);
+                            body = mv.Message.EmbedTextPrintHeader(body, true, view.DisplayEmailType);
 
                         txtMessage.Text = body;
                         scrollTextMessage.ScrollToHome();
@@ -665,8 +663,9 @@ namespace XstReader
         private void OpenEmailAttachment(Attachment a)
         {
             Message m = xstFile.OpenAttachedMessage(a);
-            ShowMessage(m);
-            view.PushMessage(m);
+            var mv = new MessageView(m);
+            ShowMessage(mv);
+            view.PushMessage(mv);
         }
 
         #region File and folder dialogs

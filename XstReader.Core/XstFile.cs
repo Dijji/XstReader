@@ -483,7 +483,7 @@ namespace XstReader
                         a.subNodeTreeProperties = subNodeTree;
                 }
 
-                m.SortAndSaveAttachments(atts);
+                m.SaveAttachments(atts);
             }
         }
 

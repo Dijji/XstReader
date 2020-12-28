@@ -15,19 +15,16 @@ using System.Windows.Media;
 
 namespace XstReader
 {
-    // Part of the view of the xst (.ost and .pst) file rendered by XAML
-    // The data layer is effectively provided by the xst file itself
+    // Holds information about a single message, extracted from the xst tables
 
-    public class Message : INotifyPropertyChanged
+    public class Message
     {
-        private bool isSelected = false;
         private string exportFileName = null;
 
         public Folder Folder { get; set; }
         public string From { get; set; }
         public string To { get; set; }
         public string Cc { get; set; }
-        public string FromTo { get { return Folder.Name.StartsWith("Sent") ? To : From; } }
         public string Subject { get; set; }
         public MessageFlags Flags { get; set; }
         public DateTime? Received { get; set; }
@@ -46,14 +43,10 @@ namespace XstReader
         public List<Property> Properties { get; private set; } = new List<Property>();
         public bool MayHaveInlineAttachment { get { return (Attachments.FirstOrDefault(a => a.HasContentId) != null); } }
         public bool IsEncryptedOrSigned { get { return (GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m"); } }
-
-        // The following properties are used in XAML bindings to control the UI
         public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
         public bool HasFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile) != null); } }
-        public bool HasVisibleFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null); } }
-        public bool HasEmailAttachment { get { return (Attachments.FirstOrDefault(a => a.IsEmail) != null); } }
-        public bool ShowText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
-        public bool ShowHtml
+        public bool IsBodyText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
+        public bool IsBodyHtml
         {
             get
             {
@@ -61,8 +54,7 @@ namespace XstReader
                        ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0)));
             }
         }
-        public bool ShowRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
-        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
+        public bool IsBodyRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
         public string ToDisplayList
         {
             get
@@ -98,19 +90,6 @@ namespace XstReader
             }
         }
 
-        public bool IsSelected
-        {
-            get { return isSelected; }
-            set
-            {
-                if (value != isSelected)
-                {
-                    isSelected = value;
-                    OnPropertyChanged(nameof(IsSelected));
-                }
-            }
-        }
-
         public string ExportFileName
         {
             get
@@ -131,9 +110,9 @@ namespace XstReader
         {
             get
             {
-                if (ShowHtml)
+                if (IsBodyHtml)
                     return "html";
-                else if (ShowRtf)
+                else if (IsBodyRtf)
                     return "rtf";
                 else
                     return "txt";
@@ -169,7 +148,7 @@ namespace XstReader
 
         public void ExportToFile(string fullFileName, XstFile xstFile)
         {
-            if (ShowHtml)
+            if (IsBodyHtml)
             {
                 string body = GetBodyAsHtmlString();
                 if (MayHaveInlineAttachment)
@@ -187,7 +166,7 @@ namespace XstReader
                         File.SetCreationTime(fullFileName, (DateTime)Date);
                 }
             }
-            else if (ShowRtf)
+            else if (IsBodyRtf)
             {
                 var doc = GetBodyAsFlowDocument();
                 EmbedRtfPrintHeader(doc);
@@ -385,28 +364,9 @@ namespace XstReader
             }, RegexOptions.Singleline | RegexOptions.IgnoreCase);
         }
 
-        public void SortAndSaveAttachments(List<Attachment> atts = null)
+        public void SaveAttachments(List<Attachment> atts)
         {
-            // If no attachments are supplied, sort the list we already have
-            if (atts == null)
-                atts = new List<Attachment>(Attachments);
-
-            atts.Sort((a, b) =>
-            {
-                if (a == null)
-                    return -1;
-                else if (b == null)
-                    return 1;
-                else if (a.Hide != b.Hide)
-                    return a.Hide ? 1 : -1;
-                else
-                    return 0;
-            });
-
-            Attachments.Clear();
-            foreach (var a in atts)
-                Attachments.Add(a);
-            OnPropertyChanged(nameof(Attachments));
+            Attachments = new List<Attachment>(atts);
         }
 
         private static string EscapeUnicodeCharacters(string source)
@@ -461,16 +421,6 @@ namespace XstReader
             }
 
             return null;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(String info)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
-            }
         }
 
         // Take encrypted or signed bytes and parse into message object

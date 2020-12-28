@@ -31,9 +31,9 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
-        <TreeView Grid.Column="0" Grid.Row="0" Name="treeFolders" ItemsSource="{Binding Path=RootFolders}" FontSize="12" SelectedItemChanged="treeFolders_SelectedItemChanged">
+        <TreeView Grid.Column="0" Grid.Row="0" Name="treeFolders" ItemsSource="{Binding Path=RootFolderViews}" FontSize="12" SelectedItemChanged="treeFolders_SelectedItemChanged">
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Path=Folders}">
+                <HierarchicalDataTemplate ItemsSource="{Binding Path=FolderViews}">
                     <Grid>
                         <TextBlock Text="{Binding Path=Description}" />
                     </Grid>
@@ -66,7 +66,7 @@
             </StackPanel>
         </Grid>
         <GridSplitter Grid.Row="0" Grid.Column="1" Width="3" HorizontalAlignment="Stretch" />
-        <ListView Grid.Row="0" Grid.Column="2" Name="listMessages" Margin="0,0,0,0" DataContext="{Binding Path=SelectedFolder}" ItemsSource="{Binding Path=Messages}"
+        <ListView Grid.Row="0" Grid.Column="2" Name="listMessages" Margin="0,0,0,0" DataContext="{Binding Path=SelectedFolder}" ItemsSource="{Binding Path=MessageViews}"
                     SelectionChanged="listMessages_SelectionChanged" FontSize="12"
                     ItemContainerStyle="{StaticResource ResourceKey=ListViewSelect}">
             <ListView.View>
