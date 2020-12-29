@@ -163,17 +163,13 @@ namespace XstReader
             this.ltp = new LTP(ndb);
         }
 
-        public Folder RootFolder { get; private set; }
-
         public Folder ReadFolderTree()
         {
-            RootFolder = null;
             ndb.Initialise();
 
             using (var fs = ndb.GetReadStream())
             {
-                RootFolder = ReadFolderStructure(fs, new NID(EnidSpecial.NID_ROOT_FOLDER));
-                return RootFolder;
+                return ReadFolderStructure(fs, new NID(EnidSpecial.NID_ROOT_FOLDER));
             }
         }
 
@@ -189,12 +185,8 @@ namespace XstReader
                     var ms = ltp.ReadTable<Message>(fs, NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
                                                     ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
                                 .Select(m => ndb.IsUnicode4K ? Add4KMessageProperties(fs, m) : m)
+                                .Select(m => f.AddMessage(m))
                                 .ToList(); // to force complete execution on the current thread
-
-                    foreach (var m in ms)
-                    {
-                        f.AddMessage(m);
-                    }
                     return ms;
                 }
             }
@@ -210,10 +202,7 @@ namespace XstReader
 
                 // Read all other properties
                 m.Properties.Clear();
-                foreach (var p in ltp.ReadAllProperties(fs, m.Nid, contentExclusions))
-                {
-                    m.Properties.Add(p);
-                }
+                m.Properties.AddRange(ltp.ReadAllProperties(fs, m.Nid, contentExclusions).ToList());
 
                 ReadMessageTables(fs, subNodeTree, m);
             }
@@ -227,7 +216,7 @@ namespace XstReader
 
                 if (subNodeTreeMessage == null)
                     // No subNodeTree given: assume we can look it up in the main tree
-                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Message.Nid, out subNodeTreeMessage);
 
                 // Read all non-content properties
                 // Convert to list so that we can dispose the file access
@@ -275,7 +264,7 @@ namespace XstReader
 
                     if (subNodeTreeMessage == null)
                         // No subNodeTree given: assume we can look it up in the main tree
-                        ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+                        ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Message.Nid, out subNodeTreeMessage);
 
                     var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
 
@@ -310,7 +299,7 @@ namespace XstReader
 
                 if (subNodeTreeMessage == null)
                     // No subNodeTree given: assume we can look it up in the main tree
-                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Parent.Nid, out subNodeTreeMessage);
+                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Message.Nid, out subNodeTreeMessage);
 
                 var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
                 if (a.Content.GetType() == typeof(PtypObjectValue))
@@ -321,10 +310,7 @@ namespace XstReader
                     var childSubNodeTree = ltp.ReadProperties<Message>(fs, subNodeTreeAttachment, m.Nid, pgMessageAttachment, m, true);
 
                     // Read all other properties
-                    foreach (var p in ltp.ReadAllProperties(fs, subNodeTreeAttachment, m.Nid, contentExclusions, true))
-                    {
-                        m.Properties.Add(p);
-                    }
+                    m.Properties.AddRange(ltp.ReadAllProperties(fs, subNodeTreeAttachment, m.Nid, contentExclusions, true).ToList());
 
                     ReadMessageTables(fs, childSubNodeTree, m, true);
 
@@ -421,18 +407,17 @@ namespace XstReader
         #region Private methods
 
         // Recurse down the folder tree, building a structure of Folder classes
-        private Folder ReadFolderStructure(FileStream fs, NID nid)
+        private Folder ReadFolderStructure(FileStream fs, NID nid, Folder parentFolder = null)
         {
-            Folder f = new Folder { Nid = nid };
+            Folder f = new Folder { Nid = nid, XstFile = this, ParentFolder = parentFolder };
 
             ltp.ReadProperties<Folder>(fs, nid, pgFolder, f);
 
-            foreach (var sf in ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
-                .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
-                .Select(id => ReadFolderStructure(fs, id))
-                .OrderBy(sf => sf.Name))
-                f.Folders.Add(sf);
-
+            f.Folders.AddRange(ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
+                                  .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
+                                  .Select(id => ReadFolderStructure(fs, id, f))
+                                  .OrderBy(sf => sf.Name)
+                                  .ToList());
             return f;
         }
 
@@ -475,8 +460,7 @@ namespace XstReader
                 var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
                 foreach (var a in atts)
                 {
-                    a.XstFile = this; // For lazy reading of the complete properties
-                    a.Parent = m;
+                    a.Message = m; // For lazy reading of the complete properties: a.Message.Folder.XstFile
 
                     // If the long name wasn't in the attachment table, go look for it in the attachment properties
                     if (a.LongFileName == null)

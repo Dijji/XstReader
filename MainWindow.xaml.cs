@@ -141,31 +141,9 @@ namespace XstReader
                     {
                         try
                         {
-                            //
-                            // I refactorized this part: 
-                            //   - Core manages the Structure of Folders and Messages
-                            //   - UI Syncs the ForlderView and MessageView with Core
-                            //
-                            // fv.Folder.AddMessage(m) -> moved inside xstFile.ReadMessages(fv.Folder)
-                            //
-                            // fv.MessageViews.Clear(); and iterator -> moved to fv.UpdateMessageViews() 
-                            //
-
                             xstFile.ReadMessages(fv.Folder);
                             // We may be called on a background thread, so we need to dispatch this to the UI thread
                             Application.Current.Dispatcher.Invoke(new Action(() => fv.UpdateMessageViews()));
-
-                            //var ms = xstFile.ReadMessages(fv.Folder);
-                            //// We may be called on a background thread, so we need to dispatch this to the UI thread
-                            //Application.Current.Dispatcher.Invoke(new Action(() =>
-                            //{
-                            //    fv.MessageViews.Clear();
-                            //    foreach (var m in ms)
-                            //    {
-                            //        fv.Folder.AddMessage(m);
-                            //        fv.AddMessage(m);
-                            //    }
-                            //}));
                         }
                         catch (System.Exception ex)
                         {
@@ -256,7 +234,7 @@ namespace XstReader
             else
             {
                 string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
-                                            view.CurrentMessage.Message.ExportFileExtension);
+                                            view.CurrentMessage.ExportFileExtension);
 
                 if (fullFileName != null)
                 {
