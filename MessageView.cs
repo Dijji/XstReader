@@ -33,7 +33,6 @@ namespace XstReader
         public DateTime? Modified { get { return Message.Modified; } }  // When any attachment was last modified
         public DateTime? Date { get { return Received ?? Submitted; } }
         public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; } }
-        public BodyType NativeBody { get { return Message.NativeBody; } }
         public string Body { get { return Message.Body; } }
         public string BodyHtml { get { return Message.BodyHtml; } }
         public byte[] Html { get { return Message.Html; } }
@@ -61,6 +60,7 @@ namespace XstReader
         public string BccDisplayList { get { return Message.BccDisplayList; } }
         public string FileAttachmentDisplayList { get { return Message.FileAttachmentDisplayList; } }
         public string ExportFileName { get { return Message.ExportFileName; } }
+        public string ExportFileExtension { get { return Message.ExportFileExtension; } }
 
         public bool IsSelected
         {

@@ -28,14 +28,14 @@ namespace XstReader
         public string To { get; set; }
         public string Cc { get; set; }
         public string Subject { get; set; }
-        public MessageFlags Flags { get; set; }
+        internal MessageFlags Flags { get; set; }
         public DateTime? Received { get; set; }
         public DateTime? Submitted { get; set; }
         public DateTime? Modified { get; set; }  // When any attachment was last modified
         public DateTime? Date { get { return Received ?? Submitted; } }
         public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; } }
-        public NID Nid { get; set; }
-        public BodyType NativeBody { get; set; }
+        internal NID Nid { get; set; }
+        internal BodyType NativeBody { get; set; }
         public string Body { get; set; }
         public string BodyHtml { get; set; }
         public byte[] Html { get; set; }
@@ -58,6 +58,7 @@ namespace XstReader
             }
         }
         public bool IsBodyRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
+        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
         public string ToDisplayList
         {
             get
@@ -349,12 +350,10 @@ namespace XstReader
             if (body == null)
                 return null;
 
-            var dict = new Dictionary<string, Attachment>();
-            foreach (var a in Attachments.Where(x => x.HasContentId))
-            {
-                if (!dict.ContainsKey(a.ContentId))
-                    dict.Add(a.ContentId, a);
-            }
+            var dict = Attachments.Where(a => a.HasContentId)
+                                  .GroupBy(a => a.ContentId)
+                                  .Select(g => g.First())
+                                  .ToDictionary(a => a.ContentId);
 
             return Regex.Replace(body, @"(="")cid:(.*?)("")", match =>
             {
