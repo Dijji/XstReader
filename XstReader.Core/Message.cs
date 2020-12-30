@@ -101,9 +101,7 @@ namespace XstReader
                 if (exportFileName == null)
                 {
                     var fileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Date, Subject).Truncate(150);
-                    string regex = String.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars())));
-                    Regex removeInvalidChars = new Regex(regex, RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-                    exportFileName = removeInvalidChars.Replace(fileName, " ");
+                    exportFileName = fileName.ReplaceInvalidFileNameChars(" ");
                 }
 
                 return exportFileName;

@@ -46,7 +46,7 @@ namespace XstExport
             "   -t=<target directory name>, --target=<target directory name>",
             "      The directory to which output is written. This may be an",
             "      absolute path or one relative to the location of the Outlook file.",
-            "      By default, output is written to a directory <Outlook file name>.Export",
+            "      By default, output is written to a directory <Outlook file name>.Export.<Command>",
             "      created in the same directory as the Outlook file",
             "",
             "   <Outlook file name>",
@@ -124,17 +124,11 @@ namespace XstExport
                 if (exportDir != null)
                 {
                     // Handle relative target directory
-                    if (!Path.IsPathFullyQualified(exportDir))
+                    if (!Path.IsPathRooted(exportDir)) // IsPathFullyQualified would be better, but not in 4
                         exportDir = Path.Combine(Path.GetDirectoryName(outlookFile), exportDir);
 
                     if (!Directory.Exists(exportDir))
-                    {
-                        throw new XstExportException
-                        {
-                            Description = @"Cannot find target directory '{target}'",
-                            ErrorCode = WindowsErrorCodes.ERROR_PATH_NOT_FOUND
-                        };
-                    }
+                        Directory.CreateDirectory(exportDir);
                 }
 
                 var xstFile = new XstFile(outlookFile);
@@ -157,7 +151,8 @@ namespace XstExport
                 // The arguments look good, so prepare to actually export
                 if (exportDir == null)
                     exportDir = CreateDirectoryIfNeeded(Path.GetDirectoryName(outlookFile),
-                                Path.GetFileNameWithoutExtension(outlookFile) + ".Export");
+                                Path.GetFileNameWithoutExtension(outlookFile) + ".Export." +
+                                Enum.GetName(typeof(Command), command));
 
                 // Work out which folders to export
                 List<Folder> sources = new List<Folder>();
@@ -180,7 +175,7 @@ namespace XstExport
                 {
                     string targetDir;
                     if (subfolders)
-                        targetDir = Path.Combine(exportDir, "f");
+                        targetDir = Path.Combine(exportDir, ValidFolderPath(f));
                     else
                         targetDir = exportDir;
 
@@ -205,11 +200,18 @@ namespace XstExport
             }
 
             Console.WriteLine("Done!");
+
             return 0;
         }
 
-        private static void ExportFolder (XstFile xstFile, Folder folder, Command command, string exportDir)
+        private static void ExportFolder(XstFile xstFile, Folder folder, Command command, string exportDir)
         {
+            if (folder.ContentCount == 0)
+            {
+                Console.WriteLine($"Skipping folder '{folder.Name}', which is empty");
+                return;
+            }
+
             if (!Directory.Exists(exportDir))
                 Directory.CreateDirectory(exportDir);
 
@@ -219,8 +221,7 @@ namespace XstExport
                     ExtractEmailsInFolder(xstFile, folder, exportDir);
                     break;
                 case Command.Properties:
-                    var fileName = Path.Combine(exportDir, RemoveInvalidChars(folder.Name)) + ".csv";
-                    xstFile.ExportMessageProperties(folder.Messages, fileName);
+                    ExtractPropertiesInFolder(xstFile, folder, exportDir);
                     break;
                 case Command.Attachments:
                     ExtractAttachmentsInFolder(xstFile, folder, exportDir);
@@ -231,7 +232,7 @@ namespace XstExport
             }
         }
 
-        private static Folder FindOutlookFolder (Folder root, string outlookFolder)
+        private static Folder FindOutlookFolder(Folder root, string outlookFolder)
         {
             string[] folders = outlookFolder.Split(new char[] { '\\', '/' }); // Accept backward or forward slash
 
@@ -252,7 +253,7 @@ namespace XstExport
             return null;
         }
 
-        private static bool FolderMatches (Folder folder, string[] folderNames)
+        private static bool FolderMatches(Folder folder, string[] folderNames)
         {
             // First name segment must match
             if (String.Compare(folder.Name, folderNames[0], true) != 0)
@@ -266,23 +267,31 @@ namespace XstExport
                 if (folder == null)
                     return false;
             }
-            
+
             // All segments of the name have been matched
             return true;
         }
 
         private static string CreateDirectoryIfNeeded(string rootDirName, string dirName)
         {
-            string exportDirectory = Path.Combine(rootDirName, 
+            string exportDirectory = Path.Combine(rootDirName,
                 RemoveInvalidChars(Path.GetFileName(dirName)));
             if (!Directory.Exists(exportDirectory))
                 Directory.CreateDirectory(exportDirectory);
             return exportDirectory;
         }
 
+        private static string ValidFolderPath(Folder f)
+        {
+            if (string.IsNullOrEmpty(f.ParentFolder?.Name))
+                return RemoveInvalidChars(f.Name);
+            else
+                return $"{ValidFolderPath(f.ParentFolder)}\\{RemoveInvalidChars(f.Name)}";
+        }
+
         private static string RemoveInvalidChars(string filename)
         {
-            return string.Concat(filename.Split(Path.GetInvalidFileNameChars())).TrimEnd().TrimEnd('.');
+            return filename.ReplaceInvalidFileNameChars("");
         }
 
         private static void ExtractEmailsInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
@@ -293,6 +302,8 @@ namespace XstExport
             // But if emails within this batch generate the same filename,
             // use a numeric suffix to distinguish them
             HashSet<string> usedNames = new HashSet<string>();
+
+            xstFile.ReadMessages(folder);
             foreach (Message m in folder.Messages)
             {
                 try
@@ -325,16 +336,22 @@ namespace XstExport
                     Console.WriteLine(String.Format("Error '{0}' exporting email '{1}'",
                         ex.Message, current.Subject));
                     bad++;
-                    
+
                 }
             }
-            Console.WriteLine(String.Format("Completed with {0} successes and {1} failures", good, bad));
+            Console.WriteLine($"Folder '{folder.Name}' completed with {good} successes and {bad} failures");
+        }
+
+        private static void ExtractPropertiesInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
+        {
+            var fileName = Path.Combine(exportDirectory, RemoveInvalidChars(folder.Name)) + ".csv";
+            Console.WriteLine("Exporting " + fileName);
+            xstFile.ReadMessages(folder);
+            xstFile.ExportMessageProperties(folder.Messages, fileName);
         }
 
         private static void ExtractAttachmentsInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
         {
-            //var exportDirectory = CreateDirectoryIfNeeded(exportDirectoryBase, RemoveInvalidChars(folder.Name));
-
             xstFile.ReadMessages(folder);
             foreach (var message in folder.Messages)
             {
@@ -374,6 +391,7 @@ namespace XstExport
                     }
                 }
             }
+            Console.WriteLine($"Folder '{folder.Name}' completed");
         }
     }
 }

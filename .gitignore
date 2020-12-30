@@ -16,3 +16,4 @@
 .vs/XstReader/v16/.suo
 /XstExport/bin/Debug
 /XstExport/obj
+*.user
