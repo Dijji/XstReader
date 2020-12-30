@@ -13,12 +13,5 @@ namespace XstReader
             if (string.IsNullOrEmpty(value)) return value;
             return value.Length <= maxLength ? value : value.Substring(0, maxLength);
         }
-
-        public static void PopulateWith<T>(this ObservableCollection<T> collection, List<T> list)
-        {
-            collection.Clear();
-            foreach (T value in list)
-                collection.Add(value);
-        }
     }
 }

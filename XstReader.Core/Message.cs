@@ -47,6 +47,7 @@ namespace XstReader
         public bool IsEncryptedOrSigned { get { return (GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m"); } }
         public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
         public bool HasFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile) != null); } }
+        public bool HasVisibleFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null); } }
         public bool IsBodyText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
         public bool IsBodyHtml
         {
