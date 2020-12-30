@@ -66,14 +66,24 @@ namespace XstReader
                 {
                     xstFile = new XstFile(fileName);
                     var root = xstFile.ReadFolderTree();
-                    foreach (var f in root.Folders)
-                    {
-                        // We may be called on a background thread, so we need to dispatch this to the UI thread
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
-                        {
-                            view.RootFolderViews.Add(new FolderView(f));
-                        }));
-                    }
+
+                    //
+                    // I refactorized this part: 
+                    //
+                    // iterator with view.RootFolderViews.Add -> moved to view.UpdateFolderViews(root)
+                    //
+
+                    // We may be called on a background thread, so we need to dispatch this to the UI thread
+                    Application.Current.Dispatcher.Invoke(new Action(() => view.UpdateFolderViews(root)));
+
+                    //foreach (var f in root.Folders)
+                    //{
+                    //    // We may be called on a background thread, so we need to dispatch this to the UI thread
+                    //    Application.Current.Dispatcher.Invoke(new Action(() =>
+                    //    {
+                    //        view.RootFolderViews.Add(new FolderView(f));
+                    //    }));
+                    //}
                 }
                 catch (System.Exception ex)
                 {
@@ -131,17 +141,9 @@ namespace XstReader
                     {
                         try
                         {
-                            var ms = xstFile.ReadMessages(fv.Folder);
+                            xstFile.ReadMessages(fv.Folder);
                             // We may be called on a background thread, so we need to dispatch this to the UI thread
-                            Application.Current.Dispatcher.Invoke(new Action(() =>
-                            {
-                                fv.MessageViews.Clear();
-                                foreach (var m in ms)
-                                {
-                                    fv.Folder.AddMessage(m);
-                                    fv.AddMessage(m);
-                                }
-                            }));
+                            Application.Current.Dispatcher.Invoke(new Action(() => fv.UpdateMessageViews()));
                         }
                         catch (System.Exception ex)
                         {
@@ -232,7 +234,7 @@ namespace XstReader
             else
             {
                 string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
-                                            view.CurrentMessage.Message.ExportFileExtension);
+                                            view.CurrentMessage.ExportFileExtension);
 
                 if (fullFileName != null)
                 {

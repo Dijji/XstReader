@@ -80,6 +80,15 @@ namespace XstReader
             }
         }
 
+        public void UpdateFolderViews(Folder rootFolder)
+        {
+            RootFolderViews.Clear();
+            foreach (var f in rootFolder.Folders)
+            {
+                RootFolderViews.Add(new FolderView(f));
+            }
+        }
+
         public void SelectedRecipientChanged(Recipient recipient)
         {
             if (recipient != null)

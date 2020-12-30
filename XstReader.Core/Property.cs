@@ -248,21 +248,20 @@ namespace XstReader
     {
         private List<Property> properties = null;
 
-        public XstFile XstFile { get; set; }
-        public Message Parent { get; set; }
-        public BTree<Node> subNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
+        public Message Message { get; set; }
+        internal BTree<Node> subNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
         public string DisplayName { get; set; }
         public string FileNameW { get; set; }
         public string LongFileName { get; set; }
-        public AttachFlags Flags { get; set; }
+        internal AttachFlags Flags { get; set; }
         public string MimeTag { get; set; }
         public string ContentId { get; set; }
         public bool Hidden { get; set; }
         public string FileName { get { return LongFileName ?? FileNameW; } }
         public int Size { get; set; }
-        public NID Nid { get; set; }
-        public AttachMethods AttachMethod { get; set; }
-        public dynamic Content { get; set; }
+        internal NID Nid { get; set; }
+        internal AttachMethods AttachMethod { get; set; }
+        internal dynamic Content { get; set; }
         public bool IsFile { get { return AttachMethod == AttachMethods.afByValue; } }
         public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethods.afEmbeddedMessage; } }
         public bool WasRenderedInline { get; set; } = false;
@@ -319,10 +318,7 @@ namespace XstReader
                     properties = new List<Property>();
                     if (!WasLoadedFromMime)
                     {
-                        foreach (var p in XstFile.ReadAttachmentProperties(this))
-                        {
-                            properties.Add(p);
-                        }
+                        properties.AddRange(Message.Folder.XstFile.ReadAttachmentProperties(this));
                     }
                 }
                 return properties;
@@ -353,17 +349,23 @@ namespace XstReader
 
     public class Folder
     {
+        public XstFile XstFile { get; set; }
         public string Name { get; set; }
         public uint ContentCount { get; set; } = 0;
         public bool HasSubFolders { get; set; } = false;
-        public NID Nid { get; set; }  // Where folder data is held
+        internal NID Nid { get; set; }  // Where folder data is held
+        public Folder ParentFolder { get; set; }
         public List<Folder> Folders { get; private set; } = new List<Folder>();
         public List<Message> Messages { get; private set; } = new List<Message>();
 
-        public void AddMessage(Message m)
+        private string _Path = null;
+        public string Path => _Path ?? (_Path = (string.IsNullOrEmpty(ParentFolder?.Name)) ? Name : $"{ParentFolder.Path}\\{Name}");
+        
+        public Message AddMessage(Message m)
         {
             m.Folder = this;
             Messages.Add(m);
+            return m;
         }
     }
 }
