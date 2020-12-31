@@ -17,3 +17,5 @@
 /XstExport/bin/Debug
 /XstExport/obj/Debug
 *.user
+/XstExport/bin/Release
+/XstExport/obj/Release
