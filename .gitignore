@@ -14,3 +14,6 @@
 /XstReader.Core/obj
 /XstReader.csproj.user
 .vs/XstReader/v16/.suo
+/XstExport/bin/Debug
+/XstExport/obj/Debug
+*.user
