@@ -46,7 +46,7 @@ namespace XstReader
         // The following properties are used in XAML bindings to control the UI
         public bool HasAttachment { get { return Message.HasAttachment; } }
         public bool HasFileAttachment { get { return Message.HasFileAttachment; } }
-        public bool HasVisibleFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null); } }
+        public bool HasVisibleFileAttachment { get { return Message.HasVisibleFileAttachment; } }
         public bool HasEmailAttachment { get { return (Attachments.FirstOrDefault(a => a.IsEmail) != null); } }
         public bool ShowText { get { return Message.IsBodyText; } }
         public bool ShowHtml { get { return Message.IsBodyHtml; } }

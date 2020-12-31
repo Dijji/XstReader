@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace XstReader
 {
-    static class Extensions
+    static public class Extensions
     {
         public static string Truncate(this string value, int maxLength)
         {
@@ -14,11 +16,13 @@ namespace XstReader
             return value.Length <= maxLength ? value : value.Substring(0, maxLength);
         }
 
-        public static void PopulateWith<T>(this ObservableCollection<T> collection, List<T> list)
+        static Regex removeInvalidChars = null;
+        public static string ReplaceInvalidFileNameChars(this string value, string with = "")
         {
-            collection.Clear();
-            foreach (T value in list)
-                collection.Add(value);
-        }
+            if (removeInvalidChars == null)
+                removeInvalidChars = new Regex(String.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars()))),
+                        RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            return removeInvalidChars.Replace(value, with);
+        }      
     }
 }

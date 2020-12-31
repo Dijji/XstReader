@@ -10,8 +10,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
+#if !NETCOREAPP
 using System.Windows.Documents;
 using System.Windows.Media;
+#endif
 
 namespace XstReader
 {
@@ -45,6 +47,7 @@ namespace XstReader
         public bool IsEncryptedOrSigned { get { return (GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m"); } }
         public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
         public bool HasFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile) != null); } }
+        public bool HasVisibleFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null); } }
         public bool IsBodyText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
         public bool IsBodyHtml
         {
@@ -98,9 +101,7 @@ namespace XstReader
                 if (exportFileName == null)
                 {
                     var fileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Date, Subject).Truncate(150);
-                    string regex = String.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars())));
-                    Regex removeInvalidChars = new Regex(regex, RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-                    exportFileName = removeInvalidChars.Replace(fileName, " ");
+                    exportFileName = fileName.ReplaceInvalidFileNameChars(" ");
                 }
 
                 return exportFileName;
@@ -169,6 +170,8 @@ namespace XstReader
             }
             else if (IsBodyRtf)
             {
+#if !NETCOREAPP
+
                 var doc = GetBodyAsFlowDocument();
                 EmbedRtfPrintHeader(doc);
                 TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
@@ -178,6 +181,9 @@ namespace XstReader
                 }
                 if (Date != null)
                     File.SetCreationTime(fullFileName, (DateTime)Date);
+#else
+                throw new PlatformNotSupportedException();
+#endif
             }
             else
             {
@@ -192,6 +198,7 @@ namespace XstReader
             }
         }
 
+#if !NETCOREAPP
         public FlowDocument GetBodyAsFlowDocument()
         {
             FlowDocument doc = new FlowDocument();
@@ -208,7 +215,7 @@ namespace XstReader
             //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
             return doc;
         }
-
+#endif
         public string EmbedTextPrintHeader(string body, bool forDisplay = false, bool showEmailType = false)
         {
             string row = forDisplay ? "{0,-15}\t{1}\r\n" : "{0,-15}{1}\r\n";
@@ -279,6 +286,8 @@ namespace XstReader
             }
         }
 
+#if !NETCOREAPP
+
         public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
         {
             if (doc == null)
@@ -320,6 +329,8 @@ namespace XstReader
             //omit MyName and the line under it for now, as we have no reliable source for it
             //doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, p);
         }
+#endif
+#if !NETCOREAPP
 
         private void AddRtfTableRow(Table table, string c0, string c1)
         {
@@ -331,7 +342,7 @@ namespace XstReader
             currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c1))
             { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
         }
-
+#endif
         public string EmbedAttachments(string body, XstFile xst)
         {
             if (body == null)

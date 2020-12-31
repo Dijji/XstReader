@@ -224,6 +224,30 @@ namespace XstReader
             }
         }
 
+        public void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, Message m)
+        {
+            if (m.HasVisibleFileAttachment)
+            {
+                var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
+                    Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
+                if (!Directory.Exists(targetFolder))
+                {
+                    Directory.CreateDirectory(targetFolder);
+                    if (m.Date != null)
+                        Directory.SetCreationTime(targetFolder, (DateTime)m.Date);
+                }
+                SaveAttachmentsToFolder(targetFolder, m.Date, m.Attachments.Where(a => a.IsFile && !a.Hide));
+            }
+        }
+
+        public void SaveAttachmentsToFolder(string fullFolderName, DateTime? creationTime, IEnumerable<Attachment> attachments)
+        {
+            foreach (var a in attachments)
+            {
+                SaveAttachmentToFolder(fullFolderName, creationTime, a);
+            }
+        }
+
         const int MaxPath = 260;
         public void SaveAttachmentToFolder(string folderpath, DateTime? creationTime, Attachment a)
         {
