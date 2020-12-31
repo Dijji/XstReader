@@ -1,8 +1,8 @@
-﻿using System;
+﻿// Copyright (c) 2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 
 namespace XstReader
 {

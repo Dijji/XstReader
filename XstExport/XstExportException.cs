@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// Copyright (c) 2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+
+using System;
 
 namespace XstExport
 {
