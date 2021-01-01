@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.1209
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader", "XstReader.csproj", "{BB8E0530-8EA6-4E02-9399-03A9AB13705F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader.Core", "XstReader.Core\XstReader.Core.csproj", "{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader.Base", "XstReader.Base\XstReader.Base.csproj", "{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstExport", "XstExport\XstExport.csproj", "{C2753A62-A0BD-41AE-B029-59CE54BFC007}"
 EndProject

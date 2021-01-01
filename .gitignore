@@ -22,3 +22,5 @@
 /XstPortableExport/bin/Debug/netcoreapp2.1
 /XstPortableExport/obj
 /XstPortableExport/Properties/launchSettings.json
+/XstReader.Base/bin
+/XstReader.Base/obj
