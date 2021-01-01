@@ -120,19 +120,35 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="WindowsBase" />
+    <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Extensions.cs" />
     <Compile Include="FolderView.cs" />
     <Compile Include="MessageView.cs" />
     <Compile Include="SearchTextBox\ListBoxEx.cs" />
     <Compile Include="SearchTextBox\SearchTextBox.cs" />
     <Compile Include="SortAdorner.cs" />
     <Compile Include="View.cs" />
+    <Compile Include="XstReader.Core\BTree.cs" />
+    <Compile Include="XstReader.Core\Crypto.cs" />
+    <Compile Include="XstReader.Core\Extensions.cs" />
+    <Compile Include="XstReader.Core\Layouts.cs" />
+    <Compile Include="XstReader.Core\LayoutsA.cs" />
+    <Compile Include="XstReader.Core\LayoutsU.cs" />
+    <Compile Include="XstReader.Core\LayoutsU4K.cs" />
+    <Compile Include="XstReader.Core\LTP.cs" />
+    <Compile Include="XstReader.Core\Map.cs" />
+    <Compile Include="XstReader.Core\Message.cs" />
+    <Compile Include="XstReader.Core\NamedProperties.cs" />
+    <Compile Include="XstReader.Core\NDB.cs" />
+    <Compile Include="XstReader.Core\Property.cs" />
+    <Compile Include="XstReader.Core\RtfDecompressor.cs" />
+    <Compile Include="XstReader.Core\StandardProperties.cs" />
+    <Compile Include="XstReader.Core\XstFile.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -180,6 +196,9 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <None Include="XstReader.Core\obj\Debug\XstReader.Core.csproj.CoreCompileInputs.cache" />
+    <None Include="XstReader.Core\obj\Debug\XstReader.Core.csprojAssemblyReference.cache" />
+    <None Include="XstReader.Core\XstReader.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
@@ -207,10 +226,15 @@
     <Resource Include="Resources\ic_unfold_more_black_18dp.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="XstReader.Core\XstReader.Core.csproj">
-      <Project>{2c78d8bd-bb0c-41a0-8e55-23ca97d7fa68}</Project>
-      <Name>XstReader.Core</Name>
-    </ProjectReference>
+    <Content Include="XstReader.Core\bin\Debug\XstReader.Core.dll" />
+    <Content Include="XstReader.Core\bin\Debug\XstReader.Core.pdb" />
+    <Resource Include="XstReader.Core\obj\Debug\XstReader.Core.csproj.FileListAbsolute.txt" />
+    <Content Include="XstReader.Core\obj\Debug\XstReader.Core.dll" />
+    <Content Include="XstReader.Core\obj\Debug\XstReader.Core.pdb" />
+    <Content Include="XstReader.Core\XstReader.Core.csproj.user" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="XstReader.Core\obj\Debug\TempPE\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
