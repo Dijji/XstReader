@@ -19,3 +19,6 @@
 *.user
 /XstExport/bin/Release
 /XstExport/obj/Release
+/XstPortableExport/bin/Debug/netcoreapp2.1
+/XstPortableExport/obj
+/XstPortableExport/Properties/launchSettings.json

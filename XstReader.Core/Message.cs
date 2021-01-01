@@ -181,7 +181,7 @@ namespace XstReader
                 if (Date != null)
                     File.SetCreationTime(fullFileName, (DateTime)Date);
 #else
-                throw new PlatformNotSupportedException();
+                throw new XstException("Emails with body in RTF format not supported on this platform");
 #endif
             }
             else
@@ -512,12 +512,16 @@ namespace XstReader
             X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
 
             //decrypt bytes with EnvelopedCms
+#if !NETCOREAPP
             EnvelopedCms ec = new EnvelopedCms();
             ec.Decode(encryptedMessageBytes);
             ec.Decrypt(fcollection);
             byte[] decryptedData = ec.ContentInfo.Content;
 
             return System.Text.Encoding.ASCII.GetString(decryptedData);
+#else
+            throw new XstException("CMS decoding not supported on this platform");
+#endif
         }
 
         //Signed messages are base64 endcoded and broken up with \r\n 
@@ -530,10 +534,14 @@ namespace XstReader
             string data = base64Message.Replace("\r\n", "");
 
             // parse out signing data from content
+#if !NETCOREAPP
             SignedCms sc = new SignedCms();
             sc.Decode(Convert.FromBase64String(data));
 
             return System.Text.Encoding.ASCII.GetString(sc.ContentInfo.Content);
+#else
+            throw new XstException("PKCS decoding not supported on this platform");
+#endif
         }
 
         //parse out mime headers from a mime section
