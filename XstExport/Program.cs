@@ -369,47 +369,61 @@ namespace XstExport
 
         private static void ExtractAttachmentsInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
         {
+            int good = 0, bad = 0;
+
             xstFile.ReadMessages(folder);
             foreach (var message in folder.Messages)
             {
-                xstFile.ReadMessageDetails(message);
-                foreach(var att in message.Attachments)
+                try
                 {
-                    if (att.IsFile)
+                    xstFile.ReadMessageDetails(message);
+                    foreach (var att in message.Attachments)
                     {
-                        var attachmentExpectedName = Path.Combine(exportDirectory, att.FileName);
-                        var fi = new FileInfo(attachmentExpectedName);
-                        var actionName = string.Empty;
+                        if (att.IsFile)
+                        {
+                            var attachmentExpectedName = Path.Combine(exportDirectory, att.FileName);
+                            var fi = new FileInfo(attachmentExpectedName);
+                            var actionName = string.Empty;
 
-                        if (!fi.Exists) 
-                        {
-                            actionName = "Create";
-                        }
-                        else
-                        {
-                            if (fi.CreationTime < message.Received)
+                            if (!fi.Exists)
                             {
-                                actionName = "CreateNewer";
-                            } 
+                                actionName = "Create";
+                            }
                             else
-                            { 
-                                actionName = "Skip";
+                            {
+                                if (fi.CreationTime < message.Received)
+                                {
+                                    actionName = "CreateNewer";
+                                }
+                                else
+                                {
+                                    actionName = "Skip";
+                                }
+                            }
+                            Console.WriteLine($"{actionName} : {attachmentExpectedName}");
+                            switch (actionName)
+                            {
+                                case "Create":
+                                case "CreateNewer":
+                                    xstFile.SaveAttachment(attachmentExpectedName, message.Received, att);
+                                    break;
+                                default:
+                                    break;
                             }
                         }
-                        Console.WriteLine($"{actionName} : {attachmentExpectedName}");
-                        switch (actionName)
-                        {
-                            case "Create":
-                            case "CreateNewer":
-                                xstFile.SaveAttachment(attachmentExpectedName, message.Received, att);
-                                break;
-                            default:
-                                break;
-                        }
                     }
+                    good++;
+                }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine(String.Format("Error '{0}' exporting email '{1}'",
+                        ex.Message, message.Subject));
+                    bad++;
+
                 }
             }
-            Console.WriteLine($"Folder '{folder.Name}' completed");
+
+            Console.WriteLine($"Folder '{folder.Name}' completed with {good} successes and {bad} failures");
         }
     }
 }
