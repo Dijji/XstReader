@@ -16,12 +16,12 @@ namespace XstExport
             "",
             "Usage:",
             "",
-            "   XstExport.exe {-n|-p|-a|-h} [-f=<Outlook folder>] [-o] [-s]",
+            "   XstExport.exe {-e|-p|-a|-h} [-f=<Outlook folder>] [-o] [-s]",
             "                 [-t=<target directory>] <Outlook file name>",
             "",
             "Where:",
             "",
-            "   -n, --native",
+            "   -e, --email",
             "      Export in native body format (.html, .rtf, .txt)",
             "      with attachments in associated folder",
             "   -- OR --",
@@ -60,7 +60,7 @@ namespace XstExport
         enum Command
         {
             Help,
-            Native,
+            Email,
             Properties,
             Attachments,
         }
@@ -77,7 +77,7 @@ namespace XstExport
             try
             {
                 var argParser = new OptionSet() {
-                    { "n|native", v => {command = Command.Native; commands++;} },
+                    { "e|email", v => {command = Command.Email; commands++;} },
                     { "p|properties",  v => {command = Command.Properties; commands++;} },
                     { "a|attachments", v => {command = Command.Attachments; commands++;} },
                     { "h|?|help", v => {command = Command.Help; commands++;} },
@@ -92,7 +92,7 @@ namespace XstExport
                 {
                     throw new XstExportException
                     {
-                        Description = "You must specify exactly one of --native, --properties, --attachments or --help.",
+                        Description = "You must specify exactly one of --email, --properties, --attachments or --help.",
                         ErrorCode = WindowsErrorCodes.ERROR_INVALID_PARAMETER
                     };
                 }
@@ -224,7 +224,7 @@ namespace XstExport
 
             switch (command)
             {
-                case Command.Native:
+                case Command.Email:
                     ExtractEmailsInFolder(xstFile, folder, exportDir);
                     break;
                 case Command.Properties:
