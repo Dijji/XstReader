@@ -11,16 +11,55 @@ It requires only .Net Framework 4, which is installed by default on Windows 8.1 
 
 Xst Reader is based on Microsoft’s documentation of the Outlook file formats in [MS-PST], first published in 2010 as part of the anti-trust settlement with the DOJ and the EU: <https://msdn.microsoft.com/en-us/library/ff385210(v=office.12).aspx>
 
-## PstFileAttachmentExporter
+## XstExport
 
-Export all attachments from a given pst file from command line.
-This tool is written in .Net Core for maximum portability and is using Xst Reader classes without the UI. It has been tested on MacOs Catalina with VisualStudio for Mac.
+A command line tool for exporting emails, attachments or properties from an Outlook file.
 
-1. Open a Command Line
-2. cd PstFileAttachmentExporter
-3. dotnet build
-4. dotnet run path_to_a_pst_file.pst
-5. All attachments will be extracted in the pst directory, respecting the directory structure inside the pst. We keep only the last version (overwrite old version of same attachment from different emails)
+By default, the all folders in the Outlook file are exported into a directory structure that mirrors the Outlook folder structure. Options are available to specify the starting Outlook folder and to collapse all output into a single directory.
+
+The differences from the export capabilities of the UI are: the ability to export from a subtree of Outlook folders; and the ability to export attachments only, without the body of the email.
+
+In addition to XstExport, XstPortableExport is also provided, which is a portable version based on .Net Core 2.1 that can be run on Windows, Mac, Linux etc. 
+
+Both versions support the following options:
+
+   XstExport.exe {-e|-p|-a|-h} [-f=`<Outlook folder>`] [-o] [-s] [-t=`<target directory>`] `<Outlook file name>`
+
+Where:
+
+   -e, --email  
+      Export in native body format (.html, .rtf, .txt)
+      with attachments in associated folder   
+   -- OR --   
+   -p, --properties  
+      Export properties only (in CSV file)   
+   -- OR --   
+   -a, --attachments  
+      Export attachments only
+      (Latest date wins in case of name conflict)  
+   -- OR --  
+   -h, --help  
+      Display this help
+
+   -f=`<Outlook folder>`, -folder=`<Outlook folder>`  
+      Folder within the Outlook file from which to export.
+      This may be a partial path, for example "Week1\Sent"
+
+   -o, --only  
+      If set, do not export from subfolders of the nominated folder.
+
+   -s, --subfolders  
+      If set, Outlook subfolder structure is preserved.
+      Otherwise, all output goes to a single directory
+
+   -t=`<target directory name>`, --target=`<target directory name>`  
+      The directory to which output is written. This may be an
+      absolute path or one relative to the location of the Outlook file.
+      By default, output is written to a directory `<Outlook file name>.Export.<Command>`
+      created in the same directory as the Outlook file
+
+   `<Outlook file name>`  
+      The full name of the .pst or .ost file from which to export
 
 ## Installation
 
@@ -29,8 +68,15 @@ To install a binary:
 2.	Extract the contents of the zip file to a programs folder.
 3.	Run XstReader.exe, and create shortcuts to it as required.
 
+## Notes for developers
+* The provided Visual Studio solution includes a XstReader.Base project, which contains all the basic common functionality for reading Outlook files used by XstReader and XstExport. The project builds a DLL, which you can use to add the same capability to your own projects. XstReader and XstExport do not themselves use the DLL, instead, they simply include the code from the XstReader.Base directory, in order to create executables with minimum dependencies.
+* The XstPortableExport project builds a portable version of XstExport based on .Net Core 2.1. However, in order to remain portable, two areas of functionality have to be #ifdef'd out in order not to create a framework dependency and so tie the program to Windows. These are support for RTF body formats, and support for MIME decryption.
 ## Release History
 
+* 1.14
+    * Added command line tool for exporting email contents, attachments, or properties. Both Windows and cross-platform versions are provided.
+* 1.12
+    * Added support for viewing encrypted or signed messages and their attachments if matching certificate is in user certificate store. (Does not perform signature verification)
 * 1.8
     * Allow searching within Cc and Bcc names
     * Show email time as well as date in list of emails in folder
