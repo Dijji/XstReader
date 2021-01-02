@@ -15,7 +15,7 @@ Xst Reader is based on Microsoft’s documentation of the Outlook file formats i
 
 A command line tool for exporting emails, attachments or properties from an Outlook file.
 
-By default, the all folders in the Outlook file are exported into a directory structure that mirrors the Outlook folder structure. Options are available to specify the starting Outlook folder and to collapse all output into a single directory.
+By default, all folders in the Outlook file are exported into a directory structure that mirrors the Outlook folder structure. Options are available to specify the starting Outlook folder and to collapse all output into a single directory.
 
 The differences from the export capabilities of the UI are: the ability to export from a subtree of Outlook folders; and the ability to export attachments only, without the body of the email.
 
