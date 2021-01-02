@@ -14,3 +14,16 @@
 /XstReader.Core/obj
 /XstReader.csproj.user
 .vs/XstReader/v16/.suo
+/XstExport/bin/Debug
+/XstExport/obj/Debug
+*.user
+/XstExport/bin/Release
+/XstExport/obj/Release
+/XstPortableExport/bin/Debug/netcoreapp2.1
+/XstPortableExport/obj
+/XstPortableExport/Properties/launchSettings.json
+/XstReader.Base/bin
+/XstReader.Base/obj
+/docs/Command line tests.txt
+/XstPortableExport/bin/Release/netcoreapp2.1
+/XstPortableExport/Properties/PublishProfiles

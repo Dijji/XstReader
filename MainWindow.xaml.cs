@@ -241,7 +241,7 @@ namespace XstReader
                     try
                     {
                         view.CurrentMessage.Message.ExportToFile(fullFileName, xstFile);
-                        SaveVisibleAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage);
+                        xstFile.SaveVisibleAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage.Message);
                     }
                     catch (System.Exception ex)
                     {
@@ -349,7 +349,7 @@ namespace XstReader
                             var fullFileName = String.Format(@"{0}\{1}.{2}",
                                         folderName, fileName, mv.Message.ExportFileExtension);
                             mv.Message.ExportToFile(fullFileName, xstFile);
-                            SaveVisibleAttachmentsToAssociatedFolder(fullFileName, mv);
+                            xstFile.SaveVisibleAttachmentsToAssociatedFolder(fullFileName, mv.Message);
                             good++;
                         }
                         catch (System.Exception ex)
@@ -419,37 +419,13 @@ namespace XstReader
             {
                 try
                 {
-                    SaveAttachmentsToFolder(folderName, view.CurrentMessage.Date, attachments);
+                    xstFile.SaveAttachmentsToFolder(folderName, view.CurrentMessage.Date, attachments);
                 }
                 catch (System.Exception ex)
                 {
                     MessageBox.Show(String.Format("Error '{0}' saving attachments to '{1}'",
                         ex.Message, view.CurrentMessage.Subject), "Error saving attachments");
                 }
-            }
-        }
-
-        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, MessageView m)
-        {
-            if (m.HasVisibleFileAttachment)
-            {
-                var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
-                    Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
-                if (!Directory.Exists(targetFolder))
-                {
-                    Directory.CreateDirectory(targetFolder);
-                    if (m.Date != null)
-                        Directory.SetCreationTime(targetFolder, (DateTime)m.Date);
-                }
-                SaveAttachmentsToFolder(targetFolder, m.Date, m.Attachments.Where(a => a.IsFile && !a.Hide));
-            }
-        }
-
-        private void SaveAttachmentsToFolder(string fullFolderName, DateTime? creationTime, IEnumerable<Attachment> attachments)
-        {
-            foreach (var a in attachments)
-            {
-                xstFile.SaveAttachmentToFolder(fullFolderName, creationTime, a);
             }
         }
 

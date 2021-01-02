@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RootNamespace>XstExport</RootNamespace>
+	<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	<Authors>Dijji</Authors>
+	<Version>1.14.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
+ <ItemGroup>
+    <Compile Include="..\XstExport\Options.cs" />
+    <Compile Include="..\XstExport\Program.cs" />
+    <Compile Include="..\XstExport\XstExportException.cs" />
+    <Compile Include="..\XstReader.Base\BTree.cs" />
+    <Compile Include="..\XstReader.Base\Crypto.cs" />
+    <Compile Include="..\XstReader.Base\Extensions.cs" />
+    <Compile Include="..\XstReader.Base\Layouts.cs" />
+    <Compile Include="..\XstReader.Base\LayoutsA.cs" />
+    <Compile Include="..\XstReader.Base\LayoutsU.cs" />
+    <Compile Include="..\XstReader.Base\LayoutsU4K.cs" />
+    <Compile Include="..\XstReader.Base\LTP.cs" />
+    <Compile Include="..\XstReader.Base\Map.cs" />
+    <Compile Include="..\XstReader.Base\Message.cs" />
+    <Compile Include="..\XstReader.Base\NamedProperties.cs" />
+    <Compile Include="..\XstReader.Base\NDB.cs" />
+    <Compile Include="..\XstReader.Base\Property.cs" />
+    <Compile Include="..\XstReader.Base\RtfDecompressor.cs" />
+    <Compile Include="..\XstReader.Base\StandardProperties.cs" />
+    <Compile Include="..\XstReader.Base\XstFile.cs" />
+  </ItemGroup>
+</Project>

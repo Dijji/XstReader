@@ -120,19 +120,35 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="WindowsBase" />
+    <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Extensions.cs" />
     <Compile Include="FolderView.cs" />
     <Compile Include="MessageView.cs" />
     <Compile Include="SearchTextBox\ListBoxEx.cs" />
     <Compile Include="SearchTextBox\SearchTextBox.cs" />
     <Compile Include="SortAdorner.cs" />
     <Compile Include="View.cs" />
+    <Compile Include="XstReader.Base\BTree.cs" />
+    <Compile Include="XstReader.Base\Crypto.cs" />
+    <Compile Include="XstReader.Base\Extensions.cs" />
+    <Compile Include="XstReader.Base\Layouts.cs" />
+    <Compile Include="XstReader.Base\LayoutsA.cs" />
+    <Compile Include="XstReader.Base\LayoutsU.cs" />
+    <Compile Include="XstReader.Base\LayoutsU4K.cs" />
+    <Compile Include="XstReader.Base\LTP.cs" />
+    <Compile Include="XstReader.Base\Map.cs" />
+    <Compile Include="XstReader.Base\Message.cs" />
+    <Compile Include="XstReader.Base\NamedProperties.cs" />
+    <Compile Include="XstReader.Base\NDB.cs" />
+    <Compile Include="XstReader.Base\Property.cs" />
+    <Compile Include="XstReader.Base\RtfDecompressor.cs" />
+    <Compile Include="XstReader.Base\StandardProperties.cs" />
+    <Compile Include="XstReader.Base\XstFile.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -205,12 +221,6 @@
     <Resource Include="Resources\ic_keyboard_arrow_up_black_18dp.png" />
     <Resource Include="Resources\ic_search_black_18dp.png" />
     <Resource Include="Resources\ic_unfold_more_black_18dp.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="XstReader.Core\XstReader.Core.csproj">
-      <Project>{2c78d8bd-bb0c-41a0-8e55-23ca97d7fa68}</Project>
-      <Name>XstReader.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
