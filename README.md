@@ -61,6 +61,10 @@ Where:
    `<Outlook file name>`  
       The full name of the .pst or .ost file from which to export
 
+To run the portable version, open a command line and run:
+
+dotnet XstPortableExport.dll `<options as above>`
+
 ## Installation
 
 To install a binary:

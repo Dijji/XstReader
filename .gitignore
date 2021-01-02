@@ -24,3 +24,6 @@
 /XstPortableExport/Properties/launchSettings.json
 /XstReader.Base/bin
 /XstReader.Base/obj
+/docs/Command line tests.txt
+/XstPortableExport/bin/Release/netcoreapp2.1
+/XstPortableExport/Properties/PublishProfiles
