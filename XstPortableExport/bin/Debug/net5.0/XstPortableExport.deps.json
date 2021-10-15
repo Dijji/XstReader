@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "XstPortableExport/1.14.0": {
+        "runtime": {
+          "XstPortableExport.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "XstPortableExport/1.14.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
