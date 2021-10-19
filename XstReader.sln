@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1209
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31321.278
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader", "XstReader.csproj", "{BB8E0530-8EA6-4E02-9399-03A9AB13705F}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstExport", "XstExport\XstExport.csproj", "{C2753A62-A0BD-41AE-B029-59CE54BFC007}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XstPortableExport", "XstPortableExport\XstPortableExport.csproj", "{7F44A6AA-0279-4CBC-8C15-414A591F39BC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XstExporter", "XstExporter\XstExporter.csproj", "{19C3AE0A-DC09-4418-B5BA-887631B0ECA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{7F44A6AA-0279-4CBC-8C15-414A591F39BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F44A6AA-0279-4CBC-8C15-414A591F39BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F44A6AA-0279-4CBC-8C15-414A591F39BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19C3AE0A-DC09-4418-B5BA-887631B0ECA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19C3AE0A-DC09-4418-B5BA-887631B0ECA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19C3AE0A-DC09-4418-B5BA-887631B0ECA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19C3AE0A-DC09-4418-B5BA-887631B0ECA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

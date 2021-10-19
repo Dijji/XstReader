@@ -1,0 +1,36 @@
+﻿<Window x:Class="XstExporter.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XstExporter"
+        mc:Ignorable="d"
+        WindowStyle="SingleBorderWindow"
+        Title="About XstExporter" Height="380" Width="610" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="110"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0">
+            <Image Source="/Images/github.png" Height="100" Width="100" MouseLeftButtonDown="GithubImage_MouseLeftButtonDown" Cursor="Hand"/>
+        </StackPanel>
+        <Grid Grid.Row="0" Grid.Column="1">
+            <Label Name="lblTitle" Content="XstExporter" Width="182" Margin="0,0,0,83" HorizontalAlignment="Left"/>
+            <Label Name="lblInfo" Content="Author" Width="298" Margin="0,27,276,56" HorizontalAlignment="Right" />
+            <Label Name="lblLicence" Content="Licence: Microsoft Public License" Width="182" Margin="0,54,392,30" HorizontalAlignment="Right" />
+            <Label Name="lblVersion" Content="Version" Margin="0,80,0,0"/>
+        </Grid>
+        <StackPanel Grid.Row="1" Grid.Column="0"/>
+        <StackPanel Grid.Row="1" Grid.Column="1">
+            <RichTextBox Margin="10,10,10,10" Name="RichTextBox1" HorizontalAlignment="Left" Width="472" Height="210" Background="Black" Foreground="White"
+                         BorderThickness="0" IsDocumentEnabled="True" IsReadOnly="True" VerticalScrollBarVisibility="Visible">
+            </RichTextBox>
+        </StackPanel>
+    </Grid>
+</Window>
