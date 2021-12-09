@@ -24,10 +24,10 @@ namespace XstReader
     public class XstFile: IDisposable
     {
         private NDB _Ndb;
-        private NDB Ndb => _Ndb ?? (_Ndb = new NDB(this));
+        internal NDB Ndb => _Ndb ?? (_Ndb = new NDB(this));
 
         private LTP _Ltp;
-        private LTP Ltp => _Ltp ?? (_Ltp = new LTP(Ndb));
+        internal LTP Ltp => _Ltp ?? (_Ltp = new LTP(Ndb));
 
         private string _FileName = null;
         public string FileName { get => _FileName; set => SetFileName(value); }
@@ -54,8 +54,6 @@ namespace XstReader
             _Ltp = null;
         }
 
-
-
         #region PropertyGetters
         // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
 
@@ -68,38 +66,8 @@ namespace XstReader
             // {EpropertyTag.PidTagSubfolders, (f, val) => f.HasSubFolders = val },
         };
 
-        // When reading folder contents, the message properties we ask for
-        private static readonly PropertyGetters<Message> pgMessageList = new PropertyGetters<Message>
-        {
-            {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
-            {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
-            {EpropertyTag.PidTagDisplayToW, (m, val) => m.To = val },
-            {EpropertyTag.PidTagMessageFlags, (m, val) => m.Flags = (MessageFlags)val },
-            {EpropertyTag.PidTagSentRepresentingNameW, (m, val) => m.From = val },
-            {EpropertyTag.PidTagClientSubmitTime, (m, val) => m.Submitted = val },
-            {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
-            {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
-        };
 
-        // When reading folder contents, the message properties we ask for
-        // In Unicode4K, PidTagSentRepresentingNameW doesn't yield a useful value
-        private static readonly PropertyGetters<Message> pgMessageList4K = new PropertyGetters<Message>
-        {
-            {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
-            {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
-            {EpropertyTag.PidTagDisplayToW, (m, val) => m.To = val },
-            {EpropertyTag.PidTagMessageFlags, (m, val) => m.Flags = (MessageFlags)val },
-            {EpropertyTag.PidTagClientSubmitTime, (m, val) => m.Submitted = val },
-            {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
-            {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
-        };
 
-        private static readonly PropertyGetters<Message> pgMessageDetail4K = new PropertyGetters<Message>
-        {
-            {EpropertyTag.PidTagSentRepresentingNameW, (m, val) => m.From = val },
-            {EpropertyTag.PidTagSentRepresentingEmailAddress, (m, val) => { if(m.From == null) m.From = val; } },
-            {EpropertyTag.PidTagSenderName, (m, val) => { if(m.From == null) m.From = val; } },
-        };
 
         // The properties we read when accessing the contents of a message
         private static readonly PropertyGetters<Message> pgMessageContent = new PropertyGetters<Message>
@@ -186,8 +154,7 @@ namespace XstReader
         };
         #endregion PropertyGetters
 
-        #region Public methods
-
+        #region Ctor
         /// <summary>
         /// Ctor
         /// </summary>
@@ -196,28 +163,13 @@ namespace XstReader
         {
             FileName = fileName;
         }
+        #endregion Ctor
+
 
         private Folder _RootFolder = null;
-        public Folder RootFolder => _RootFolder ?? (_RootFolder = ReadFolder(new NID(EnidSpecial.NID_ROOT_FOLDER)));
+        public Folder RootFolder => _RootFolder ?? (_RootFolder = new Folder(this, new NID(EnidSpecial.NID_ROOT_FOLDER)));
 
-
-
-        public List<Message> ReadMessages(Folder f)
-        {
-            f.Messages.Clear();
-            if (f.ContentCount > 0)
-            {
-                // Get the Contents table for the folder
-                // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
-                var ms = Ltp.ReadTable<Message>(NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
-                                                Ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
-                            .Select(m => Ndb.IsUnicode4K ? Add4KMessageProperties(m) : m)
-                            .Select(m => f.AddMessage(m))
-                            .ToList(); // to force complete execution on the current thread
-                return ms;
-            }
-            return new List<Message>();
-        }
+        #region Public methods
 
         public void ReadMessageDetails(Message m)
         {
@@ -444,43 +396,8 @@ namespace XstReader
 
         #region Private methods
 
-        private Folder ReadFolder(NID nid, Folder parentFolder = null)
-        {
-            Folder f = new Folder { Nid = nid, XstFile = this, ParentFolder = parentFolder };
-            Ltp.ReadProperties<Folder>(nid, pgFolder, f);
-            return f;
-        }
 
-        // Recurse down the folder tree, building a structure of Folder classes
-        private Folder ReadFolderStructure(NID nid, Folder parentFolder = null)
-        {
-            Folder f = new Folder { Nid = nid, XstFile = this, ParentFolder = parentFolder };
 
-            Ltp.ReadProperties<Folder>(nid, pgFolder, f);
-
-            f.Folders.AddRange(Ltp.ReadTableRowIds(NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
-                                  .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
-                                  .Select(id => ReadFolderStructure(id, f))
-                                  .OrderBy(sf => sf.Name)
-                                  .ToList());
-            return f;
-        }
-
-        internal List<Folder> GetFolders(Folder folder)
-        {
-            return Ltp.ReadTableRowIds(NID.TypedNID(EnidType.HIERARCHY_TABLE, folder.Nid))
-                      .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
-                      .Select(id => ReadFolder(id, folder))
-                      .OrderBy(sf => sf.Name)
-                      .ToList();
-        }
-
-        private Message Add4KMessageProperties(Message m)
-        {
-            Ltp.ReadProperties<Message>(m.Nid, pgMessageDetail4K, m);
-
-            return m;
-        }
 
         private void ReadMessageTables(BTree<Node> subNodeTree, Message m, bool isAttached = false)
         {

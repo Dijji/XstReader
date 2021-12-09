@@ -322,7 +322,6 @@ namespace XstExport
             // use a numeric suffix to distinguish them
             HashSet<string> usedNames = new HashSet<string>();
 
-            xstFile.ReadMessages(folder);
             foreach (Message m in folder.Messages)
             {
                 try
@@ -365,7 +364,6 @@ namespace XstExport
         {
             var fileName = Path.Combine(exportDirectory, RemoveInvalidChars(folder.Name)) + ".csv";
             Console.WriteLine("Exporting " + fileName);
-            xstFile.ReadMessages(folder);
             xstFile.ExportMessageProperties(folder.Messages, fileName);
         }
 
@@ -373,7 +371,6 @@ namespace XstExport
         {
             int good = 0, bad = 0;
 
-            xstFile.ReadMessages(folder);
             foreach (var message in folder.Messages)
             {
                 try

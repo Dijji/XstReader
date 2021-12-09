@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:stb="clr-namespace:SearchTextBox"
         Title="Xst Reader" Height="800" Width="1500"
-        Closing="Window_Closing">
+        Closing="Window_Closing" WindowState="Maximized">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="VisibleIfTrue"/>
         <Style x:Key="ListViewSelect" TargetType="{x:Type ListViewItem}">
