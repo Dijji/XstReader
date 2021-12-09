@@ -25,6 +25,7 @@ namespace XstReader
     {
         private NDB _Ndb;
         private NDB Ndb => _Ndb ?? (_Ndb = new NDB(this));
+
         private LTP _Ltp;
         private LTP Ltp => _Ltp ?? (_Ltp = new LTP(Ndb));
 
@@ -35,6 +36,7 @@ namespace XstReader
             _FileName = fileName;
             ResetXstFile();
         }
+        
         private FileStream _ReadStream = null;
         internal FileStream ReadStream
         {
@@ -195,12 +197,10 @@ namespace XstReader
             FileName = fileName;
         }
 
-        public Folder ReadFolderTree()
-        {
-            Ndb.Initialise();
+        private Folder _RootFolder = null;
+        public Folder RootFolder => _RootFolder ?? (_RootFolder = ReadFolder(new NID(EnidSpecial.NID_ROOT_FOLDER)));
 
-            return ReadFolderStructure(new NID(EnidSpecial.NID_ROOT_FOLDER));
-        }
+
 
         public List<Message> ReadMessages(Folder f)
         {
@@ -444,6 +444,13 @@ namespace XstReader
 
         #region Private methods
 
+        private Folder ReadFolder(NID nid, Folder parentFolder = null)
+        {
+            Folder f = new Folder { Nid = nid, XstFile = this, ParentFolder = parentFolder };
+            Ltp.ReadProperties<Folder>(nid, pgFolder, f);
+            return f;
+        }
+
         // Recurse down the folder tree, building a structure of Folder classes
         private Folder ReadFolderStructure(NID nid, Folder parentFolder = null)
         {
@@ -457,6 +464,15 @@ namespace XstReader
                                   .OrderBy(sf => sf.Name)
                                   .ToList());
             return f;
+        }
+
+        internal List<Folder> GetFolders(Folder folder)
+        {
+            return Ltp.ReadTableRowIds(NID.TypedNID(EnidType.HIERARCHY_TABLE, folder.Nid))
+                      .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
+                      .Select(id => ReadFolder(id, folder))
+                      .OrderBy(sf => sf.Name)
+                      .ToList();
         }
 
         private Message Add4KMessageProperties(Message m)

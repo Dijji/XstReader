@@ -39,10 +39,11 @@ namespace XstReader
         {
             XstFile = xstFile;
             deferredReadAction = new Action<TreeIntermediate>(p => this.ReadDeferredIndex(p));
+            Initialise();
         }
 
         // Prepare to read the contents of a file
-        public void Initialise()
+        private void Initialise()
         {
             ReadHeaderAndIndexes();
         }

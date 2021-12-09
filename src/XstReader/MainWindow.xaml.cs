@@ -65,7 +65,7 @@ namespace XstReader
                 try
                 {
                     xstFile = new XstFile(fileName);
-                    var root = xstFile.ReadFolderTree();
+                    var root = xstFile.RootFolder;
 
                     //
                     // I refactorized this part: 

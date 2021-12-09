@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace XstReader
@@ -352,16 +351,20 @@ namespace XstReader
         public XstFile XstFile { get; set; }
         public string Name { get; set; }
         public uint ContentCount { get; set; } = 0;
-        public bool HasSubFolders { get; set; } = false;
+
         internal NID Nid { get; set; }  // Where folder data is held
+
         public Folder ParentFolder { get; set; }
-        public List<Folder> Folders { get; private set; } = new List<Folder>();
+        private List<Folder> _Folders = null;
+        public List<Folder> Folders => _Folders ?? (_Folders = XstFile.GetFolders(this));
+        public bool HasSubFolders => Folders.Count > 0;
+
         public List<Message> Messages { get; private set; } = new List<Message>();
 
         private string _Path = null;
         public string Path => _Path ?? (_Path = (string.IsNullOrEmpty(ParentFolder?.Name)) ? Name : $"{ParentFolder.Path}\\{Name}");
-        
-        public Message AddMessage(Message m)
+
+        internal Message AddMessage(Message m)
         {
             m.Folder = this;
             Messages.Add(m);
