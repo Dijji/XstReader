@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.1209
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader", "XstReader.csproj", "{BB8E0530-8EA6-4E02-9399-03A9AB13705F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader", "XstReader\XstReader.csproj", "{BB8E0530-8EA6-4E02-9399-03A9AB13705F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader.Base", "XstReader.Base\XstReader.Base.csproj", "{2C78D8BD-BB0C-41A0-8E55-23CA97D7FA68}"
 EndProject

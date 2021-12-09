@@ -27,3 +27,9 @@
 /docs/Command line tests.txt
 /XstPortableExport/bin/Release/netcoreapp2.1
 /XstPortableExport/Properties/PublishProfiles
+/src/obj
+/src/XstReader.Base/obj
+.vs
+obj
+obj
+obj
