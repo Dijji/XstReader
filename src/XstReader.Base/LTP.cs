@@ -59,24 +59,24 @@ namespace XstReader
         // The returned value is the subnode tree, if any, related to the contents of the properties
         //
         // First form takes a node ID for a node in the main node tree
-        public BTree<Node> ReadProperties<T>(FileStream fs, NID nid, PropertyGetters<T> g, T target)
+        public BTree<Node> ReadProperties<T>(NID nid, PropertyGetters<T> g, T target)
         {
-            BTree<Node> subNodeTree;
-            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(fs, nid, out subNodeTree);
+            BTree<Node> subNodeTree;           
+            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
 
-            ReadPropertiesInternal<T>(fs, subNodeTree, rn.DataBid, g, target);
+            ReadPropertiesInternal<T>(subNodeTree, rn.DataBid, g, target);
 
             return subNodeTree;
         }
 
         // Second form takes a node ID for a node in the supplied sub node tree
         // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
-        public BTree<Node> ReadProperties<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g, T target, bool propertyValuesInChildNodeTree = false )
+        public BTree<Node> ReadProperties<T>(BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g, T target, bool propertyValuesInChildNodeTree = false )
         {
             BTree<Node> childSubNodeTree;
-            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
 
-            ReadPropertiesInternal<T>(fs, propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, g, target);
+            ReadPropertiesInternal<T>(propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, g, target);
 
             return childSubNodeTree;
         }
@@ -85,29 +85,29 @@ namespace XstReader
         // Returns a series of Property objects
         //
         // First form takes a node ID for a node in the main node tree
-        public IEnumerable<Property> ReadAllProperties(FileStream fs, NID nid, HashSet<EpropertyTag> excluding)
+        public IEnumerable<Property> ReadAllProperties(NID nid, HashSet<EpropertyTag> excluding)
         {
             BTree<Node> subNodeTree;
-            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(fs, nid, out subNodeTree);
+            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
 
-            return ReadAllPropertiesInternal(fs, subNodeTree, rn.DataBid, excluding);
+            return ReadAllPropertiesInternal(subNodeTree, rn.DataBid, excluding);
         }
 
         // Second form takes a node ID for a node in the supplied sub node tree
         // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
-        public IEnumerable<Property> ReadAllProperties(FileStream fs, BTree<Node> subNodeTree, NID nid, HashSet<EpropertyTag> excluding, bool propertyValuesInChildNodeTree = false)
+        public IEnumerable<Property> ReadAllProperties(BTree<Node> subNodeTree, NID nid, HashSet<EpropertyTag> excluding, bool propertyValuesInChildNodeTree = false)
         {
             BTree<Node> childSubNodeTree;
-            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
 
-            return ReadAllPropertiesInternal(fs, propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, excluding);
+            return ReadAllPropertiesInternal(propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, excluding);
         }
 
         // This is a cutdown version of the table reader to fetch subfolder NIDs from the hierarchy table of a folder,
         // avoiding the overhead of reading the data rows when scanning the folder tree
-        public IEnumerable<NID> ReadTableRowIds(FileStream fs, NID nid)
+        public IEnumerable<NID> ReadTableRowIds(NID nid)
         {
-            var blocks = ReadHeapOnNode(fs, nid);
+            var blocks = ReadHeapOnNode(nid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypeTC)
                 throw new XstException("Was expecting a table");
@@ -127,24 +127,24 @@ namespace XstReader
         // Property getters must be supplied to map property IDs to members of T
         //
         // First form takes a node ID for a node in the main node tree
-        public IEnumerable<T> ReadTable<T>(FileStream fs, NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null, Action<T, Property> storeProp = null) where T : new()
+        public IEnumerable<T> ReadTable<T>(NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null, Action<T, Property> storeProp = null) where T : new()
         {
             BTree<Node> subNodeTree;
-            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(fs, nid, out subNodeTree);
+            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
 
-            return ReadTableInternal<T>(fs, subNodeTree, rn.DataBid, g, idGetter, storeProp);
+            return ReadTableInternal<T>(subNodeTree, rn.DataBid, g, idGetter, storeProp);
         }
 
         // Second form takes a node ID for a node in the supplied sub node tree
-        public IEnumerable<T> ReadTable<T>(FileStream fs, BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g,
+        public IEnumerable<T> ReadTable<T>(BTree<Node> subNodeTree, NID nid, PropertyGetters<T> g,
             Action<T, UInt32> idGetter = null, Action<T, Property> storeProp = null) where T : new()
         {
             BTree<Node> childSubNodeTree;
-            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(fs, subNodeTree, nid, out childSubNodeTree);
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
             if (rn == null)
                 throw new XstException("Node block does not exist");
 
-            return ReadTableInternal<T>(fs, childSubNodeTree, rn.DataBid, g, idGetter, storeProp);
+            return ReadTableInternal<T>(childSubNodeTree, rn.DataBid, g, idGetter, storeProp);
         }
 
         // Test for the  presence of an optional table in the supplied sub node tree
@@ -157,9 +157,9 @@ namespace XstReader
         #region Private methods
 
         // Common implementation of property reading takes a data ID for a block in the main block tree
-        private void ReadPropertiesInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g, T target)
+        private void ReadPropertiesInternal<T>(BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g, T target)
         {
-            var blocks = ReadHeapOnNode(fs, dataBid);
+            var blocks = ReadHeapOnNode(dataBid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypePC)
                 throw new XstException("Was expecting a PC");
@@ -172,15 +172,15 @@ namespace XstReader
                  if (!g.ContainsKey(prop.wPropId))
                     continue;
 
-                dynamic val = ReadPropertyValue(fs, subNodeTree, blocks, prop);
+                dynamic val = ReadPropertyValue(subNodeTree, blocks, prop);
                 g[prop.wPropId](target, val);
             }
         }
 
         // Common implementation of property reading takes a data ID for a block in the main block tree
-        private IEnumerable<Property> ReadAllPropertiesInternal(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, HashSet<EpropertyTag> excluding)
+        private IEnumerable<Property> ReadAllPropertiesInternal(BTree<Node> subNodeTree, UInt64 dataBid, HashSet<EpropertyTag> excluding)
         {
-            var blocks = ReadHeapOnNode(fs, dataBid);
+            var blocks = ReadHeapOnNode(dataBid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypePC)
                 throw new XstException("Was expecting a PC");
@@ -193,9 +193,9 @@ namespace XstReader
                 if (excluding != null && excluding.Contains(prop.wPropId))
                     continue;
 
-                dynamic val = ReadPropertyValue(fs, subNodeTree, blocks, prop);
+                dynamic val = ReadPropertyValue(subNodeTree, blocks, prop);
 
-                Property p = CreatePropertyObject(fs, prop.wPropId, val);
+                Property p = CreatePropertyObject(prop.wPropId, val);
 
                 yield return p; 
             }
@@ -203,7 +203,7 @@ namespace XstReader
             yield break;
         }
 
-        private dynamic ReadPropertyValue(FileStream fs, BTree<Node> subNodeTree, List<HNDataBlock> blocks, PCBTH prop)
+        private dynamic ReadPropertyValue(BTree<Node> subNodeTree, List<HNDataBlock> blocks, PCBTH prop)
         {
             dynamic val = null;
             byte[] buf = null;
@@ -219,7 +219,7 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypInteger64:
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                    buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
                         val = "<Could not read Integer64 value>";
@@ -228,7 +228,7 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypFloating64:
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                    buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
                         val = "<Could not read Floating64 value>";
@@ -237,7 +237,7 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypMultipleInteger32:
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                    buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
                         val = "<Could not read MultipleInteger32 value>";
@@ -257,7 +257,7 @@ namespace XstReader
                     }
                     else
                     {
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                        buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                         if (buf == null)
                             val = null;
@@ -271,7 +271,7 @@ namespace XstReader
                         val = "";
                     else
                     {
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                        buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                         if (buf == null)
                             val = "<Could not read string value>";
@@ -287,7 +287,7 @@ namespace XstReader
                         val = "";
                     else
                     {
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                        buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                         if (buf == null)
                             val = "<Could not read string value>";
@@ -301,7 +301,7 @@ namespace XstReader
                         val = "";
                     else
                     {
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                        buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                         if (buf == null)
                             val = "<Could not read MultipleString value>";
@@ -332,7 +332,7 @@ namespace XstReader
                         val = null;
                     else
                     {
-                        buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                        buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                         if (buf == null)
                             val = "<Could not read MultipleBinary value>";
@@ -362,7 +362,7 @@ namespace XstReader
 
                 case EpropertyType.PtypTime:
                     // In a Property Context, time values are references to data
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                    buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf != null)
                     {
@@ -372,7 +372,7 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypGuid:
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                    buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
                         val = "<Could not read Guid value>";
@@ -381,7 +381,7 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypObject:
-                    buf = GetBytesForHNID(fs, blocks, subNodeTree, prop.dwValueHnid);
+                    buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
                         val = "<Could not read Object value>";
@@ -397,7 +397,7 @@ namespace XstReader
             return val;
         }
 
-        private Property CreatePropertyObject(FileStream fs, EpropertyTag propId, dynamic val)
+        private Property CreatePropertyObject(EpropertyTag propId, dynamic val)
         {
 
             Property p = new Property { Tag = propId, Value = val };
@@ -408,7 +408,7 @@ namespace XstReader
                 if (namedProperties == null)
                 {
                     namedProperties = new NamedProperties();
-                    ReadProperties<NamedProperties>(fs, new NID(EnidSpecial.NID_NAME_TO_ID_MAP), pgNamedProperties, namedProperties);
+                    ReadProperties<NamedProperties>(new NID(EnidSpecial.NID_NAME_TO_ID_MAP), pgNamedProperties, namedProperties);
                 }
 
                 // Fill in property details as far as we can
@@ -420,10 +420,10 @@ namespace XstReader
 
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
-        private IEnumerable<T> ReadTableInternal<T>(FileStream fs, BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g,
+        private IEnumerable<T> ReadTableInternal<T>(BTree<Node> subNodeTree, UInt64 dataBid, PropertyGetters<T> g,
             Action<T, UInt32> idGetter, Action<T, Property> storeProp) where T : new()
         {
-            var blocks = ReadHeapOnNode(fs, dataBid);
+            var blocks = ReadHeapOnNode(dataBid);
             var h = blocks.First();
             if (h.bClientSig != EbType.bTypeTC)
                 throw new XstException("Was expecting a table");
@@ -449,7 +449,7 @@ namespace XstReader
             if (t.hnidRows.IsHID)
             {
                 // Data is in line
-                var buf = GetBytesForHNID(fs, blocks, subNodeTree, t.hnidRows);
+                var buf = GetBytesForHNID(blocks, subNodeTree, t.hnidRows);
                 var dataBlocks = new List<RowDataBlock>
                 {
                     new RowDataBlock
@@ -459,20 +459,20 @@ namespace XstReader
                         Length = buf.Length,
                     }
                 };
-                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
+                return ReadTableData<T>(t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
             }
             else if (t.hnidRows.NID.HasValue)
             {
                 // Don't use GetBytesForHNID in this case, as we need to handle multiple blocks
-                var dataBlocks = ReadSubNodeRowDataBlocks(fs, subNodeTree, t.hnidRows.NID);
-                return ReadTableData<T>(fs, t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
+                var dataBlocks = ReadSubNodeRowDataBlocks(subNodeTree, t.hnidRows.NID);
+                return ReadTableData<T>(t, blocks, dataBlocks, cols, colsToGet, subNodeTree, indexes, g, idGetter, storeProp);
             }
             else
                 return Enumerable.Empty<T>();
         }
 
         // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters, and optionally getting all columns as properties
-        private IEnumerable<T> ReadTableData<T>(FileStream fs, TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols, List<TCOLDESC> colsToGet,
+        private IEnumerable<T> ReadTableData<T>(TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols, List<TCOLDESC> colsToGet,
              BTree<Node> subNodeTree, TCROWIDUnicode[] indexes, PropertyGetters<T> g, Action<T, UInt32> idGetter, Action<T, Property> storeProp) where T : new()
         {
             int rgCEBSize = (int)Math.Ceiling((decimal)t.cCols / 8);
@@ -513,7 +513,7 @@ namespace XstReader
                     if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
                         continue;
 
-                    dynamic val = ReadTableColumnValue(fs, subNodeTree, blocks, db, rowOffset, col);
+                    dynamic val = ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col);
 
                     g[col.wPropId](row, val);
                 }
@@ -527,9 +527,9 @@ namespace XstReader
                         if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
                             continue;
 
-                        dynamic val = ReadTableColumnValue(fs, subNodeTree, blocks, db, rowOffset, col);
+                        dynamic val = ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col);
 
-                        Property p = CreatePropertyObject(fs, col.wPropId, val);
+                        Property p = CreatePropertyObject(col.wPropId, val);
 
                         storeProp(row, p);
                     }
@@ -540,7 +540,7 @@ namespace XstReader
             yield break; // No more entries
         }
 
-        private dynamic ReadTableColumnValue(FileStream fs, BTree<Node> subNodeTree, List<HNDataBlock> blocks, RowDataBlock db, long rowOffset, TCOLDESC col)
+        private dynamic ReadTableColumnValue(BTree<Node> subNodeTree, List<HNDataBlock> blocks, RowDataBlock db, long rowOffset, TCOLDESC col)
         {
             dynamic val = null;
             HNID hnid;
@@ -566,7 +566,7 @@ namespace XstReader
                         val = "";
                     else
                     {
-                        var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+                        var buf = GetBytesForHNID(blocks, subNodeTree, hnid);
 
                         if (buf == null)
                             val = null;
@@ -584,7 +584,7 @@ namespace XstReader
                         val = "";
                     else
                     {
-                        var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+                        var buf = GetBytesForHNID(blocks, subNodeTree, hnid);
 
                         if (buf == null)
                             val = "<Could not read string value>";
@@ -610,7 +610,7 @@ namespace XstReader
                         val = "";
                     else
                     {
-                        var buf = GetBytesForHNID(fs, blocks, subNodeTree, hnid);
+                        var buf = GetBytesForHNID(blocks, subNodeTree, hnid);
 
                         if (buf == null)
                             val = "<Could not read string value>";
@@ -691,7 +691,7 @@ namespace XstReader
 
         // Read all of the data blocks for a table, in the case where the rows are to be accessed via a sub node
         // The variation here is that for reading rows, we need to retain the block structure, so we return a set of blocks
-        private List<RowDataBlock> ReadSubNodeRowDataBlocks(FileStream fs, BTree<Node> subNodeTree, NID nid)
+        private List<RowDataBlock> ReadSubNodeRowDataBlocks(BTree<Node> subNodeTree, NID nid)
         {
             var blocks = new List<RowDataBlock>();
             var n = NDB.LookupSubNode(subNodeTree, nid);
@@ -700,7 +700,7 @@ namespace XstReader
             if (n.SubDataBid != 0)
                 throw new XstException("Sub-nodes of sub-nodes not yet implemented");
 
-            foreach (var buf in ndb.ReadDataBlocks(fs, n.DataBid))
+            foreach (var buf in ndb.ReadDataBlocks(n.DataBid))
             {
                 blocks.Add(new RowDataBlock
                 {
@@ -714,22 +714,22 @@ namespace XstReader
         }
 
         // Read a heap on node data structure referenced by another node
-        private List<HNDataBlock> ReadHeapOnNode(FileStream fs, NID nid)
+        private List<HNDataBlock> ReadHeapOnNode(NID nid)
         {
             var rn = ndb.LookupNode(nid);
             if (rn == null)
                 throw new XstException("Node block does not exist");
-            return ReadHeapOnNode(fs, rn.DataBid);
+            return ReadHeapOnNode(rn.DataBid);
         }
 
         // Read a heap on node data structure. The division of data into blocks is preserved,
         // because references into it have two parts: block index, and offset within block
-        private List<HNDataBlock> ReadHeapOnNode(FileStream fs, UInt64 dataBid) 
+        private List<HNDataBlock> ReadHeapOnNode(UInt64 dataBid) 
         {
             var blocks = new List<HNDataBlock>();
 
             int index = 0;
-            foreach (var buf in ndb.ReadDataBlocks(fs, dataBid))
+            foreach (var buf in ndb.ReadDataBlocks(dataBid))
             {
                 // First block contains a HNHDR
                 if (index == 0)
@@ -779,7 +779,7 @@ namespace XstReader
 
         // Used in reading property contexts and table contexts to get a data value which might be held either on the local heap, or in a sub node
         // The value is returned as a byte array: the caller should convert it to a specific type if required
-        private byte[] GetBytesForHNID(FileStream fs, List<HNDataBlock> blocks, BTree<Node> subNodeTree, HNID hnid)
+        private byte[] GetBytesForHNID(List<HNDataBlock> blocks, BTree<Node> subNodeTree, HNID hnid)
         {
             byte[] buf = null;
 
@@ -792,7 +792,7 @@ namespace XstReader
             }
             else if (hnid.nidType == EnidType.LTP)
             {
-                buf = ndb.ReadSubNodeDataBlock(fs, subNodeTree, hnid.NID);
+                buf = ndb.ReadSubNodeDataBlock(subNodeTree, hnid.NID);
             }
             else
                 throw new XstException("Data storage style not implemented");

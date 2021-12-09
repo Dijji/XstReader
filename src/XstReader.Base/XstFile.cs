@@ -21,11 +21,40 @@ namespace XstReader
     // - Read the contents of a message
     // - Save an attachment to a message
 
-    public class XstFile
+    public class XstFile: IDisposable
     {
-        private NDB ndb;
-        private LTP ltp;
+        private NDB _Ndb;
+        private NDB Ndb => _Ndb ?? (_Ndb = new NDB(this));
+        private LTP _Ltp;
+        private LTP Ltp => _Ltp ?? (_Ltp = new LTP(Ndb));
 
+        private string _FileName = null;
+        public string FileName { get => _FileName; set => SetFileName(value); }
+        private void SetFileName(string fileName)
+        {
+            _FileName = fileName;
+            ResetXstFile();
+        }
+        private FileStream _ReadStream = null;
+        internal FileStream ReadStream
+        {
+            get => _ReadStream ?? (_ReadStream = new FileStream(FileName, FileMode.Open, FileAccess.Read));
+        }
+        private void ResetXstFile()
+        {
+            if (_ReadStream != null)
+            {
+                _ReadStream.Close();
+                _ReadStream.Dispose();
+                _ReadStream = null;
+            }
+            _Ndb = null;
+            _Ltp = null;
+        }
+
+
+
+        #region PropertyGetters
         // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
 
         // The folder properties we read when exploring folder structure
@@ -153,24 +182,24 @@ namespace XstReader
         {
             EpropertyTag.PidTagAttachDataBinary,
         };
-
+        #endregion PropertyGetters
 
         #region Public methods
 
-        public XstFile(string fullName)
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="fileName"></param>
+        public XstFile(string fileName)
         {
-            this.ndb = new NDB(fullName);
-            this.ltp = new LTP(ndb);
+            FileName = fileName;
         }
 
         public Folder ReadFolderTree()
         {
-            ndb.Initialise();
+            Ndb.Initialise();
 
-            using (var fs = ndb.GetReadStream())
-            {
-                return ReadFolderStructure(fs, new NID(EnidSpecial.NID_ROOT_FOLDER));
-            }
+            return ReadFolderStructure(new NID(EnidSpecial.NID_ROOT_FOLDER));
         }
 
         public List<Message> ReadMessages(Folder f)
@@ -178,50 +207,41 @@ namespace XstReader
             f.Messages.Clear();
             if (f.ContentCount > 0)
             {
-                using (var fs = ndb.GetReadStream())
-                {
-                    // Get the Contents table for the folder
-                    // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
-                    var ms = ltp.ReadTable<Message>(fs, NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
-                                                    ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
-                                .Select(m => ndb.IsUnicode4K ? Add4KMessageProperties(fs, m) : m)
-                                .Select(m => f.AddMessage(m))
-                                .ToList(); // to force complete execution on the current thread
-                    return ms;
-                }
+                // Get the Contents table for the folder
+                // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
+                var ms = Ltp.ReadTable<Message>(NID.TypedNID(EnidType.CONTENTS_TABLE, f.Nid),
+                                                Ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
+                            .Select(m => Ndb.IsUnicode4K ? Add4KMessageProperties(m) : m)
+                            .Select(m => f.AddMessage(m))
+                            .ToList(); // to force complete execution on the current thread
+                return ms;
             }
             return new List<Message>();
         }
 
         public void ReadMessageDetails(Message m)
         {
-            using (var fs = ndb.GetReadStream())
-            {
-                // Read the contents properties
-                var subNodeTree = ltp.ReadProperties<Message>(fs, m.Nid, pgMessageContent, m);
+            // Read the contents properties
+            var subNodeTree = Ltp.ReadProperties<Message>(m.Nid, pgMessageContent, m);
 
-                // Read all other properties
-                m.Properties.Clear();
-                m.Properties.AddRange(ltp.ReadAllProperties(fs, m.Nid, contentExclusions).ToList());
+            // Read all other properties
+            m.Properties.Clear();
+            m.Properties.AddRange(Ltp.ReadAllProperties(m.Nid, contentExclusions).ToList());
 
-                ReadMessageTables(fs, subNodeTree, m);
-            }
+            ReadMessageTables(subNodeTree, m);
         }
 
         public List<Property> ReadAttachmentProperties(Attachment a)
         {
-            using (var fs = ndb.GetReadStream())
-            {
-                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
+            BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
 
-                if (subNodeTreeMessage == null)
-                    // No subNodeTree given: assume we can look it up in the main tree
-                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Message.Nid, out subNodeTreeMessage);
+            if (subNodeTreeMessage == null)
+                // No subNodeTree given: assume we can look it up in the main tree
+                Ndb.LookupNodeAndReadItsSubNodeBtree(a.Message.Nid, out subNodeTreeMessage);
 
-                // Read all non-content properties
-                // Convert to list so that we can dispose the file access
-                return new List<Property>(ltp.ReadAllProperties(fs, subNodeTreeMessage, a.Nid, attachmentContentExclusions, true));
-            }
+            // Read all non-content properties
+            // Convert to list so that we can dispose the file access
+            return new List<Property>(Ltp.ReadAllProperties(subNodeTreeMessage, a.Nid, attachmentContentExclusions, true));
         }
 
         public void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, Message m)
@@ -282,33 +302,30 @@ namespace XstReader
             }
             else
             {
-                using (FileStream fs = ndb.GetReadStream())
+                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
+
+                if (subNodeTreeMessage == null)
+                    // No subNodeTree given: assume we can look it up in the main tree
+                    Ndb.LookupNodeAndReadItsSubNodeBtree(a.Message.Nid, out subNodeTreeMessage);
+
+                var subNodeTreeAttachment = Ltp.ReadProperties<Attachment>(subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
+
+                if ((object)a.Content != null)
                 {
-                    BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
-
-                    if (subNodeTreeMessage == null)
-                        // No subNodeTree given: assume we can look it up in the main tree
-                        ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Message.Nid, out subNodeTreeMessage);
-
-                    var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
-
-                    if ((object)a.Content != null)
+                    // If the value is inline, we just write it out
+                    if (a.Content.GetType() == typeof(byte[]))
                     {
-                        // If the value is inline, we just write it out
-                        if (a.Content.GetType() == typeof(byte[]))
-                        {
-                            s.Write(a.Content, 0, a.Content.Length);
-                        }
-                        // Otherwise we need to dereference the node pointing to the data,
-                        // using the subnode tree belonging to the attachment
-                        else if (a.Content.GetType() == typeof(NID))
-                        {
-                            var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
+                        s.Write(a.Content, 0, a.Content.Length);
+                    }
+                    // Otherwise we need to dereference the node pointing to the data,
+                    // using the subnode tree belonging to the attachment
+                    else if (a.Content.GetType() == typeof(NID))
+                    {
+                        var nb = NDB.LookupSubNode(subNodeTreeAttachment, (NID)a.Content);
 
-                            // Copy the data to the output file stream without getting it all into memory at once,
-                            // as there can be a lot of data
-                            ndb.CopyDataBlocks(fs, s, nb.DataBid);
-                        }
+                        // Copy the data to the output file stream without getting it all into memory at once,
+                        // as there can be a lot of data
+                        Ndb.CopyDataBlocks(s, nb.DataBid);
                     }
                 }
             }
@@ -316,33 +333,30 @@ namespace XstReader
 
         public Message OpenAttachedMessage(Attachment a)
         {
+            BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
 
-            using (FileStream fs = ndb.GetReadStream())
+            if (subNodeTreeMessage == null)
+                // No subNodeTree given: assume we can look it up in the main tree
+                Ndb.LookupNodeAndReadItsSubNodeBtree(a.Message.Nid, out subNodeTreeMessage);
+
+            var subNodeTreeAttachment = Ltp.ReadProperties<Attachment>(subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
+            if (a.Content.GetType() == typeof(PtypObjectValue))
             {
-                BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
+                Message m = new Message { Nid = new NID(((PtypObjectValue)a.Content).Nid) };
 
-                if (subNodeTreeMessage == null)
-                    // No subNodeTree given: assume we can look it up in the main tree
-                    ndb.LookupNodeAndReadItsSubNodeBtree(fs, a.Message.Nid, out subNodeTreeMessage);
+                // Read the basic and contents properties
+                var childSubNodeTree = Ltp.ReadProperties<Message>(subNodeTreeAttachment, m.Nid, pgMessageAttachment, m, true);
 
-                var subNodeTreeAttachment = ltp.ReadProperties<Attachment>(fs, subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
-                if (a.Content.GetType() == typeof(PtypObjectValue))
-                {
-                    Message m = new Message { Nid = new NID(((PtypObjectValue)a.Content).Nid) };
+                // Read all other properties
+                m.Properties.AddRange(Ltp.ReadAllProperties(subNodeTreeAttachment, m.Nid, contentExclusions, true).ToList());
 
-                    // Read the basic and contents properties
-                    var childSubNodeTree = ltp.ReadProperties<Message>(fs, subNodeTreeAttachment, m.Nid, pgMessageAttachment, m, true);
+                ReadMessageTables(childSubNodeTree, m, true);
 
-                    // Read all other properties
-                    m.Properties.AddRange(ltp.ReadAllProperties(fs, subNodeTreeAttachment, m.Nid, contentExclusions, true).ToList());
-
-                    ReadMessageTables(fs, childSubNodeTree, m, true);
-
-                    return m;
-                }
-                else
-                    throw new XstException("Unexpected data type for attached message");
+                return m;
             }
+            else
+                throw new XstException("Unexpected data type for attached message");
+
         }
 
 
@@ -413,7 +427,7 @@ namespace XstReader
                         // After that, output the column value if it has one
                         else if (q.Count > 0 && q.Peek().line == line)
                             AddCsvValue(sb, q.Dequeue().p.DisplayValue, ref hasValue);
-                        
+
                         // Or leave it blank
                         else
                             AddCsvValue(sb, "", ref hasValue);
@@ -431,34 +445,34 @@ namespace XstReader
         #region Private methods
 
         // Recurse down the folder tree, building a structure of Folder classes
-        private Folder ReadFolderStructure(FileStream fs, NID nid, Folder parentFolder = null)
+        private Folder ReadFolderStructure(NID nid, Folder parentFolder = null)
         {
             Folder f = new Folder { Nid = nid, XstFile = this, ParentFolder = parentFolder };
 
-            ltp.ReadProperties<Folder>(fs, nid, pgFolder, f);
+            Ltp.ReadProperties<Folder>(nid, pgFolder, f);
 
-            f.Folders.AddRange(ltp.ReadTableRowIds(fs, NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
+            f.Folders.AddRange(Ltp.ReadTableRowIds(NID.TypedNID(EnidType.HIERARCHY_TABLE, nid))
                                   .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
-                                  .Select(id => ReadFolderStructure(fs, id, f))
+                                  .Select(id => ReadFolderStructure(id, f))
                                   .OrderBy(sf => sf.Name)
                                   .ToList());
             return f;
         }
 
-        private Message Add4KMessageProperties(FileStream fs, Message m)
+        private Message Add4KMessageProperties(Message m)
         {
-            ltp.ReadProperties<Message>(fs, m.Nid, pgMessageDetail4K, m);
+            Ltp.ReadProperties<Message>(m.Nid, pgMessageDetail4K, m);
 
             return m;
         }
 
-        private void ReadMessageTables(FileStream fs, BTree<Node> subNodeTree, Message m, bool isAttached = false)
+        private void ReadMessageTables(BTree<Node> subNodeTree, Message m, bool isAttached = false)
         {
             // Read the recipient table for the message
             var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
-            if (ltp.IsTablePresent(subNodeTree, recipientsNid))
+            if (Ltp.IsTablePresent(subNodeTree, recipientsNid))
             {
-                var rs = ltp.ReadTable<Recipient>(fs, subNodeTree, recipientsNid, pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
+                var rs = Ltp.ReadTable<Recipient>(subNodeTree, recipientsNid, pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
                 m.Recipients.Clear();
                 foreach (var r in rs)
                 {
@@ -477,21 +491,21 @@ namespace XstReader
             var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
             if (m.HasAttachment)
             {
-                if (!ltp.IsTablePresent(subNodeTree, attachmentsNid))
+                if (!Ltp.IsTablePresent(subNodeTree, attachmentsNid))
                     throw new XstException("Could not find expected Attachment table");
 
                 // Read the attachment table, which is held in the subnode of the message
-                var atts = ltp.ReadTable<Attachment>(fs, subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
+                var atts = Ltp.ReadTable<Attachment>(subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
                 foreach (var a in atts)
                 {
                     a.Message = m; // For lazy reading of the complete properties: a.Message.Folder.XstFile
 
                     // If the long name wasn't in the attachment table, go look for it in the attachment properties
                     if (a.LongFileName == null)
-                        ltp.ReadProperties<Attachment>(fs, subNodeTree, a.Nid, pgAttachmentName, a);
+                        Ltp.ReadProperties<Attachment>(subNodeTree, a.Nid, pgAttachmentName, a);
 
                     // Read properties relating to HTML images presented as attachments
-                    ltp.ReadProperties<Attachment>(fs, subNodeTree, a.Nid, pgAttachedHtmlImages, a);
+                    Ltp.ReadProperties<Attachment>(subNodeTree, a.Nid, pgAttachedHtmlImages, a);
 
                     // If this is an embedded email, tell the attachment where to look for its properties
                     // This is needed because the email node is not in the main node tree
@@ -532,13 +546,11 @@ namespace XstReader
                 return value.Substring(0, valueLengthLimit) + "…";
         }
 
-        #endregion
-    }
-
-    public class XstException : Exception
-    {
-        public XstException(string message) : base(message)
+        public void Dispose()
         {
+            ResetXstFile();
         }
+
+        #endregion
     }
 }

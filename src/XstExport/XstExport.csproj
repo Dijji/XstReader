@@ -98,6 +98,9 @@
     <Compile Include="..\XstReader.Base\XstFile.cs">
       <Link>Base\XstFile.cs</Link>
     </Compile>
+	    <Compile Include="..\XstReader.Base\XstException.cs">
+      <Link>Base\XstException.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

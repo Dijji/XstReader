@@ -13,7 +13,7 @@ namespace XstReader
     /// </summary>
     class NDB
     {
-        private string fullName;
+        public XstFile XstFile { get; private set; }
         private EbCryptMethod bCryptMethod;
         private BTree<Node> nodeTree = new BTree<Node>();
         private BTree<DataRef> dataTree = new BTree<DataRef>();
@@ -35,9 +35,9 @@ namespace XstReader
 
         #region Public methods
 
-        public NDB(string fullName)
+        public NDB(XstFile xstFile)
         {
-            this.fullName = fullName;
+            XstFile = xstFile;
             deferredReadAction = new Action<TreeIntermediate>(p => this.ReadDeferredIndex(p));
         }
 
@@ -45,12 +45,6 @@ namespace XstReader
         public void Initialise()
         {
             ReadHeaderAndIndexes();
-        }
-        
-        // Return a file stream that will allow the caller to read the current file
-        public FileStream GetReadStream()
-        {
-            return new FileStream(fullName, FileMode.Open, FileAccess.Read);
         }
 
         // Decrypt the contents of a data buffer if necessary
@@ -73,13 +67,13 @@ namespace XstReader
         }
 
         // Read a sub-node's b-tree from the specified data block
-        public BTree<Node> ReadSubNodeBtree(FileStream fs, UInt64 subDataBid)
+        public BTree<Node> ReadSubNodeBtree(UInt64 subDataBid)
         {
             var tree = new BTree<Node>();
             if (IsUnicode)
-                ReadSubNodeBtreeUnicode(fs, subDataBid, tree.Root);
+                ReadSubNodeBtreeUnicode(subDataBid, tree.Root);
             else
-                ReadSubNodeBtreeANSI(fs, subDataBid, tree.Root);
+                ReadSubNodeBtreeANSI(subDataBid, tree.Root);
             return tree;
         }
 
@@ -94,7 +88,7 @@ namespace XstReader
 
         // Read raw data, accessed via a sub node
         // If it has a multiblock structure, return all of the blocks' contents concatenated
-        public byte[] ReadSubNodeDataBlock(FileStream fs, BTree<Node> subNodeTree, NID nid)
+        public byte[] ReadSubNodeDataBlock(BTree<Node> subNodeTree, NID nid)
         {
             if (!nid.HasValue)
                 return null;
@@ -103,20 +97,20 @@ namespace XstReader
                 throw new XstException("Node not found in sub node tree");
             if (n.SubDataBid != 0)
                 throw new XstException("Sub-nodes of sub-nodes not yet implemented");
-            return ReadDataBlock(fs, n.DataBid);
+            return ReadDataBlock(n.DataBid);
         }
 
         // Read all the data blocks for a given BID, concatenating them into a single buffer
-        public byte[] ReadDataBlock(FileStream fs, UInt64 dataBid)
+        public byte[] ReadDataBlock(UInt64 dataBid)
         {
             int offset = 0;
-            return ReadDataBlockInternal(fs, dataBid, ref offset);
+            return ReadDataBlockInternal(dataBid, ref offset);
         }
 
         // Read all the data blocks for a given BID, enumerating them one by one
-        public IEnumerable<byte[]> ReadDataBlocks(FileStream fs, UInt64 dataBid)
+        public IEnumerable<byte[]> ReadDataBlocks(UInt64 dataBid)
         {
-            foreach (var buf in ReadDataBlocksInternal(fs, dataBid))
+            foreach (var buf in ReadDataBlocksInternal(dataBid))
             {
                 yield return buf;
             }
@@ -124,16 +118,16 @@ namespace XstReader
 
         // Copy data to the specified file stream
         // We write each external data block as we read it, so that we never have more than one in memory at the same time
-        public void CopyDataBlocks(FileStream fs, Stream s, UInt64 dataBid)
+        public void CopyDataBlocks(Stream s, UInt64 dataBid)
         {
-            foreach (var buf in ReadDataBlocksInternal(fs, dataBid))
+            foreach (var buf in ReadDataBlocksInternal(dataBid))
             {
                 s.Write(buf, 0, buf.Length);
             }
         }
 
         // Some nodes use sub-nodes to hold local data, so we need to give access to both levels
-        public Node LookupNodeAndReadItsSubNodeBtree(FileStream fs, NID nid, out BTree<Node> subNodeTree)
+        public Node LookupNodeAndReadItsSubNodeBtree(NID nid, out BTree<Node> subNodeTree)
         {
             subNodeTree = null;
             var rn = LookupNode(nid);
@@ -142,13 +136,13 @@ namespace XstReader
             // If there is a sub-node, read its btree so that we can resolve references to nodes in it later
             if (rn.SubDataBid != 0)
             {
-                subNodeTree = ReadSubNodeBtree(fs, rn.SubDataBid);
+                subNodeTree = ReadSubNodeBtree(rn.SubDataBid);
             }
             return rn;
         }
 
         // Some sub-nodes use sub-sub-nodes to hold local data, so we need to give access to both levels
-        public Node LookupSubNodeAndReadItsSubNodeBtree(FileStream fs, BTree<Node> subNodeTree, NID nid, out BTree<Node> childSubNodeTree)
+        public Node LookupSubNodeAndReadItsSubNodeBtree(BTree<Node> subNodeTree, NID nid, out BTree<Node> childSubNodeTree)
         {
             childSubNodeTree = null;
             var rn = LookupSubNode(subNodeTree, nid);
@@ -157,7 +151,7 @@ namespace XstReader
             // If there is a sub-node, read its btree so that we can resolve references to nodes in it later
             if (rn.SubDataBid != 0)
             {
-                childSubNodeTree = ReadSubNodeBtree(fs, rn.SubDataBid);
+                childSubNodeTree = ReadSubNodeBtree(rn.SubDataBid);
             }
             return rn;
         }
@@ -170,61 +164,57 @@ namespace XstReader
         // Read the file header, and the B trees that give us access to nodes and data blocks
         private void ReadHeaderAndIndexes()
         {
-            using (var fs = GetReadStream())
+            var fs = XstFile.ReadStream;
+            var h = Map.ReadType<FileHeader1>(fs);
+
+            if (h.dwMagic != 0x4e444221)
+                throw new XstException("File is not a .ost or .pst file: the magic cookie is missing");
+
+            if (h.wVer == 0x15 || h.wVer == 0x17)
             {
-                var h = Map.ReadType<FileHeader1>(fs);
-
-                if (h.dwMagic != 0x4e444221)
-                    throw new XstException("File is not a .ost or .pst file: the magic cookie is missing");
-
-                if (h.wVer == 0x15 || h.wVer == 0x17 )
-                {
-                    var h2 = Map.ReadType<FileHeader2Unicode>(fs);
-                    bCryptMethod = h2.bCryptMethod;
-                    IsUnicode = true;
-                    ReadBTPageUnicode(fs, h2.root.BREFNBT.ib, nodeTree.Root);
-                    ReadBTPageUnicode(fs, h2.root.BREFBBT.ib, dataTree.Root);
-                }
-                else if (h.wVer == 0x24)
-                {
-                    // This value indicates the use of 4K pages, as opposed to 512 bytes
-                    // It is used only in .ost files, and was introduced in Office 2013
-                    // It is not documented in [MS-PST], being .ost only
-                    var h2 = Map.ReadType<FileHeader2Unicode>(fs);
-                    bCryptMethod = h2.bCryptMethod;
-                    IsUnicode = true;
-                    IsUnicode4K = true;
-                    ReadBTPageUnicode4K(fs, h2.root.BREFNBT.ib, nodeTree.Root);
-                    ReadBTPageUnicode4K(fs, h2.root.BREFBBT.ib, dataTree.Root);
-                }
-                else if (h.wVer == 0x0e || h.wVer == 0x0f)
-                {
-                    var h2 = Map.ReadType<FileHeader2ANSI>(fs);
-                    bCryptMethod = h2.bCryptMethod;
-                    IsUnicode = false;
-                    ReadBTPageANSI(fs, h2.root.BREFNBT.ib, nodeTree.Root);
-                    ReadBTPageANSI(fs, h2.root.BREFBBT.ib, dataTree.Root);
-                }
-                else
-                    throw new XstException("Unrecognised header type");
+                var h2 = Map.ReadType<FileHeader2Unicode>(fs);
+                bCryptMethod = h2.bCryptMethod;
+                IsUnicode = true;
+                ReadBTPageUnicode(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                ReadBTPageUnicode(fs, h2.root.BREFBBT.ib, dataTree.Root);
             }
+            else if (h.wVer == 0x24)
+            {
+                // This value indicates the use of 4K pages, as opposed to 512 bytes
+                // It is used only in .ost files, and was introduced in Office 2013
+                // It is not documented in [MS-PST], being .ost only
+                var h2 = Map.ReadType<FileHeader2Unicode>(fs);
+                bCryptMethod = h2.bCryptMethod;
+                IsUnicode = true;
+                IsUnicode4K = true;
+                ReadBTPageUnicode4K(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                ReadBTPageUnicode4K(fs, h2.root.BREFBBT.ib, dataTree.Root);
+            }
+            else if (h.wVer == 0x0e || h.wVer == 0x0f)
+            {
+                var h2 = Map.ReadType<FileHeader2ANSI>(fs);
+                bCryptMethod = h2.bCryptMethod;
+                IsUnicode = false;
+                ReadBTPageANSI(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                ReadBTPageANSI(fs, h2.root.BREFBBT.ib, dataTree.Root);
+            }
+            else
+                throw new XstException("Unrecognised header type");
         }
 
         // A callback to be used when searching a tree to read part of the index whose loading has been deferred
         private void ReadDeferredIndex(TreeIntermediate inter)
         {
-            using (var fs = GetReadStream())
-            {
-                if (IsUnicode4K)
-                    ReadBTPageUnicode4K(fs, (ulong)inter.fileOffset, inter);
-                else if (IsUnicode)
-                    ReadBTPageUnicode(fs, (ulong)inter.fileOffset, inter);
-                else
-                    ReadBTPageANSI(fs, (ulong)inter.fileOffset, inter);
+            var fs = XstFile.ReadStream;
+            if (IsUnicode4K)
+                ReadBTPageUnicode4K(fs, (ulong)inter.fileOffset, inter);
+            else if (IsUnicode)
+                ReadBTPageUnicode(fs, (ulong)inter.fileOffset, inter);
+            else
+                ReadBTPageANSI(fs, (ulong)inter.fileOffset, inter);
 
-                // Don't read it again
-                inter.fileOffset = null;
-            }
+            // Don't read it again
+            inter.fileOffset = null;
         }
         // Read a page containing part of a node or data block B-tree, and build the corresponding data structure
         private void ReadBTPageUnicode(FileStream fs, ulong fileOffset, TreeIntermediate parent)
@@ -385,11 +375,11 @@ namespace XstReader
         }
 
         // Return all the data blocks referenced by a particular data Id
-        private IEnumerable<byte[]> ReadDataBlocksInternal(FileStream fs, UInt64 dataBid, uint totalLength = 0)
+        private IEnumerable<byte[]> ReadDataBlocksInternal(UInt64 dataBid, uint totalLength = 0)
         {
             var rb = LookupDataBlock(dataBid);
             int read;
-            byte[] buffer = ReadAndDecompress(fs, rb, out read);
+            byte[] buffer = ReadAndDecompress(rb, out read);
 
             if (rb.IsInternal)
             {
@@ -405,7 +395,7 @@ namespace XstReader
                     {
                         // Recurse. XBlock and XXBlock can have common handling
                         // Pass what we know here of the total length through, so that it can be returned on the first block
-                        foreach (var buf in ReadDataBlocksInternal(fs, rgbid[i], totalLength != 0 ? totalLength : xb.lcbTotal))
+                        foreach (var buf in ReadDataBlocksInternal(rgbid[i], totalLength != 0 ? totalLength : xb.lcbTotal))
                             yield return buf;
                     }
                 }
@@ -418,7 +408,7 @@ namespace XstReader
                     {
                         // Recurse. XBlock and XXBlock can have common handling
                         // Pass what we know here of the total length through, so that it can be returned on the first block
-                        foreach (var buf in ReadDataBlocksInternal(fs, rgbid[i], totalLength != 0 ? totalLength : xb.lcbTotal))
+                        foreach (var buf in ReadDataBlocksInternal(rgbid[i], totalLength != 0 ? totalLength : xb.lcbTotal))
                             yield return buf;
                     }
                 }
@@ -433,7 +423,7 @@ namespace XstReader
         }
 
         // Return all the data blocks referenced by a particular data Id, concatenating them into a single buffer
-        private byte[] ReadDataBlockInternal(FileStream fs, UInt64 dataBid, ref int offset, byte[] buffer = null)
+        private byte[] ReadDataBlockInternal(UInt64 dataBid, ref int offset, byte[] buffer = null)
         {
             bool first = (buffer == null);  // Remember if we're at the top of a potential recursion
             var rb = LookupDataBlock(dataBid);
@@ -445,7 +435,7 @@ namespace XstReader
             // First guy in allocates enough to hold the initial block
             // This is either the one and only block, or gets replaced when we find out how much data there is in total
             int read;
-            buffer = ReadAndDecompress(fs, rb, out read, buffer, offset);
+            buffer = ReadAndDecompress(rb, out read, buffer, offset);
 
             if (rb.IsInternal)
             {
@@ -467,7 +457,7 @@ namespace XstReader
                     for (int i = 0; i < rgbid.Length; i++)
                     {
                         // Recurse. XBlock and XXBlock can have common handling
-                        ReadDataBlockInternal(fs, rgbid[i], ref offset, buffer);
+                        ReadDataBlockInternal(rgbid[i], ref offset, buffer);
                     }
                 }
                 else
@@ -485,7 +475,7 @@ namespace XstReader
                     for (int i = 0; i < rgbid.Length; i++)
                     {
                         // Recurse. XBlock and XXBlock can have common handling
-                        ReadDataBlockInternal(fs, rgbid[i], ref offset, buffer);
+                        ReadDataBlockInternal(rgbid[i], ref offset, buffer);
                     }
                 }
             }
@@ -511,11 +501,12 @@ namespace XstReader
                 return null;  // Value only returned from the top level guy
         }
 
-        private byte[] ReadAndDecompress(FileStream fs, DataRef rb, out int read, byte[] buffer = null, int offset = 0)
+        private byte[] ReadAndDecompress(DataRef rb, out int read, byte[] buffer = null, int offset = 0)
         {
             if (rb == null)
                 throw new XstException("Data block does not exist");
 
+            var fs = XstFile.ReadStream;
             if (IsUnicode4K && rb.Length != rb.InflatedLength)
             {
                 fs.Seek((long)rb.Offset, SeekOrigin.Begin);
@@ -551,14 +542,14 @@ namespace XstReader
 
         // When a data block has a subnode, it can be a simple node, or a two-level tree
         // This reads a sub node and builds suitable data structures, so that we can later access data held in it
-        private void ReadSubNodeBtreeUnicode(FileStream fs, UInt64 subDataBid, TreeIntermediate parent)
+        private void ReadSubNodeBtreeUnicode(UInt64 subDataBid, TreeIntermediate parent)
         {
             var rb = LookupDataBlock(subDataBid);
             if (rb == null)
                 throw new XstException("SubNode data block does not exist");
 
             int read;
-            byte[] buffer = ReadAndDecompress(fs, rb, out read);
+            byte[] buffer = ReadAndDecompress(rb, out read);
             var sl = Map.MapType<SLBLOCKUnicode>(buffer);
 
             if (sl.cLevel > 0)
@@ -571,7 +562,7 @@ namespace XstReader
                     parent.Children.Add(inter);
 
                     // Read child nodes in tree
-                    ReadSubNodeBtreeUnicode(fs, sie.bid, inter);
+                    ReadSubNodeBtreeUnicode(sie.bid, inter);
                 }
             }
             else
@@ -587,14 +578,14 @@ namespace XstReader
             }
         }
 
-        private void ReadSubNodeBtreeANSI(FileStream fs, UInt64 subDataBid, TreeIntermediate parent)
+        private void ReadSubNodeBtreeANSI(UInt64 subDataBid, TreeIntermediate parent)
         {
             var rb = LookupDataBlock(subDataBid);
             if (rb == null)
                 throw new XstException("SubNode data block does not exist");
 
             int read;
-            byte[] buffer = ReadAndDecompress(fs, rb, out read);
+            byte[] buffer = ReadAndDecompress(rb, out read);
             var sl = Map.MapType<SLBLOCKANSI>(buffer);
 
             if (sl.cLevel > 0)
@@ -607,7 +598,7 @@ namespace XstReader
                     parent.Children.Add(inter);
 
                     // Read child nodes in tree
-                    ReadSubNodeBtreeANSI(fs, sie.bid, inter);
+                    ReadSubNodeBtreeANSI(sie.bid, inter);
                 }
             }
             else
