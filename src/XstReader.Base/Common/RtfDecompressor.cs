@@ -6,11 +6,11 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace XstReader
+namespace XstReader.Common
 {
     // Implementation of the RTF decompression algorithm specified in [MS-OXRTFCP]
     // This is a port of the VB code at http://www.vbforums.com/showthread.php?669883-NET-3-5-RtfDecompressor-Decompress-RTF-From-Outlook-And-Exchange-Server
-    class RtfDecompressor
+    internal class RtfDecompressor
     {
         //fields
         private byte[] InitialDictionary;

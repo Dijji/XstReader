@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace XstReader
 {
-    static public class Extensions
+    internal static class Extensions
     {
         public static string Truncate(this string value, int maxLength)
         {
@@ -34,7 +34,7 @@ namespace XstReader
         }
 
         public static IEnumerable<T> Flatten<T>(this IEnumerable<T> e, Func<T, IEnumerable<T>> f)
-          => e.SelectMany(c => f(c).Flatten(f)).Concat(e);
+            => e.SelectMany(c => f(c).Flatten(f)).Concat(e);
 
     }
 }

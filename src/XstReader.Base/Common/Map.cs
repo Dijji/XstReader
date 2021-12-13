@@ -4,11 +4,11 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace XstReader
+namespace XstReader.Common
 {
     // A set of static methods to construct C# types from byte arrays
     // These allow us to build usable types from xst file data
-    static class Map
+    internal static class Map
     {
         // Read enough bytes from the file stream at the current position to populate specified type T
         public static T ReadType<T>(FileStream fs)

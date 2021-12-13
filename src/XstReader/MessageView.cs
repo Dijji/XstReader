@@ -15,14 +15,14 @@ namespace XstReader
     {
         private bool isSelected = false;
 
-        public MessageView(Message message)
+        public MessageView(XstMessage message)
         {
             if (message == null)
                 throw new XstException("MessageView requires a Message object");
             Message = message;
         }
 
-        public Message Message { get; private set; }
+        public XstMessage Message { get; private set; }
         public string From { get { return Message.From; } }
         public string To { get { return Message.To; } }
         public string Cc { get { return Message.Cc; } }
@@ -37,9 +37,9 @@ namespace XstReader
         public string BodyHtml { get { return Message.BodyHtml; } }
         public byte[] Html { get { return Message.Html; } }
         public byte[] RtfCompressed { get { return Message.RtfCompressed; } }
-        public ObservableCollection<Attachment> Attachments { get; private set; } = new ObservableCollection<Attachment>();
-        public List<Recipient> Recipients { get { return Message.Recipients; } }
-        public List<Property> Properties { get { return Message.Properties; } }
+        public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
+        public List<XstRecipient> Recipients { get { return Message.Recipients; } }
+        public List<XstProperty> Properties { get { return Message.Properties; } }
         public bool MayHaveInlineAttachment { get { return Message.MayHaveInlineAttachment; } }
         public bool IsEncryptedOrSigned { get { return Message.IsEncryptedOrSigned; } }
 
@@ -51,7 +51,7 @@ namespace XstReader
         public bool ShowText { get { return Message.IsBodyText; } }
         public bool ShowHtml { get { return Message.IsBodyHtml; } }
         public bool ShowRtf { get { return Message.IsBodyRtf; } }
-        
+
         public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
         public string ToDisplayList { get { return Message.ToDisplayList; } }
         public bool HasCcDisplayList { get { return CcDisplayList.Length > 0; } }
@@ -84,7 +84,7 @@ namespace XstReader
 
         public void ReadSignedOrEncryptedMessage(XstFile xstFile)
         {
-            Attachment a = Message.Attachments[0];
+            XstAttachment a = Message.Attachments[0];
 
             //get attachment bytes
             var ms = new MemoryStream();
@@ -94,11 +94,11 @@ namespace XstReader
             Message.ReadSignedOrEncryptedMessage(attachmentBytes);
         }
 
-        public void SortAndSaveAttachments(List<Attachment> atts = null)
+        public void SortAndSaveAttachments(List<XstAttachment> atts = null)
         {
             // If no attachments are supplied, sort the list we already have
             if (atts == null)
-                atts = new List<Attachment>(Attachments);
+                atts = new List<XstAttachment>(Attachments);
 
             atts.Sort((a, b) =>
             {

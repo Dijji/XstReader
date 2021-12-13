@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using XstReader.Common;
 
-namespace XstReader
+namespace XstReader.Properties
 {
-    class NamedProperties
+    internal class NamedProperties
     {
         public byte[] StreamGuid;
         public byte[] StreamEntry;
@@ -232,7 +233,7 @@ namespace XstReader
             }
         };
 
-        public void LookupNPID(UInt16 npid, Property p)
+        public void LookupNPID(UInt16 npid, XstProperty p)
         {
             if (Entries == null)
                 Initialise();

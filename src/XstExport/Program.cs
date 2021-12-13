@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using XstReader;
+using XstReader.Properties;
 
 namespace XstExport
 {
@@ -138,7 +139,7 @@ namespace XstExport
                 {
                     var root = xstFile.RootFolder;
 
-                    Folder sourceFolder = null;
+                    XstFolder sourceFolder = null;
                     if (outlookFolder != null)
                     {
                         sourceFolder = FindOutlookFolder(root, outlookFolder);
@@ -159,7 +160,7 @@ namespace XstExport
                                     Enum.GetName(typeof(Command), command));
 
                     // Work out which folders to export
-                    List<Folder> sources = new List<Folder>();
+                    List<XstFolder> sources = new List<XstFolder>();
                     if (only)
                     {
                         sources.Add(sourceFolder ?? root.Folders[0]);
@@ -209,7 +210,7 @@ namespace XstExport
             return 0;
         }
 
-        private static void ExportFolder(XstFile xstFile, Folder folder, Command command, string exportDir)
+        private static void ExportFolder(XstFile xstFile, XstFolder folder, Command command, string exportDir)
         {
             if (folder.ContentCount == 0)
             {
@@ -250,12 +251,12 @@ namespace XstExport
             }
         }
 
-        private static Folder FindOutlookFolder(Folder root, string outlookFolder)
+        private static XstFolder FindOutlookFolder(XstFolder root, string outlookFolder)
         {
             string[] folders = outlookFolder.Split(new char[] { '\\', '/' }); // Accept backward or forward slash
 
             // We do a breadth first search of the folder tree
-            Queue<Folder> q = new Queue<Folder>();
+            Queue<XstFolder> q = new Queue<XstFolder>();
             q.Enqueue(root);
 
             while (q.Count > 0)
@@ -272,7 +273,7 @@ namespace XstExport
             return null;
         }
 
-        private static Folder FolderMatch(Folder folder, string[] folderNames)
+        private static XstFolder FolderMatch(XstFolder folder, string[] folderNames)
         {
             // First name segment must match
             if (String.Compare(folder.Name, folderNames[0], true) != 0)
@@ -300,7 +301,7 @@ namespace XstExport
             return exportDirectory;
         }
 
-        private static string ValidFolderPath(Folder f)
+        private static string ValidFolderPath(XstFolder f)
         {
             if (string.IsNullOrEmpty(f.ParentFolder?.Name))
                 return RemoveInvalidChars(f.Name);
@@ -313,16 +314,16 @@ namespace XstExport
             return filename.ReplaceInvalidFileNameChars("");
         }
 
-        private static void ExtractEmailsInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
+        private static void ExtractEmailsInFolder(XstFile xstFile, XstFolder folder, string exportDirectory)
         {
-            Message current = null;
+            XstMessage current = null;
             int good = 0, bad = 0;
             // If files already exist, we overwrite them.
             // But if emails within this batch generate the same filename,
             // use a numeric suffix to distinguish them
             HashSet<string> usedNames = new HashSet<string>();
 
-            foreach (Message m in folder.Messages)
+            foreach (XstMessage m in folder.Messages)
             {
                 try
                 {
@@ -360,14 +361,14 @@ namespace XstExport
             Console.WriteLine($"Folder '{folder.Name}' completed with {good} successes and {bad} failures");
         }
 
-        private static void ExtractPropertiesInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
+        private static void ExtractPropertiesInFolder(XstFile xstFile, XstFolder folder, string exportDirectory)
         {
             var fileName = Path.Combine(exportDirectory, RemoveInvalidChars(folder.Name)) + ".csv";
             Console.WriteLine("Exporting " + fileName);
             xstFile.ExportMessageProperties(folder.Messages, fileName);
         }
 
-        private static void ExtractAttachmentsInFolder(XstFile xstFile, XstReader.Folder folder, string exportDirectory)
+        private static void ExtractAttachmentsInFolder(XstFile xstFile, XstFolder folder, string exportDirectory)
         {
             int good = 0, bad = 0;
 

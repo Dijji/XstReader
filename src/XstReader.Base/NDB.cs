@@ -5,13 +5,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using XstReader.Common;
+using XstReader.Common.BTrees;
 
 namespace XstReader
 {
     /// <summary>
     /// This class implements the NDB (Node Database) layer, Which provides lower-level storage facilities
     /// </summary>
-    class NDB
+    internal class NDB
     {
         public XstFile XstFile { get; private set; }
         private EbCryptMethod bCryptMethod;

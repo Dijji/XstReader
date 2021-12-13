@@ -9,7 +9,7 @@ namespace XstReader
     // All layouts and names are taken from <MS-PST>
 
     // Constants
-    class LayoutsA
+    internal class LayoutsA
     {
         public const int BTPAGEEntryBytes = 496;
     }
@@ -17,7 +17,7 @@ namespace XstReader
     // NDB layer
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct FileHeader2ANSI
+    internal unsafe struct FileHeader2ANSI
     {
         public UInt32 bidNextB;
         public UInt32 bidNextP;
@@ -36,7 +36,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct RootANSI
+    internal struct RootANSI
     {
         public UInt32 dwReserved;
         public UInt32 ibFileEof;
@@ -51,14 +51,14 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BREFANSI
+    internal struct BREFANSI
     {
         public UInt32 bid;
         public UInt32 ib;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct BTPAGEANSI
+    internal unsafe struct BTPAGEANSI
     {
         public fixed Byte rgentries[LayoutsA.BTPAGEEntryBytes];
         public Byte cEnt;
@@ -69,7 +69,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct PAGETRAILERANSI
+    internal struct PAGETRAILERANSI
     {
         public Eptype ptype;
         public Eptype ptypeRepeat;
@@ -79,14 +79,14 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BTENTRYANSI
+    internal struct BTENTRYANSI
     {
         public UInt32 btkey;
         public BREFANSI BREF;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BBTENTRYANSI
+    internal struct BBTENTRYANSI
     {
         public BREFANSI BREF;
         public UInt16 cb;
@@ -94,7 +94,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct NBTENTRYANSI
+    internal struct NBTENTRYANSI
     {
         public NID nid;
         public UInt32 bidData;
@@ -103,7 +103,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BLOCKTRAILERANSI
+    internal struct BLOCKTRAILERANSI
     {
         public UInt16 cb;
         public UInt16 wSig;
@@ -112,7 +112,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct XBLOCKANSI
+    internal struct XBLOCKANSI
     {
         public EbType btype;
         public Byte cLevel;
@@ -124,7 +124,7 @@ namespace XstReader
 
     // We just use the XBLOCKANSI structure for XXBLOCKANSI, as it is the same
     //[StructLayout(LayoutKind.Sequential, Pack = 1)]
-    //struct XXBLOCKANSI
+    //internal struct XXBLOCKANSI
     //{
     //    public EbType btype;
     //    public Byte cLevel;
@@ -134,7 +134,7 @@ namespace XstReader
     //}
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct SLENTRYANSI
+    internal struct SLENTRYANSI
     {
         public UInt32 nid;
         public UInt32 bidData;
@@ -142,7 +142,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct SLBLOCKANSI
+    internal struct SLBLOCKANSI
     {
         public EbType btype;
         public Byte cLevel;
@@ -153,7 +153,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct SIENTRYANSI
+    internal struct SIENTRYANSI
     {
         public UInt32 nid;
         public UInt32 bid;
@@ -161,7 +161,7 @@ namespace XstReader
 
     // We just use the SLBLOCKANSI structure for SIBLOCKANSI, as it is the same apart from the array type
     //[StructLayout(LayoutKind.Sequential, Pack = 1)]
-    //struct SIBLOCKANSI
+    //internal struct SIBLOCKANSI
     //{
     //    public EbType btype;
     //    public Byte cLevel;
@@ -173,7 +173,7 @@ namespace XstReader
     // LTP layer
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct TCROWIDANSI
+    internal struct TCROWIDANSI
     {
         public UInt32 dwRowID;
         public UInt16 dwRowIndex;

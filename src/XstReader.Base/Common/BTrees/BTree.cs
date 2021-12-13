@@ -1,9 +1,8 @@
 ﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
-using System.Collections.Generic;
 
-namespace XstReader
+namespace XstReader.Common.BTrees
 {
     //
     // Classes used to represent the various B-trees
@@ -12,7 +11,7 @@ namespace XstReader
     //
 
     //  Generic handling for all trees
-    public class BTree<T> where T : TreeNode
+    internal class BTree<T> where T : TreeNode
     {
         public TreeIntermediate Root { get; private set; } = new TreeIntermediate();
 
@@ -66,38 +65,4 @@ namespace XstReader
         }
     }
 
-    // The only thing that a tree node must have is a key
-    public class TreeNode
-    {
-        public UInt64 Key;
-    }
-
-    // Non-terminal tree nodes have children
-    public class TreeIntermediate : TreeNode
-    {
-        public List<TreeNode> Children = new List<TreeNode>();
-        public ulong? fileOffset = null;
-        public bool ReadDeferred { get { return fileOffset != null; } }
-    }
-
-    // Terminal node in node tree
-    // Key is NID, contains BIDs
-    // BIDs are always held as 64-bit values, even though only 32 bits are used in ANSI files
-    public class Node : TreeNode
-    {
-        public EnidType Type;
-        public UInt64 DataBid;
-        public UInt64 SubDataBid;
-        public UInt32 Parent;
-    }
-
-    // Terminal node in data tree
-    // Key is BID, contains IB
-    public class DataRef : TreeNode
-    {
-        public UInt64 Offset;
-        public int Length;
-        public int InflatedLength; // Only used for Unicode4K
-        public bool IsInternal { get { return (Key & 0x02) != 0; } }
-    }
 }

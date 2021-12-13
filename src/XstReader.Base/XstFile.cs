@@ -6,8 +6,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-
-
+using XstReader.Common.BTrees;
+using XstReader.Properties;
 
 namespace XstReader
 {
@@ -21,7 +21,7 @@ namespace XstReader
     // - Read the contents of a message
     // - Save an attachment to a message
 
-    public class XstFile: IDisposable
+    public class XstFile : IDisposable
     {
         private NDB _Ndb;
         internal NDB Ndb => _Ndb ?? (_Ndb = new NDB(this));
@@ -36,7 +36,7 @@ namespace XstReader
             _FileName = fileName;
             ResetXstFile();
         }
-        
+
         private FileStream _ReadStream = null;
         internal FileStream ReadStream
         {
@@ -58,7 +58,7 @@ namespace XstReader
         // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
 
         // The folder properties we read when exploring folder structure
-        private static readonly PropertyGetters<Folder> pgFolder = new PropertyGetters<Folder>
+        private static readonly PropertyGetters<XstFolder> pgFolder = new PropertyGetters<XstFolder>
         {
             {EpropertyTag.PidTagDisplayName, (f, val) => f.Name = val },
             {EpropertyTag.PidTagContentCount, (f, val) => f.ContentCount = val },
@@ -70,7 +70,7 @@ namespace XstReader
 
 
         // The properties we read when accessing the contents of a message
-        private static readonly PropertyGetters<Message> pgMessageContent = new PropertyGetters<Message>
+        private static readonly PropertyGetters<XstMessage> pgMessageContent = new PropertyGetters<XstMessage>
         {
             {EpropertyTag.PidTagNativeBody, (m, val) => m.NativeBody = (BodyType)val },
             {EpropertyTag.PidTagBody, (m, val) => m.Body = val },
@@ -82,15 +82,15 @@ namespace XstReader
         };
 
         // The properties we read when accessing the recipient table of a message
-        private static readonly PropertyGetters<Recipient> pgMessageRecipient = new PropertyGetters<Recipient>
+        private static readonly PropertyGetters<XstRecipient> pgMessageRecipient = new PropertyGetters<XstRecipient>
         {
-            {EpropertyTag.PidTagRecipientType, (r, val) => r.RecipientType = (RecipientType)val },
+            {EpropertyTag.PidTagRecipientType, (r, val) => r.RecipientType = (RecipientTypes)val },
             {EpropertyTag.PidTagDisplayName, (r, val) => r.DisplayName = val },
             {EpropertyTag.PidTagEmailAddress, (r, val) => r.EmailAddress = val },
         };
 
         //The properties we read when accessing a message attached to a message
-        private static readonly PropertyGetters<Message> pgMessageAttachment = new PropertyGetters<Message>
+        private static readonly PropertyGetters<XstMessage> pgMessageAttachment = new PropertyGetters<XstMessage>
         {
             {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
             {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
@@ -115,19 +115,19 @@ namespace XstReader
         };
 
         // The properties we read when getting a list of attachments
-        private static readonly PropertyGetters<Attachment> pgAttachmentList = new PropertyGetters<Attachment>
+        private static readonly PropertyGetters<XstAttachment> pgAttachmentList = new PropertyGetters<XstAttachment>
         {
             {EpropertyTag.PidTagDisplayName, (a, val) => a.DisplayName = val },
             {EpropertyTag.PidTagAttachFilenameW, (a, val) => a.FileNameW = val },
             {EpropertyTag.PidTagAttachLongFilename, (a, val) => a.LongFileName = val },
             {EpropertyTag.PidTagAttachmentSize, (a, val) => a.Size = val },
-            {EpropertyTag.PidTagAttachMethod, (a, val) => a.AttachMethod = (AttachMethods)val },
+            {EpropertyTag.PidTagAttachMethod, (a, val) => a.AttachMethod = (AttachMethod)val },
             //{EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
             {EpropertyTag.PidTagAttachPayloadClass, (a, val) => a.FileNameW = val },
         };
 
         // The properties we read To enable handling of HTML images delivered as attachments
-        private static readonly PropertyGetters<Attachment> pgAttachedHtmlImages = new PropertyGetters<Attachment>
+        private static readonly PropertyGetters<XstAttachment> pgAttachedHtmlImages = new PropertyGetters<XstAttachment>
         {
             {EpropertyTag.PidTagAttachFlags, (a, val) => a.Flags = (AttachFlags)val },
             {EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
@@ -136,14 +136,14 @@ namespace XstReader
         };
 
         // The properties we read when accessing the name of an attachment
-        private static readonly PropertyGetters<Attachment> pgAttachmentName = new PropertyGetters<Attachment>
+        private static readonly PropertyGetters<XstAttachment> pgAttachmentName = new PropertyGetters<XstAttachment>
         {
             {EpropertyTag.PidTagAttachFilenameW, (a, val) => a.FileNameW = val },
             {EpropertyTag.PidTagAttachLongFilename, (a, val) => a.LongFileName = val },
         };
 
         // The properties we read when accessing the contents of an attachment
-        private static readonly PropertyGetters<Attachment> pgAttachmentContent = new PropertyGetters<Attachment>
+        private static readonly PropertyGetters<XstAttachment> pgAttachmentContent = new PropertyGetters<XstAttachment>
         {
             {EpropertyTag.PidTagAttachDataBinary, (a, val) => a.Content = val },
         };
@@ -166,15 +166,15 @@ namespace XstReader
         #endregion Ctor
 
 
-        private Folder _RootFolder = null;
-        public Folder RootFolder => _RootFolder ?? (_RootFolder = new Folder(this, new NID(EnidSpecial.NID_ROOT_FOLDER)));
+        private XstFolder _RootFolder = null;
+        public XstFolder RootFolder => _RootFolder ?? (_RootFolder = new XstFolder(this, new NID(EnidSpecial.NID_ROOT_FOLDER)));
 
         #region Public methods
 
-        public void ReadMessageDetails(Message m)
+        public void ReadMessageDetails(XstMessage m)
         {
             // Read the contents properties
-            var subNodeTree = Ltp.ReadProperties<Message>(m.Nid, pgMessageContent, m);
+            var subNodeTree = Ltp.ReadProperties<XstMessage>(m.Nid, pgMessageContent, m);
 
             // Read all other properties
             m.Properties.Clear();
@@ -183,7 +183,7 @@ namespace XstReader
             ReadMessageTables(subNodeTree, m);
         }
 
-        public List<Property> ReadAttachmentProperties(Attachment a)
+        public List<XstProperty> ReadAttachmentProperties(XstAttachment a)
         {
             BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
 
@@ -193,10 +193,10 @@ namespace XstReader
 
             // Read all non-content properties
             // Convert to list so that we can dispose the file access
-            return new List<Property>(Ltp.ReadAllProperties(subNodeTreeMessage, a.Nid, attachmentContentExclusions, true));
+            return new List<XstProperty>(Ltp.ReadAllProperties(subNodeTreeMessage, a.Nid, attachmentContentExclusions, true));
         }
 
-        public void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, Message m)
+        public void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName, XstMessage m)
         {
             if (m.HasVisibleFileAttachment)
             {
@@ -212,7 +212,7 @@ namespace XstReader
             }
         }
 
-        public void SaveAttachmentsToFolder(string fullFolderName, DateTime? creationTime, IEnumerable<Attachment> attachments)
+        public void SaveAttachmentsToFolder(string fullFolderName, DateTime? creationTime, IEnumerable<XstAttachment> attachments)
         {
             foreach (var a in attachments)
             {
@@ -221,7 +221,7 @@ namespace XstReader
         }
 
         const int MaxPath = 260;
-        public void SaveAttachmentToFolder(string folderpath, DateTime? creationTime, Attachment a)
+        public void SaveAttachmentToFolder(string folderpath, DateTime? creationTime, XstAttachment a)
         {
             var fullFileName = Path.Combine(folderpath, a.FileName);
 
@@ -236,7 +236,7 @@ namespace XstReader
             SaveAttachment(fullFileName, creationTime, a);
         }
 
-        public void SaveAttachment(string fullFileName, DateTime? creationTime, Attachment a)
+        public void SaveAttachment(string fullFileName, DateTime? creationTime, XstAttachment a)
         {
             using (var afs = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
             {
@@ -246,7 +246,7 @@ namespace XstReader
                 File.SetCreationTime(fullFileName, (DateTime)creationTime);
         }
 
-        public void SaveAttachment(Stream s, Attachment a)
+        public void SaveAttachment(Stream s, XstAttachment a)
         {
             if (a.WasLoadedFromMime)
             {
@@ -260,7 +260,7 @@ namespace XstReader
                     // No subNodeTree given: assume we can look it up in the main tree
                     Ndb.LookupNodeAndReadItsSubNodeBtree(a.Message.Nid, out subNodeTreeMessage);
 
-                var subNodeTreeAttachment = Ltp.ReadProperties<Attachment>(subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
+                var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
 
                 if ((object)a.Content != null)
                 {
@@ -283,7 +283,7 @@ namespace XstReader
             }
         }
 
-        public Message OpenAttachedMessage(Attachment a)
+        public XstMessage OpenAttachedMessage(XstAttachment a)
         {
             BTree<Node> subNodeTreeMessage = a.subNodeTreeProperties;
 
@@ -291,13 +291,13 @@ namespace XstReader
                 // No subNodeTree given: assume we can look it up in the main tree
                 Ndb.LookupNodeAndReadItsSubNodeBtree(a.Message.Nid, out subNodeTreeMessage);
 
-            var subNodeTreeAttachment = Ltp.ReadProperties<Attachment>(subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
+            var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, a.Nid, pgAttachmentContent, a);
             if (a.Content.GetType() == typeof(PtypObjectValue))
             {
-                Message m = new Message { Nid = new NID(((PtypObjectValue)a.Content).Nid) };
+                XstMessage m = new XstMessage { Nid = new NID(((PtypObjectValue)a.Content).Nid) };
 
                 // Read the basic and contents properties
-                var childSubNodeTree = Ltp.ReadProperties<Message>(subNodeTreeAttachment, m.Nid, pgMessageAttachment, m, true);
+                var childSubNodeTree = Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, pgMessageAttachment, m, true);
 
                 // Read all other properties
                 m.Properties.AddRange(Ltp.ReadAllProperties(subNodeTreeAttachment, m.Nid, contentExclusions, true).ToList());
@@ -315,10 +315,10 @@ namespace XstReader
         private struct LineProp
         {
             public int line;
-            public Property p;
+            public XstProperty p;
         }
 
-        public void ExportMessageProperties(IEnumerable<Message> messages, string fileName)
+        public void ExportMessageProperties(IEnumerable<XstMessage> messages, string fileName)
         {
             // We build a dictionary of queues of line,Property pairs where each queue represents
             // a column in the CSV file, and the line is the line number in the file.
@@ -399,18 +399,18 @@ namespace XstReader
 
 
 
-        private void ReadMessageTables(BTree<Node> subNodeTree, Message m, bool isAttached = false)
+        private void ReadMessageTables(BTree<Node> subNodeTree, XstMessage m, bool isAttached = false)
         {
             // Read the recipient table for the message
             var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
             if (Ltp.IsTablePresent(subNodeTree, recipientsNid))
             {
-                var rs = Ltp.ReadTable<Recipient>(subNodeTree, recipientsNid, pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
+                var rs = Ltp.ReadTable<XstRecipient>(subNodeTree, recipientsNid, pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
                 m.Recipients.Clear();
                 foreach (var r in rs)
                 {
                     // Sort the properties
-                    List<Property> lp = new List<Property>(r.Properties);
+                    List<XstProperty> lp = new List<XstProperty>(r.Properties);
                     lp.Sort((a, b) => a.Tag.CompareTo(b.Tag));
                     r.Properties.Clear();
                     foreach (var p in lp)
@@ -428,17 +428,17 @@ namespace XstReader
                     throw new XstException("Could not find expected Attachment table");
 
                 // Read the attachment table, which is held in the subnode of the message
-                var atts = Ltp.ReadTable<Attachment>(subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
+                var atts = Ltp.ReadTable<XstAttachment>(subNodeTree, attachmentsNid, pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
                 foreach (var a in atts)
                 {
                     a.Message = m; // For lazy reading of the complete properties: a.Message.Folder.XstFile
 
                     // If the long name wasn't in the attachment table, go look for it in the attachment properties
                     if (a.LongFileName == null)
-                        Ltp.ReadProperties<Attachment>(subNodeTree, a.Nid, pgAttachmentName, a);
+                        Ltp.ReadProperties<XstAttachment>(subNodeTree, a.Nid, pgAttachmentName, a);
 
                     // Read properties relating to HTML images presented as attachments
-                    Ltp.ReadProperties<Attachment>(subNodeTree, a.Nid, pgAttachedHtmlImages, a);
+                    Ltp.ReadProperties<XstAttachment>(subNodeTree, a.Nid, pgAttachedHtmlImages, a);
 
                     // If this is an embedded email, tell the attachment where to look for its properties
                     // This is needed because the email node is not in the main node tree

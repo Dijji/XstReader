@@ -6,30 +6,39 @@
     <SharedGUID>33078474-ced1-4bb0-8d5e-6454379a78f4</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>XstReader.Base</Import_RootNamespace>
+    <Import_RootNamespace>XstReader</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Common\" />
-    <Folder Include="$(MSBuildThisFileDirectory)LTPLayer\" />
-    <Folder Include="$(MSBuildThisFileDirectory)MessagingLayer\" />
-    <Folder Include="$(MSBuildThisFileDirectory)NDBLayer\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)BTree.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Crypto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\BTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\DataRef.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\Node.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\TreeIntermediate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\TreeNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\Crypto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layouts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsA.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsU4K.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LTP.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Map.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Message.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)NamedProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\Map.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\AttachMethod.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\BodyType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\EpropertyTag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\EpropertyType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\MessageFlags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\RecipientTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstAttachment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstProperty.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\PropertyGetters.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstRecipient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\NamedProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NDB.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Property.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RtfDecompressor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)StandardProperties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\AttachFlags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\RtfDecompressor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\StandardProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstFile.cs" />
   </ItemGroup>

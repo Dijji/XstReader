@@ -3,12 +3,12 @@
 
 using System;
 
-namespace XstReader
+namespace XstReader.Common
 {
     // Support for decrypting data areas of xst files, based on the algorithm description in <MS-PST>
     // Tables taken from libpff, as a more convenient form
 
-    class Crypto
+    internal class Crypto
     {
         static byte[] Compressible = new byte[] {
 	        0x47, 0xf1, 0xb4, 0xe6, 0x0b, 0x6a, 0x72, 0x48, 0x85, 0x4e, 0x9e, 0xeb, 0xe2, 0xf8, 0x94, 0x53,

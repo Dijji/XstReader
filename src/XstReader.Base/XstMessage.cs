@@ -9,20 +9,23 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
+using XstReader.Properties;
 #if !NETCOREAPP
 using System.Windows.Documents;
 using System.Windows.Media;
+using XstReader.Common;
+using XstReader.Properties;
 #endif
 
 namespace XstReader
 {
     // Holds information about a single message, extracted from the xst tables
 
-    public class Message
+    public class XstMessage
     {
         private string exportFileName = null;
 
-        public Folder Folder { get; set; }
+        public XstFolder Folder { get; set; }
         public string From { get; set; }
         public string To { get; set; }
         public string Cc { get; set; }
@@ -39,9 +42,9 @@ namespace XstReader
         public string BodyHtml { get; set; }
         public byte[] Html { get; set; }
         public byte[] RtfCompressed { get; set; }
-        public List<Attachment> Attachments { get; private set; } = new List<Attachment>();
-        public List<Recipient> Recipients { get; private set; } = new List<Recipient>();
-        public List<Property> Properties { get; private set; } = new List<Property>();
+        public List<XstAttachment> Attachments { get; private set; } = new List<XstAttachment>();
+        public List<XstRecipient> Recipients { get; private set; } = new List<XstRecipient>();
+        public List<XstProperty> Properties { get; private set; } = new List<XstProperty>();
         public bool MayHaveInlineAttachment { get { return (Attachments.FirstOrDefault(a => a.HasContentId) != null); } }
         public bool IsEncryptedOrSigned { get { return (GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m"); } }
         public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
@@ -62,7 +65,7 @@ namespace XstReader
         {
             get
             {
-                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.To)
+                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.To)
                     .Select(r => r.DisplayName));
             }
         }
@@ -71,7 +74,7 @@ namespace XstReader
         {
             get
             {
-                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.Cc)
+                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.Cc)
                     .Select(r => r.DisplayName));
             }
         }
@@ -80,7 +83,7 @@ namespace XstReader
         {
             get
             {
-                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientType.Bcc)
+                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.Bcc)
                     .Select(r => r.DisplayName));
             }
         }
@@ -354,7 +357,7 @@ namespace XstReader
 
             return Regex.Replace(body, @"(="")cid:(.*?)("")", match =>
             {
-                Attachment a;
+                XstAttachment a;
 
                 if (dict.TryGetValue(match.Groups[2].Value, out a))
                 {
@@ -373,9 +376,9 @@ namespace XstReader
             }, RegexOptions.Singleline | RegexOptions.IgnoreCase);
         }
 
-        public void SaveAttachments(List<Attachment> atts)
+        public void SaveAttachments(List<XstAttachment> atts)
         {
-            Attachments = new List<Attachment>(atts);
+            Attachments = new List<XstAttachment>(atts);
         }
 
         private static string EscapeUnicodeCharacters(string source)
@@ -488,7 +491,7 @@ namespace XstReader
                 {
                     string filename = Regex.Match(partHeaders["content-disposition"], @"filename=""(.*?)""", RegexOptions.IgnoreCase).Groups[1].Value;
                     byte[] content = Convert.FromBase64String(partHeaders["mimeBody"]);
-                    Attachments.Add(new Attachment(filename, content));
+                    Attachments.Add(new XstAttachment(filename, content));
                 }
                 //inline images
                 else if (partHeaders.Keys.Contains("content-id"))
@@ -496,7 +499,7 @@ namespace XstReader
                     string fileName = Regex.Match(partHeaders["content-type"], @".*name=""(.*)""", RegexOptions.IgnoreCase).Groups[1].Value;
                     string contentId = Regex.Match(partHeaders["content-id"], @"<(.*)>", RegexOptions.IgnoreCase).Groups[1].Value;
                     byte[] content = Convert.FromBase64String(partHeaders["mimeBody"]);
-                    Attachments.Add(new Attachment(fileName, contentId, content));
+                    Attachments.Add(new XstAttachment(fileName, contentId, content));
                 }
             }
         }

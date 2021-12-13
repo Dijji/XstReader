@@ -9,7 +9,7 @@ namespace XstReader
     // All layouts and names are taken from <MS-PST>
 
     // Constants
-    class LayoutsU
+    internal class LayoutsU
     {
         public const int BTPAGEEntryBytes = 488;
     }
@@ -17,7 +17,7 @@ namespace XstReader
     // NDB layer
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct FileHeader2Unicode
+    internal unsafe struct FileHeader2Unicode
     {
         public UInt64 bidUnused;
         public UInt64 bidNextP;
@@ -38,7 +38,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct RootUnicode
+    internal struct RootUnicode
     {
         public UInt32 dwReserved;
         public UInt64 ibFileEof;
@@ -53,14 +53,14 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BREFUnicode
+    internal struct BREFUnicode
     {
         public UInt64 bid;
         public UInt64 ib;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct BTPAGEUnicode
+    internal unsafe struct BTPAGEUnicode
     {
         public fixed Byte rgentries[LayoutsU.BTPAGEEntryBytes];
         public Byte cEnt;
@@ -72,7 +72,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct PAGETRAILERUnicode
+    internal struct PAGETRAILERUnicode
     {
         public Eptype ptype;
         public Eptype ptypeRepeat;
@@ -82,14 +82,14 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BTENTRYUnicode
+    internal struct BTENTRYUnicode
     {
         public UInt64 btkey;
         public BREFUnicode BREF;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BBTENTRYUnicode
+    internal struct BBTENTRYUnicode
     {
         public BREFUnicode BREF;
         public UInt16 cb;
@@ -98,7 +98,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct NBTENTRYUnicode
+    internal struct NBTENTRYUnicode
     {
         public NID nid;
         public UInt32 dwPad;
@@ -109,7 +109,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BLOCKTRAILERUnicode
+    internal struct BLOCKTRAILERUnicode
     {
         public UInt16 cb;
         public UInt16 wSig;
@@ -118,7 +118,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct XBLOCKUnicode
+    internal struct XBLOCKUnicode
     {
         public EbType btype;
         public Byte cLevel;
@@ -130,7 +130,7 @@ namespace XstReader
 
     // We just use the XBLOCKUnicode structure for XXBLOCKUnicode, as it is the same
     //[StructLayout(LayoutKind.Sequential, Pack = 1)]
-    //struct XXBLOCKUnicode
+    //internal struct XXBLOCKUnicode
     //{
     //    public EbType btype;
     //    public Byte cLevel;
@@ -140,7 +140,7 @@ namespace XstReader
     //}
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct SLENTRYUnicode
+    internal struct SLENTRYUnicode
     {
         public UInt64 nid;
         public UInt64 bidData;
@@ -148,7 +148,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct SLBLOCKUnicode
+    internal struct SLBLOCKUnicode
     {
         public EbType btype;
         public Byte cLevel;
@@ -159,7 +159,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct SIENTRYUnicode
+    internal struct SIENTRYUnicode
     {
         public UInt64 nid;
         public UInt64 bid;
@@ -167,7 +167,7 @@ namespace XstReader
 
     // We just use the SLBLOCKUnicode structure for SIBLOCKUnicode, as it is the same apart from the array type
     //[StructLayout(LayoutKind.Sequential, Pack = 1)]
-    //struct SIBLOCKUnicode
+    //internal struct SIBLOCKUnicode
     //{
     //    public EbType btype;
     //    public Byte cLevel;
@@ -179,7 +179,7 @@ namespace XstReader
     // LTP layer
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct TCROWIDUnicode
+    internal struct TCROWIDUnicode
     {
         public UInt32 dwRowID;
         public UInt32 dwRowIndex;

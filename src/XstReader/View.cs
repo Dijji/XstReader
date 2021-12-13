@@ -31,7 +31,7 @@ namespace XstReader
         public bool DisplayHeaderFields { get { return !DisplayPrintHeaders; } }
         public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged(nameof(IsBusy), nameof(IsNotBusy), nameof(CanExportFolder)); } }
         public bool IsNotBusy { get { return !isBusy; } }
-        public ObservableCollection<Property> CurrentProperties { get; private set; } = new ObservableCollection<Property>();
+        public ObservableCollection<XstProperty> CurrentProperties { get; private set; } = new ObservableCollection<XstProperty>();
         public bool IsMessagePresent { get { return (CurrentMessage != null); } }
         public bool CanSaveEmail { get { return ShowContent && CurrentMessage != null; } }
         public bool CanPopMessage { get { return (stackMessage.Count > 0); } }
@@ -67,7 +67,7 @@ namespace XstReader
             {
                 showContent = value;
                 OnPropertyChanged(
-                    nameof(ShowContent), 
+                    nameof(ShowContent),
                     nameof(ShowProperties),
                     nameof(CanSaveEmail),
                     nameof(CanExportProperties),
@@ -80,7 +80,7 @@ namespace XstReader
             }
         }
 
-        public void UpdateFolderViews(Folder rootFolder)
+        public void UpdateFolderViews(XstFolder rootFolder)
         {
             RootFolderViews.Clear();
             foreach (var f in rootFolder.Folders)
@@ -89,7 +89,7 @@ namespace XstReader
             }
         }
 
-        public void SelectedRecipientChanged(Recipient recipient)
+        public void SelectedRecipientChanged(XstRecipient recipient)
         {
             if (recipient != null)
             {
@@ -98,7 +98,7 @@ namespace XstReader
             }
         }
 
-        public void SelectedAttachmentsChanged(IEnumerable<Attachment> selection)
+        public void SelectedAttachmentsChanged(IEnumerable<XstAttachment> selection)
         {
             IsFileAttachmentSelected = selection.FirstOrDefault(a => a.IsFile) != null;
             IsEmailAttachmentSelected = selection.FirstOrDefault(a => a.IsEmail) != null;

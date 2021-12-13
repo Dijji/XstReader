@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 
-namespace XstReader
+namespace XstReader.Properties
 {
-    class StandardProperties
+    internal class StandardProperties
     {
         // Message properties as defined in [MS-OXPROPS]
         // The list is not exhaustive, consisting of message properties actually seen to date

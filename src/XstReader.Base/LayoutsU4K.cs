@@ -10,7 +10,7 @@ namespace XstReader
     // and https://blog.mythicsoft.com/2015/07/10/ost-2013-file-format-the-missing-documentation/
 
     // Constants
-    class LayoutsU4K
+    internal class LayoutsU4K
     {
         public const int BTPAGEEntryBytes = 4056;
     }
@@ -18,7 +18,7 @@ namespace XstReader
     // NDB layer
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct BTPAGEUnicode4K
+    internal unsafe struct BTPAGEUnicode4K
     {
         public fixed Byte rgentries[LayoutsU4K.BTPAGEEntryBytes];
         public UInt16 cEnt;
@@ -32,7 +32,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct PAGETRAILERUnicode4K
+    internal struct PAGETRAILERUnicode4K
     {
         public Eptype ptype;
         public Eptype ptypeRepeat;
@@ -43,7 +43,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BBTENTRYUnicode4K
+    internal struct BBTENTRYUnicode4K
     {
         public BREFUnicode BREF;
         public UInt16 cbStored;
@@ -53,7 +53,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BLOCKTRAILERUnicode4K
+    internal struct BLOCKTRAILERUnicode4K
     {
         public UInt16 cb;
         public UInt16 wSig;

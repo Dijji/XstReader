@@ -205,7 +205,7 @@ namespace XstReader
         {
             try
             {
-                view.SelectedRecipientChanged((Recipient)listRecipients.SelectedItem);
+                view.SelectedRecipientChanged((XstRecipient)listRecipients.SelectedItem);
             }
             catch (System.Exception ex)
             {
@@ -217,7 +217,7 @@ namespace XstReader
         {
             try
             {
-                view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<Attachment>());
+                view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<XstAttachment>());
             }
             catch (System.Exception ex)
             {
@@ -411,7 +411,7 @@ namespace XstReader
             }
         }
 
-        private void SaveAttachments(IEnumerable<Attachment> attachments)
+        private void SaveAttachments(IEnumerable<XstAttachment> attachments)
         {
             string folderName = GetAttachmentsSaveFolderName();
 
@@ -440,7 +440,7 @@ namespace XstReader
                 string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
 
                 if (fileName != null)
-                    xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage.Message }, fileName);
+                    xstFile.ExportMessageProperties(new XstMessage[1] { view.CurrentMessage.Message }, fileName);
             }
         }
 
@@ -516,7 +516,7 @@ namespace XstReader
                 if (!found)
                     searchTextBox.IndicateSearchFailed(args.SearchEventType);
             }
-            catch 
+            catch
             {
                 // Unclear what we can do here, as we were invoked by an event from the search text box control
             }
@@ -638,9 +638,9 @@ namespace XstReader
             }
         }
 
-        private void OpenEmailAttachment(Attachment a)
+        private void OpenEmailAttachment(XstAttachment a)
         {
-            Message m = xstFile.OpenAttachedMessage(a);
+            XstMessage m = xstFile.OpenAttachedMessage(a);
             var mv = new MessageView(m);
             ShowMessage(mv);
             view.PushMessage(mv);
@@ -809,7 +809,7 @@ namespace XstReader
             Properties.Settings.Default.Save();
         }
 
-        private string SaveAttachmentToTemporaryFile(Attachment a)
+        private string SaveAttachmentToTemporaryFile(XstAttachment a)
         {
             if (a == null)
                 return null;
@@ -819,7 +819,7 @@ namespace XstReader
 
             try
             {
-                xstFile.SaveAttachment(fileFullName, null, listAttachments.SelectedItem as Attachment);
+                xstFile.SaveAttachment(fileFullName, null, listAttachments.SelectedItem as XstAttachment);
                 tempFileNames.Add(fileFullName);
                 return fileFullName;
             }
@@ -832,7 +832,7 @@ namespace XstReader
 
         private void attachmentEmailCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             e.CanExecute = a != null && a.IsEmail;
         }
 
@@ -844,19 +844,19 @@ namespace XstReader
 
         private void attachmentCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             e.CanExecute = a != null;
         }
 
         private void attachmentFileCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             e.CanExecute = a != null && a.IsFile;
         }
 
         private void openAttachment_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
 
             if (a.IsFile)
             {
@@ -874,7 +874,7 @@ namespace XstReader
 
         private void openAttachmentWith_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             string fileFullname = SaveAttachmentToTemporaryFile(a);
             if (fileFullname == null)
                 return;
@@ -899,11 +899,11 @@ namespace XstReader
         {
             if (listAttachments.SelectedItems.Count > 1)
             {
-                SaveAttachments(listAttachments.SelectedItems.Cast<Attachment>());
+                SaveAttachments(listAttachments.SelectedItems.Cast<XstAttachment>());
             }
             else
             {
-                var a = listAttachments.SelectedItem as Attachment;
+                var a = listAttachments.SelectedItem as XstAttachment;
                 var fullFileName = GetSaveAttachmentFileName(a.LongFileName);
 
                 if (fullFileName != null)

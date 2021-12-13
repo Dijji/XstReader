@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using XstReader.Properties;
 
 namespace XstReader
 {
@@ -11,7 +12,7 @@ namespace XstReader
     // NDB layer
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct FileHeader1
+    internal struct FileHeader1
     {
         public UInt32 dwMagic;
         public UInt32 dwCRCPartial;
@@ -24,7 +25,7 @@ namespace XstReader
         public UInt32 dwReserved2;
     }
 
-    public enum EbCryptMethod : byte
+    internal enum EbCryptMethod : byte
     {
         NDB_CRYPT_NONE = 0x00,
         NDB_CRYPT_PERMUTE = 0x01,
@@ -32,7 +33,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct NID
+    internal struct NID
     {
         public UInt32 dwValue; // References use the whole four bytes
         public EnidType nidType {get { return (EnidType)(dwValue & 0x0000001f); } }  // Low order five bits of stored value
@@ -56,7 +57,7 @@ namespace XstReader
         }
     }
 
-    public enum EnidType : byte
+    internal enum EnidType : byte
     {
         HID = 0x00,   // Heap node
         INTERNAL = 0x01,   // Internal node
@@ -80,7 +81,7 @@ namespace XstReader
         LTP = 0x1f,
     }
 
-    public enum EnidSpecial : uint
+    internal enum EnidSpecial : uint
     {
         NID_MESSAGE_STORE = 0x21,
         NID_NAME_TO_ID_MAP = 0x61,
@@ -97,7 +98,7 @@ namespace XstReader
         NID_RECIPIENT_TABLE = 0x692,
     }
 
-    public enum Eptype : byte
+    internal enum Eptype : byte
     {
         ptypeBBT = 0x80,   // Block BTree page
         ptypeNBT = 0x81,   // Node BTree page
@@ -114,7 +115,7 @@ namespace XstReader
     // non-4K: 5-bit Type; 11-bit Index; 16-bit BlockIndex
     // 4K:     5-bit Type; 14-bit Index; 13-bit BlockIndex
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct HID
+    internal struct HID
     {
         private UInt16 wValue1;
         private UInt16 wValue2;
@@ -146,7 +147,7 @@ namespace XstReader
     // A variation on HID used where the value can be either a HID or a NID
     // It is a HID iff hidType is EnidType.HID and the wValues are not both zero
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct HNID
+    internal struct HNID
     {
         private UInt16 wValue1;
         private UInt16 wValue2;
@@ -176,7 +177,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct HNHDR
+    internal struct HNHDR
     {
         public UInt16 ibHnpm;       // The byte offset to the HN page Map record
         public Byte bSig;
@@ -185,7 +186,7 @@ namespace XstReader
         public UInt32 rgbFillLevel;
     }
 
-    public enum EbType : byte
+    internal enum EbType : byte
     {
         bTypeX = 0x01,   // XBLOCK or XXBLOCK
         bTypeS = 0x02,   // SLBLOCK or SIBLOCK
@@ -199,20 +200,20 @@ namespace XstReader
     //
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct HNPAGEHDR
+    internal struct HNPAGEHDR
     {
         public UInt16 ibHnpm;       // The byte offset to the HN page Map record
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct HNBITMAPHDR
+    internal unsafe struct HNBITMAPHDR
     {
         public UInt16 ibHnpm;       // The byte offset to the HN page Map record
         public fixed Byte rgbFillLevel[64];
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct HNPAGEMAP
+    internal struct HNPAGEMAP
     {
         public UInt16 cAlloc;
         public UInt16 cFree;
@@ -225,7 +226,7 @@ namespace XstReader
     //
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BTHHEADER
+    internal struct BTHHEADER
     {
         public EbType btype;
         public Byte cbKey;
@@ -235,28 +236,28 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct IntermediateBTH2
+    internal unsafe struct IntermediateBTH2
     {
         public fixed Byte key[2];
         public HID hidNextLevel;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct IntermediateBTH4
+    internal unsafe struct IntermediateBTH4
     {
         public fixed Byte key[4];
         public HID hidNextLevel;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct IntermediateBTH8
+    internal unsafe struct IntermediateBTH8
     {
         public fixed Byte key[8];
         public HID hidNextLevel;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    unsafe struct IntermediateBTH16
+    internal unsafe struct IntermediateBTH16
     {
         public fixed Byte key[16];
         public HID hidNextLevel;
@@ -267,7 +268,7 @@ namespace XstReader
     //
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct PCBTH
+    internal struct PCBTH
     {
         public EpropertyTag wPropId;
         public EpropertyType wPropType;
@@ -275,7 +276,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct MVVariable
+    internal struct MVVariable
     {
         public UInt32 ulCount;
         public UInt32[] rgulDataOffsets;
@@ -283,7 +284,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct PtypObjectProperty
+    internal struct PtypObjectProperty
     {
         public NID nid;
         public UInt32 ulSize;
@@ -294,7 +295,7 @@ namespace XstReader
     //
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct TCINFO
+    internal struct TCINFO
     {
         public EbType btype;    // Must be bTypeTC
         public Byte cCols;
@@ -308,7 +309,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct TCOLDESC
+    internal struct TCOLDESC
     {
         public UInt32 tag;
         public EpropertyTag wPropId { get { return (EpropertyTag)(tag >> 16); } }
@@ -320,7 +321,7 @@ namespace XstReader
 
     // This is right, but we don't use it, because there is no way to marshal it
     //[StructLayout(LayoutKind.Sequential, Pack = 1)]
-    //struct RowData
+    //internal struct RowData
     //{
     //    public UInt32 dwRowID;
     //    public UInt32[] rgdwData;
@@ -330,7 +331,7 @@ namespace XstReader
     //}
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct NAMEID
+    internal struct NAMEID
     {
         public UInt32 dwPropertyID;
         private UInt16 wValue;
@@ -339,7 +340,7 @@ namespace XstReader
         public UInt16 wGuid { get { return (UInt16)(wValue >> 1); } }
     }
 
-    public enum EwGuid : UInt16
+    internal enum EwGuid : UInt16
     {
         NAMEID_GUID_NONE = 0,
         NAMEID_GUID_MAPI = 1,
@@ -348,7 +349,7 @@ namespace XstReader
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct PtypObjectValue
+    internal struct PtypObjectValue
     {
         public UInt32 Nid;
         public UInt32 ulSize;
