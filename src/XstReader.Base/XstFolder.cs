@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using XstReader.Common.BTrees;
 using XstReader.Properties;
 
 namespace XstReader
@@ -9,8 +10,8 @@ namespace XstReader
     public class XstFolder
     {
         public XstFile XstFile { get; set; }
-        private LTP Ltp => XstFile.Ltp;
-        private NDB Ndb => XstFile.Ndb;
+        internal LTP Ltp => XstFile.Ltp;
+        internal NDB Ndb => XstFile.Ndb;
 
         public string Name { get; set; }
 
@@ -28,60 +29,16 @@ namespace XstReader
         private List<XstMessage> _Messages = null;
         public List<XstMessage> Messages => GetMessages();
 
-        #region PropertyGetters
-        // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
+        internal BTree<Node> SubnodeTreeProperties = null;
 
-        // The folder properties we read when exploring folder structure
-        private static readonly PropertyGetters<XstFolder> pgFolder = new PropertyGetters<XstFolder>
-        {
-            {EpropertyTag.PidTagDisplayName, (f, val) => f.Name = val },
-            {EpropertyTag.PidTagContentCount, (f, val) => f.ContentCount = val },
-            // Don't bother reading HasSubFolders, because it is not always set
-            // {EpropertyTag.PidTagSubfolders, (f, val) => f.HasSubFolders = val },
-        };
-
-        // When reading folder contents, the message properties we ask for
-        // In Unicode4K, PidTagSentRepresentingNameW doesn't yield a useful value
-        private static readonly PropertyGetters<XstMessage> pgMessageList4K = new PropertyGetters<XstMessage>
-        {
-            {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
-            {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
-            {EpropertyTag.PidTagDisplayToW, (m, val) => m.To = val },
-            {EpropertyTag.PidTagMessageFlags, (m, val) => m.Flags = (MessageFlags)val },
-            {EpropertyTag.PidTagClientSubmitTime, (m, val) => m.Submitted = val },
-            {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
-            {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
-        };
-
-        // When reading folder contents, the message properties we ask for
-        private static readonly PropertyGetters<XstMessage> pgMessageList = new PropertyGetters<XstMessage>
-        {
-            {EpropertyTag.PidTagSubjectW, (m, val) => m.Subject = val },
-            {EpropertyTag.PidTagDisplayCcW, (m, val) => m.Cc = val },
-            {EpropertyTag.PidTagDisplayToW, (m, val) => m.To = val },
-            {EpropertyTag.PidTagMessageFlags, (m, val) => m.Flags = (MessageFlags)val },
-            {EpropertyTag.PidTagSentRepresentingNameW, (m, val) => m.From = val },
-            {EpropertyTag.PidTagClientSubmitTime, (m, val) => m.Submitted = val },
-            {EpropertyTag.PidTagMessageDeliveryTime, (m, val) => m.Received = val },
-            {EpropertyTag.PidTagLastModificationTime, (m, val) => m.Modified = val },
-        };
-
-        private static readonly PropertyGetters<XstMessage> pgMessageDetail4K = new PropertyGetters<XstMessage>
-        {
-            {EpropertyTag.PidTagSentRepresentingNameW, (m, val) => m.From = val },
-            {EpropertyTag.PidTagSentRepresentingEmailAddress, (m, val) => { if(m.From == null) m.From = val; } },
-            {EpropertyTag.PidTagSenderName, (m, val) => { if(m.From == null) m.From = val; } },
-        };
-
-        #endregion PropertyGetters
-
+        
         #region Ctor
         internal XstFolder(XstFile xstFile, NID nid, XstFolder parentFolder = null)
         {
             XstFile = xstFile;
             Nid = nid;
             ParentFolder = parentFolder;
-            Ltp.ReadProperties<XstFolder>(nid, pgFolder, this);
+            SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertiesGetter.pgFolder, this);
         }
         #endregion Ctor
 
@@ -97,7 +54,7 @@ namespace XstReader
 
             return _Folders;
         }
-        public void ClearFolders()
+        public void UnloadFolders()
             => _Folders = null;
         #endregion Folders
 
@@ -110,9 +67,9 @@ namespace XstReader
                     // Get the Contents table for the folder
                     // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
                     _Messages = Ltp.ReadTable<XstMessage>(NID.TypedNID(EnidType.CONTENTS_TABLE, Nid),
-                                                       Ndb.IsUnicode4K ? pgMessageList4K : pgMessageList, (m, id) => m.Nid = new NID(id))
+                                                          Ndb.IsUnicode4K ? PropertiesGetter.pgMessageList4K : PropertiesGetter.pgMessageList, (m, id) => m.Nid = new NID(id))
                                    .Select(m => Ndb.IsUnicode4K ? Add4KMessageProperties(m) : m)
-                                   .Select(m => { m.Folder = this; return m; })
+                                   .Select(m => m.Initialize(this))
                                    .ToList(); // to force complete execution on the current thread
 
                 else
@@ -121,12 +78,12 @@ namespace XstReader
             return _Messages;
         }
 
-        public void ClearMessages()
+        public void UnloadMessages()
             => _Messages = null;
 
         private XstMessage Add4KMessageProperties(XstMessage m)
         {
-            Ltp.ReadProperties<XstMessage>(m.Nid, pgMessageDetail4K, m);
+            Ltp.ReadProperties<XstMessage>(m.Nid, PropertiesGetter.pgMessageDetail4K, m);
             return m;
         }
 

@@ -343,7 +343,7 @@ namespace XstExport
                     Console.WriteLine("Exporting " + m.ExportFileName);
 
                     // Ensure that we have the message contents
-                    xstFile.ReadMessageDetails(m);
+                    m.ReadMessageDetails();
                     var fullFileName = String.Format(@"{0}\{1}.{2}",
                                 exportDirectory, fileName, m.ExportFileExtension);
                     m.ExportToFile(fullFileName, xstFile);
@@ -376,7 +376,7 @@ namespace XstExport
             {
                 try
                 {
-                    xstFile.ReadMessageDetails(message);
+                    message.ReadMessageDetails();
                     foreach (var att in message.Attachments)
                     {
                         if (att.IsFile)

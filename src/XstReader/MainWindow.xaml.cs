@@ -180,7 +180,7 @@ namespace XstReader
             {
                 try
                 {
-                    xstFile.ReadMessageDetails(mv.Message);
+                    mv.Message.ReadMessageDetails();
                     ShowMessage(mv);
                 }
                 catch (System.Exception ex)
@@ -345,7 +345,7 @@ namespace XstReader
                                 ShowStatus("Exporting " + mv.ExportFileName);
                             }));
                             // Ensure that we have the message contents
-                            xstFile.ReadMessageDetails(mv.Message);
+                            mv.Message.ReadMessageDetails();
                             var fullFileName = String.Format(@"{0}\{1}.{2}",
                                         folderName, fileName, mv.Message.ExportFileExtension);
                             mv.Message.ExportToFile(fullFileName, xstFile);
@@ -640,7 +640,7 @@ namespace XstReader
 
         private void OpenEmailAttachment(XstAttachment a)
         {
-            XstMessage m = xstFile.OpenAttachedMessage(a);
+            XstMessage m = XstMessage.GetAttachedMessage(a);
             var mv = new MessageView(m);
             ShowMessage(mv);
             view.PushMessage(mv);

@@ -9,10 +9,15 @@ namespace XstReader
 {
     public class XstAttachment
     {
+        public XstMessage Message { get; set; }
+        public XstFolder Folder => Message.Folder;
+        public XstFile XstFile => Folder.XstFile;
+        internal LTP Ltp => XstFile.Ltp;
+        internal NDB Ndb => XstFile.Ndb;
+
         private List<XstProperty> properties = null;
 
-        public XstMessage Message { get; set; }
-        internal BTree<Node> subNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
+        internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
         public string DisplayName { get; set; }
         public string FileNameW { get; set; }
         public string LongFileName { get; set; }
@@ -87,6 +92,12 @@ namespace XstReader
                 return properties;
             }
         }
+
+        internal static readonly HashSet<EpropertyTag> attachmentContentExclusions = new HashSet<EpropertyTag>
+        {
+            EpropertyTag.PidTagAttachDataBinary,
+        };
+
 
         public XstAttachment()
         {

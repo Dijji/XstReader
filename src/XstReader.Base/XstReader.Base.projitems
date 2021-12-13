@@ -27,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Properties\EpropertyTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\EpropertyType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\MessageFlags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\PropertiesGetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\RecipientTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstAttachment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstFolder.cs" />

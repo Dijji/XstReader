@@ -10,11 +10,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using XstReader.Properties;
+using XstReader.Common.BTrees;
 #if !NETCOREAPP
 using System.Windows.Documents;
 using System.Windows.Media;
 using XstReader.Common;
-using XstReader.Properties;
 #endif
 
 namespace XstReader
@@ -23,103 +23,203 @@ namespace XstReader
 
     public class XstMessage
     {
-        private string exportFileName = null;
+        public XstFolder Folder { get; private set; }
+        public XstAttachment ParentAttachment { get; private set; }
+        public XstFile XstFile => Folder.XstFile;
+        internal LTP Ltp => XstFile.Ltp;
+        internal NDB Ndb => XstFile.Ndb;
 
-        public XstFolder Folder { get; set; }
+        public List<XstRecipient> Recipients { get; private set; } = new List<XstRecipient>();
+
         public string From { get; set; }
+
+        public bool HasToDisplayList => ToDisplayList.Length > 0;
+        public string ToDisplayList => String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.To).Select(r => r.DisplayName));
         public string To { get; set; }
+
+        public bool HasCcDisplayList => CcDisplayList.Length > 0;
+        public string CcDisplayList => String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.Cc).Select(r => r.DisplayName));
         public string Cc { get; set; }
+
+        public bool HasBccDisplayList => BccDisplayList.Length > 0;
+        public string BccDisplayList => String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.Bcc).Select(r => r.DisplayName));
+
         public string Subject { get; set; }
+
         internal MessageFlags Flags { get; set; }
+
         public DateTime? Received { get; set; }
         public DateTime? Submitted { get; set; }
         public DateTime? Modified { get; set; }  // When any attachment was last modified
-        public DateTime? Date { get { return Received ?? Submitted; } }
-        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; } }
+        public DateTime? Date => Received ?? Submitted;
+        public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
+
         internal NID Nid { get; set; }
+
         internal BodyType NativeBody { get; set; }
         public string Body { get; set; }
+        public bool IsBodyText => NativeBody == BodyType.PlainText ||
+                                  (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0);
+
         public string BodyHtml { get; set; }
         public byte[] Html { get; set; }
+        public bool IsBodyHtml => NativeBody == BodyType.HTML ||
+                                  (NativeBody == BodyType.Undefined &&
+                                      ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0)));
+
         public byte[] RtfCompressed { get; set; }
+        public bool IsBodyRtf => NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0);
+
+        public bool HasAttachment => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
         public List<XstAttachment> Attachments { get; private set; } = new List<XstAttachment>();
-        public List<XstRecipient> Recipients { get; private set; } = new List<XstRecipient>();
-        public List<XstProperty> Properties { get; private set; } = new List<XstProperty>();
-        public bool MayHaveInlineAttachment { get { return (Attachments.FirstOrDefault(a => a.HasContentId) != null); } }
-        public bool IsEncryptedOrSigned { get { return (GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m"); } }
-        public bool HasAttachment { get { return (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach; } }
-        public bool HasFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile) != null); } }
-        public bool HasVisibleFileAttachment { get { return (Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null); } }
-        public bool IsBodyText { get { return NativeBody == BodyType.PlainText || (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0); } }
-        public bool IsBodyHtml
+        public bool MayHaveInlineAttachment => Attachments.FirstOrDefault(a => a.HasContentId) != null;
+        public bool HasFileAttachment => Attachments.FirstOrDefault(a => a.IsFile) != null;
+        public bool HasVisibleFileAttachment => Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null;
+
+        private List<XstProperty> _Properties = null;
+        public List<XstProperty> Properties => GetProperties();
+        public bool IsEncryptedOrSigned => GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m";
+
+        public string FileAttachmentDisplayList => String.Join("; ", Attachments.Where(a => a.IsFile && !a.Hide).Select(a => a.FileName));
+
+        private string _ExportFileName = null;
+        public string ExportFileName => _ExportFileName ?? (_ExportFileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Date, Subject).Truncate(150).ReplaceInvalidFileNameChars(" "));
+
+        public string ExportFileExtension => IsBodyHtml ? "html" : IsBodyRtf ? "rtf" : "txt";
+
+        internal BTree<Node> SubNodeTreeProperties = null;
+        internal BTree<Node> SubNodeTreeParentAttachment = null;
+        public bool IsAttached => SubNodeTreeParentAttachment != null;
+
+        #region PropertyGetters
+        // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
+
+        internal static readonly HashSet<EpropertyTag> contentExclusions = new HashSet<EpropertyTag>
         {
-            get
-            {
-                return NativeBody == BodyType.HTML || (NativeBody == BodyType.Undefined &&
-                       ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0)));
-            }
-        }
-        public bool IsBodyRtf { get { return NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0); } }
-        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
-        public string ToDisplayList
+            EpropertyTag.PidTagNativeBody,
+            EpropertyTag.PidTagBody,
+            EpropertyTag.PidTagHtml,
+            EpropertyTag.PidTagRtfCompressed,
+        };
+
+        #endregion PropertyGetters
+
+        /// <summary>
+        /// Initialization for Messages in a Folder
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns></returns>
+        internal XstMessage Initialize(XstFolder folder)
         {
-            get
-            {
-                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.To)
-                    .Select(r => r.DisplayName));
-            }
-        }
-        public bool HasCcDisplayList { get { return CcDisplayList.Length > 0; } }
-        public string CcDisplayList
-        {
-            get
-            {
-                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.Cc)
-                    .Select(r => r.DisplayName));
-            }
-        }
-        public bool HasBccDisplayList { get { return BccDisplayList.Length > 0; } }
-        public string BccDisplayList
-        {
-            get
-            {
-                return String.Join("; ", Recipients.Where(r => r.RecipientType == RecipientTypes.Bcc)
-                    .Select(r => r.DisplayName));
-            }
-        }
-        public string FileAttachmentDisplayList
-        {
-            get
-            {
-                return String.Join("; ", Attachments.Where(a => a.IsFile && !a.Hide)
-                    .Select(a => a.FileName));
-            }
+            Folder = folder;
+
+            // Read the contents properties
+            SubNodeTreeProperties = Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
+
+            return this;
         }
 
-        public string ExportFileName
+        internal static XstMessage GetAttachedMessage(XstAttachment attachment)
         {
-            get
+            BTree<Node> subNodeTreeMessage = attachment.SubNodeTreeProperties;
+
+            if (subNodeTreeMessage == null)
+                // No subNodeTree given: assume we can look it up in the main tree
+                attachment.Ndb.LookupNodeAndReadItsSubNodeBtree(attachment.Message.Nid, out subNodeTreeMessage);
+
+            var subNodeTreeAttachment = attachment.Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, attachment.Nid, PropertiesGetter.pgAttachmentContent, attachment);
+            if (attachment.Content.GetType() == typeof(PtypObjectValue))
             {
-                if (exportFileName == null)
+                XstMessage m = new XstMessage
                 {
-                    var fileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Date, Subject).Truncate(150);
-                    exportFileName = fileName.ReplaceInvalidFileNameChars(" ");
+                    Nid = new NID(((PtypObjectValue)attachment.Content).Nid),
+                    Folder = attachment.Folder,
+                    ParentAttachment = attachment,
+                    SubNodeTreeParentAttachment = subNodeTreeAttachment,
+                };
+
+                // Read the basic and contents properties
+                m.SubNodeTreeProperties = attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertiesGetter.pgMessageAttachment, m, true);
+
+                m.ReadMessageDetails();
+
+                return m;
+            }
+            else
+                throw new XstException("Unexpected data type for attached message");
+        }
+
+        public List<XstProperty> GetProperties()
+        {
+            if (_Properties == null)
+            {
+                if (SubNodeTreeParentAttachment != null)
+                    _Properties = Ltp.ReadAllProperties(SubNodeTreeParentAttachment, Nid, contentExclusions, true).ToList();
+                else
+                    _Properties = Ltp.ReadAllProperties(Nid, contentExclusions).ToList();
+            }
+            return _Properties;
+        }
+
+        public void ReadMessageDetails()
+        {
+            GetProperties();
+            ReadMessageTables();
+        }
+
+        //public void UnloadProperties()
+        //{
+        //    _Properties = null;
+        //}
+
+        private void ReadMessageTables()
+        {
+            // Read the recipient table for the message
+            var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
+            if (Ltp.IsTablePresent(SubNodeTreeProperties, recipientsNid))
+            {
+                var rs = Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertiesGetter.pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
+                Recipients.Clear();
+                foreach (var r in rs)
+                {
+                    // Sort the properties
+                    List<XstProperty> lp = new List<XstProperty>(r.Properties);
+                    lp.Sort((a, b) => a.Tag.CompareTo(b.Tag));
+                    r.Properties.Clear();
+                    foreach (var p in lp)
+                        r.Properties.Add(p);
+
+                    Recipients.Add(r);
+                }
+            }
+
+            // Read any attachments
+            var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
+            if (HasAttachment)
+            {
+                if (!Ltp.IsTablePresent(SubNodeTreeProperties, attachmentsNid))
+                    throw new XstException("Could not find expected Attachment table");
+
+                // Read the attachment table, which is held in the subnode of the message
+                var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, PropertiesGetter.pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
+                foreach (var a in atts)
+                {
+                    a.Message = this; // For lazy reading of the complete properties: a.Message.Folder.XstFile
+
+                    // If the long name wasn't in the attachment table, go look for it in the attachment properties
+                    if (a.LongFileName == null)
+                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachmentName, a);
+
+                    // Read properties relating to HTML images presented as attachments
+                    Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachedHtmlImages, a);
+
+                    // If this is an embedded email, tell the attachment where to look for its properties
+                    // This is needed because the email node is not in the main node tree
+                    if (IsAttached)
+                        a.SubNodeTreeProperties = SubNodeTreeProperties;
                 }
 
-                return exportFileName;
-            }
-        }
-
-        public string ExportFileExtension
-        {
-            get
-            {
-                if (IsBodyHtml)
-                    return "html";
-                else if (IsBodyRtf)
-                    return "rtf";
-                else
-                    return "txt";
+                Attachments = new List<XstAttachment>(atts);
             }
         }
 
@@ -374,11 +474,6 @@ namespace XstReader
 
                 return match.Value;
             }, RegexOptions.Singleline | RegexOptions.IgnoreCase);
-        }
-
-        public void SaveAttachments(List<XstAttachment> atts)
-        {
-            Attachments = new List<XstAttachment>(atts);
         }
 
         private static string EscapeUnicodeCharacters(string source)
