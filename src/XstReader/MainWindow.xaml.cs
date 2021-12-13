@@ -180,7 +180,7 @@ namespace XstReader
             {
                 try
                 {
-                    mv.Message.ReadMessageDetails();
+                    //mv.Message.ReadMessageDetails();
                     ShowMessage(mv);
                 }
                 catch (System.Exception ex)
@@ -345,7 +345,6 @@ namespace XstReader
                                 ShowStatus("Exporting " + mv.ExportFileName);
                             }));
                             // Ensure that we have the message contents
-                            mv.Message.ReadMessageDetails();
                             var fullFileName = String.Format(@"{0}\{1}.{2}",
                                         folderName, fileName, mv.Message.ExportFileExtension);
                             mv.Message.ExportToFile(fullFileName, xstFile);

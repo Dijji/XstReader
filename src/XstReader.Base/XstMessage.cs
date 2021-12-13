@@ -29,7 +29,8 @@ namespace XstReader
         internal LTP Ltp => XstFile.Ltp;
         internal NDB Ndb => XstFile.Ndb;
 
-        public List<XstRecipient> Recipients { get; private set; } = new List<XstRecipient>();
+        private List<XstRecipient> _Recipients = null;
+        public List<XstRecipient> Recipients => GetRecipients();
 
         public string From { get; set; }
 
@@ -56,22 +57,64 @@ namespace XstReader
 
         internal NID Nid { get; set; }
 
+        private bool _IsContentLoaded = false;
+        private Func<BTree<Node>> _ContentLoader = null;
+
         internal BodyType NativeBody { get; set; }
-        public string Body { get; set; }
+        private string _Body = null;
+        public string Body
+        {
+            get
+            {
+                if (!_IsContentLoaded) LoadContents();
+                return _Body;
+            }
+            internal set => _Body = value;
+        }
         public bool IsBodyText => NativeBody == BodyType.PlainText ||
                                   (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0);
 
-        public string BodyHtml { get; set; }
-        public byte[] Html { get; set; }
+        private string _BodyHtml = null;
+        public string BodyHtml
+        {
+            get
+            {
+                if (!_IsContentLoaded) LoadContents();
+                return _BodyHtml;
+            }
+            internal set => _BodyHtml = value;
+        }
+        private byte[] _Html = null;
+        public byte[] Html
+        {
+            get
+            {
+                if (!_IsContentLoaded) LoadContents();
+                return _Html;
+            }
+            internal set => _Html = value;
+        }
+
         public bool IsBodyHtml => NativeBody == BodyType.HTML ||
                                   (NativeBody == BodyType.Undefined &&
                                       ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0)));
 
-        public byte[] RtfCompressed { get; set; }
+        private byte[] _RtfCompressed;
+        public byte[] RtfCompressed
+        {
+            get
+            {
+                if (!_IsContentLoaded) LoadContents();
+                return _RtfCompressed;
+            }
+            internal set => _RtfCompressed = value;
+        }
+
         public bool IsBodyRtf => NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0);
 
+        private List<XstAttachment> _Attachments = null;
+        public List<XstAttachment> Attachments => GetAttachments();
         public bool HasAttachment => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
-        public List<XstAttachment> Attachments { get; private set; } = new List<XstAttachment>();
         public bool MayHaveInlineAttachment => Attachments.FirstOrDefault(a => a.HasContentId) != null;
         public bool HasFileAttachment => Attachments.FirstOrDefault(a => a.IsFile) != null;
         public bool HasVisibleFileAttachment => Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null;
@@ -113,10 +156,18 @@ namespace XstReader
         {
             Folder = folder;
 
+            ClearContents();
+
             // Read the contents properties
-            SubNodeTreeProperties = Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
+            _ContentLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
 
             return this;
+        }
+
+        private void LoadContents()
+        {
+            SubNodeTreeProperties = _ContentLoader?.Invoke();
+            _IsContentLoaded = SubNodeTreeProperties != null;
         }
 
         internal static XstMessage GetAttachedMessage(XstAttachment attachment)
@@ -139,9 +190,8 @@ namespace XstReader
                 };
 
                 // Read the basic and contents properties
-                m.SubNodeTreeProperties = attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertiesGetter.pgMessageAttachment, m, true);
-
-                m.ReadMessageDetails();
+                m.ClearContents();
+                m._ContentLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertiesGetter.pgMessageAttachment, m, true);
 
                 return m;
             }
@@ -149,6 +199,7 @@ namespace XstReader
                 throw new XstException("Unexpected data type for attached message");
         }
 
+        #region Properties
         public List<XstProperty> GetProperties()
         {
             if (_Properties == null)
@@ -161,75 +212,105 @@ namespace XstReader
             return _Properties;
         }
 
-        public void ReadMessageDetails()
+        public void UnloadProperties()
         {
-            GetProperties();
-            ReadMessageTables();
+            _Properties = null;
         }
+        #endregion Properties
 
-        //public void UnloadProperties()
-        //{
-        //    _Properties = null;
-        //}
-
-        private void ReadMessageTables()
+        #region Attachments
+        public List<XstAttachment> GetAttachments()
         {
-            // Read the recipient table for the message
-            var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
-            if (Ltp.IsTablePresent(SubNodeTreeProperties, recipientsNid))
+            if (_Attachments == null)
             {
-                var rs = Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertiesGetter.pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
-                Recipients.Clear();
-                foreach (var r in rs)
-                {
-                    // Sort the properties
-                    List<XstProperty> lp = new List<XstProperty>(r.Properties);
-                    lp.Sort((a, b) => a.Tag.CompareTo(b.Tag));
-                    r.Properties.Clear();
-                    foreach (var p in lp)
-                        r.Properties.Add(p);
+                _Attachments = new List<XstAttachment>();
 
-                    Recipients.Add(r);
+                // Read any attachments
+                var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
+                if (HasAttachment)
+                {
+                    if (!Ltp.IsTablePresent(SubNodeTreeProperties, attachmentsNid))
+                        throw new XstException("Could not find expected Attachment table");
+
+                    // Read the attachment table, which is held in the subnode of the message
+                    var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, PropertiesGetter.pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
+                    foreach (var a in atts)
+                    {
+                        a.Message = this; // For lazy reading of the complete properties: a.Message.Folder.XstFile
+
+                        // If the long name wasn't in the attachment table, go look for it in the attachment properties
+                        if (a.LongFileName == null)
+                            Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachmentName, a);
+
+                        // Read properties relating to HTML images presented as attachments
+                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachedHtmlImages, a);
+
+                        // If this is an embedded email, tell the attachment where to look for its properties
+                        // This is needed because the email node is not in the main node tree
+                        if (IsAttached)
+                            a.SubNodeTreeProperties = SubNodeTreeProperties;
+
+                        _Attachments.Add(a);
+                    }
                 }
             }
-
-            // Read any attachments
-            var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
-            if (HasAttachment)
-            {
-                if (!Ltp.IsTablePresent(SubNodeTreeProperties, attachmentsNid))
-                    throw new XstException("Could not find expected Attachment table");
-
-                // Read the attachment table, which is held in the subnode of the message
-                var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, PropertiesGetter.pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
-                foreach (var a in atts)
-                {
-                    a.Message = this; // For lazy reading of the complete properties: a.Message.Folder.XstFile
-
-                    // If the long name wasn't in the attachment table, go look for it in the attachment properties
-                    if (a.LongFileName == null)
-                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachmentName, a);
-
-                    // Read properties relating to HTML images presented as attachments
-                    Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachedHtmlImages, a);
-
-                    // If this is an embedded email, tell the attachment where to look for its properties
-                    // This is needed because the email node is not in the main node tree
-                    if (IsAttached)
-                        a.SubNodeTreeProperties = SubNodeTreeProperties;
-                }
-
-                Attachments = new List<XstAttachment>(atts);
-            }
+            return _Attachments;
         }
+
+        public void UnloadAttachments()
+        {
+            _Attachments = null;
+        }
+        #endregion Attachments
+
+        #region Recipients
+        public List<XstRecipient> GetRecipients()
+        {
+            if (_Recipients == null)
+            {
+                _Recipients = new List<XstRecipient>();
+
+                // Read the recipient table for the message
+                var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
+                if (Ltp.IsTablePresent(SubNodeTreeProperties, recipientsNid))
+                {
+                    var rs = Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertiesGetter.pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
+                    foreach (var r in rs)
+                    {
+                        // Sort the properties
+                        List<XstProperty> lp = new List<XstProperty>(r.Properties);
+                        lp.Sort((a, b) => a.Tag.CompareTo(b.Tag));
+                        r.Properties.Clear();
+                        foreach (var p in lp)
+                            r.Properties.Add(p);
+
+                        _Recipients.Add(r);
+                    }
+                }
+            }
+            return _Recipients;
+        }
+
+        public void UnloadRecipients()
+        {
+            _Recipients = null;
+        }
+        #endregion Recipients
 
         public void ClearContents()
         {
-            // Clear out any previous content   
-            Body = null;
-            BodyHtml = null;
-            Html = null;
-            Attachments.Clear();
+            UnloadBody();
+            UnloadAttachments();
+            UnloadProperties();
+            UnloadRecipients();
+        }
+        public void UnloadBody()
+        {
+            _Body = null;
+            _BodyHtml = null;
+            _Html = null;
+            _RtfCompressed = null;
+            _IsContentLoaded = false;
         }
 
         public string GetBodyAsHtmlString()

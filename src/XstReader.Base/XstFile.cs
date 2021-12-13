@@ -190,18 +190,18 @@ namespace XstReader
 
             foreach (var m in messages)
             {
-                //// Do not reread properties for current message as it will fail updating the display
-                //if (m != view.CurrentMessage)
-                {
-                    try
-                    {
-                        m.ReadMessageDetails();
-                    }
-                    catch (XstException)
-                    {
-                        // Ignore file exceptions to get as much as we can
-                    }
-                }
+                ////// Do not reread properties for current message as it will fail updating the display
+                ////if (m != view.CurrentMessage)
+                //{
+                //    try
+                //    {
+                //        m.ReadMessageDetails();
+                //    }
+                //    catch (XstException)
+                //    {
+                //        // Ignore file exceptions to get as much as we can
+                //    }
+                //}
 
 
                 foreach (var p in m.Properties)
