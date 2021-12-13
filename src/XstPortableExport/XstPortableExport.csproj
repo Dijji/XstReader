@@ -16,32 +16,19 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Base\**" />
+    <EmbeddedResource Remove="XstExport\**" />
+    <None Remove="Base\**" />
+    <None Remove="XstExport\**" />
+  </ItemGroup>
   
  <ItemGroup>
-    <Compile Include="..\XstExport\Options.cs" Link="XstExport\Options.cs" />
-    <Compile Include="..\XstExport\Program.cs" Link="XstExport\Program.cs" />
-    <Compile Include="..\XstExport\XstExportException.cs" Link="XstExport\XstExportException.cs" />
-    <Compile Include="..\XstReader.Base\BTree.cs" Link="Base\BTree.cs" />
-    <Compile Include="..\XstReader.Base\Crypto.cs" Link="Base\Crypto.cs" />
-    <Compile Include="..\XstReader.Base\Extensions.cs" Link="Base\Extensions.cs" />
-    <Compile Include="..\XstReader.Base\Layouts.cs" Link="Base\Layouts.cs" />
-    <Compile Include="..\XstReader.Base\LayoutsA.cs" Link="Base\LayoutsA.cs" />
-    <Compile Include="..\XstReader.Base\LayoutsU.cs" Link="Base\LayoutsU.cs" />
-    <Compile Include="..\XstReader.Base\LayoutsU4K.cs" Link="Base\LayoutsU4K.cs" />
-    <Compile Include="..\XstReader.Base\LTP.cs" Link="Base\LTP.cs" />
-    <Compile Include="..\XstReader.Base\Map.cs" Link="Base\Map.cs" />
-    <Compile Include="..\XstReader.Base\Message.cs" Link="Base\Message.cs" />
-    <Compile Include="..\XstReader.Base\NamedProperties.cs" Link="Base\NamedProperties.cs" />
-    <Compile Include="..\XstReader.Base\NDB.cs" Link="Base\NDB.cs" />
-    <Compile Include="..\XstReader.Base\Property.cs" Link="Base\Property.cs" />
-    <Compile Include="..\XstReader.Base\RtfDecompressor.cs" Link="Base\RtfDecompressor.cs" />
-    <Compile Include="..\XstReader.Base\StandardProperties.cs" Link="Base\StandardProperties.cs" />
-    <Compile Include="..\XstReader.Base\XstFile.cs" Link="Base\XstFile.cs" />
-    <Compile Include="..\XstReader.Base\XstException.cs" Link="Base\XstException.cs" />
+    <Compile Include="..\XstExport\Options.cs" Link="Options.cs" />
+    <Compile Include="..\XstExport\Program.cs" Link="Program.cs" />
+    <Compile Include="..\XstExport\XstExportException.cs" Link="XstExportException.cs" />
  </ItemGroup>
   
- <ItemGroup>
-   <Folder Include="Base\" />
-   <Folder Include="XstExport\" />
- </ItemGroup>
+ <Import Project="..\XstReader.Base\XstReader.Base.projitems" Label="Shared" />
 </Project>

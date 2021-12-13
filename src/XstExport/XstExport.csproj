@@ -50,57 +50,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XstExportException.cs" />
-    <Compile Include="..\XstReader.Base\BTree.cs">
-      <Link>Base\BTree.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Crypto.cs">
-      <Link>Base\Crypto.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Extensions.cs">
-      <Link>Base\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Layouts.cs">
-      <Link>Base\Layouts.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LayoutsA.cs">
-      <Link>Base\LayoutsA.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LayoutsU.cs">
-      <Link>Base\LayoutsU.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LayoutsU4K.cs">
-      <Link>Base\LayoutsU4K.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LTP.cs">
-      <Link>Base\LTP.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Map.cs">
-      <Link>Base\Map.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Message.cs">
-      <Link>Base\Message.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\NamedProperties.cs">
-      <Link>Base\NamedProperties.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\NDB.cs">
-      <Link>Base\NDB.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Property.cs">
-      <Link>Base\Property.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\RtfDecompressor.cs">
-      <Link>Base\RtfDecompressor.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\StandardProperties.cs">
-      <Link>Base\StandardProperties.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\XstFile.cs">
-      <Link>Base\XstFile.cs</Link>
-    </Compile>
-	    <Compile Include="..\XstReader.Base\XstException.cs">
-      <Link>Base\XstException.cs</Link>
-    </Compile>
   </ItemGroup>
+  <Import Project="..\XstReader.Base\XstReader.Base.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -136,7 +136,7 @@ namespace XstExport
 
                 using (var xstFile = new XstFile(outlookFile))
                 {
-                    var root = xstFile.ReadFolderTree();
+                    var root = xstFile.RootFolder;
 
                     Folder sourceFolder = null;
                     if (outlookFolder != null)

@@ -133,57 +133,6 @@
     <Compile Include="SearchTextBox\SearchTextBox.cs" />
     <Compile Include="SortAdorner.cs" />
     <Compile Include="View.cs" />
-    <Compile Include="..\XstReader.Base\BTree.cs">
-      <Link>Base\BTree.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Crypto.cs">
-      <Link>Base\Crypto.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Extensions.cs">
-      <Link>Base\Extensions.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Layouts.cs">
-      <Link>Base\Layouts.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LayoutsA.cs">
-      <Link>Base\LayoutsA.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LayoutsU.cs">
-      <Link>Base\LayoutsU.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LayoutsU4K.cs">
-      <Link>Base\LayoutsU4K.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\LTP.cs">
-      <Link>Base\LTP.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Map.cs">
-      <Link>Base\Map.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Message.cs">
-      <Link>Base\Message.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\NamedProperties.cs">
-      <Link>Base\NamedProperties.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\NDB.cs">
-      <Link>Base\NDB.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\Property.cs">
-      <Link>Base\Property.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\RtfDecompressor.cs">
-      <Link>Base\RtfDecompressor.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\StandardProperties.cs">
-      <Link>Base\StandardProperties.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\XstFile.cs">
-      <Link>Base\XstFile.cs</Link>
-    </Compile>
-    <Compile Include="..\XstReader.Base\XstException.cs">
-      <Link>Base\XstException.cs</Link>
-    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -257,6 +206,7 @@
     <Resource Include="Resources\ic_search_black_18dp.png" />
     <Resource Include="Resources\ic_unfold_more_black_18dp.png" />
   </ItemGroup>
+  <Import Project="..\XstReader.Base\XstReader.Base.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
