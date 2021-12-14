@@ -106,7 +106,7 @@ namespace XstReader.Properties
             {EpropertyTag.PidTagAttachFlags, (a, val) => a.Flags = (AttachFlags)val },
             {EpropertyTag.PidTagAttachMimeTag, (a, val) => a.MimeTag = val },
             {EpropertyTag.PidTagAttachContentId, (a, val) => a.ContentId = val },
-            {EpropertyTag.PidTagAttachmentHidden, (a, val) => a.Hidden = val },
+            {EpropertyTag.PidTagAttachmentHidden, (a, val) => a.IsHidden = val },
         };
 
         // The properties we read when accessing the name of an attachment

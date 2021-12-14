@@ -16,6 +16,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\TreeNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\Crypto.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstAttachmentExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstMessageExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstPropertyExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layouts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsA.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsU.cs" />

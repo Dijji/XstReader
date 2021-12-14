@@ -100,7 +100,7 @@ namespace XstReader.Common
                     //data is uncompressed, this is very rare
                     //Should the header be excluded from what we return?
                     return new MemoryStream(data, HeaderLength, data.Length - HeaderLength);
-               
+
                 case (UInt32)CompressionTypes.Compressed:
 
                     //2.2.3
@@ -113,7 +113,6 @@ namespace XstReader.Common
 
                     byte[] dictionary = new byte[CircularDictionaryMaxLength];
                     var destination = new MemoryStream((int)header.rawSize);
-
                     // Initialise the dictionary
                     Array.Copy(InitialDictionary, 0, dictionary, 0, initialLength);
                     int dictionaryWrite = initialLength;
@@ -121,7 +120,7 @@ namespace XstReader.Common
 
                     try
                     {
-                        for (int i = HeaderLength; i < data.Length; )
+                        for (int i = HeaderLength; i < data.Length;)
                         {
                             var control = new BitArray(new byte[] { data[i] });
                             int offset = 1;
@@ -161,7 +160,7 @@ namespace XstReader.Common
                                     for (int k = 0; k < lower; k++)
                                     {
                                         int correctedOffset = (upper + k) % CircularDictionaryMaxLength; //2.1.3.1.4
-             
+
                                         if (destination.Position == header.rawSize)
                                             //this is the last token, the rest is just padding
                                             return destination;
@@ -172,11 +171,9 @@ namespace XstReader.Common
                                             dictionaryEnd = Math.Min(dictionaryWrite, CircularDictionaryMaxLength);
                                         dictionaryWrite %= CircularDictionaryMaxLength; //2.1.3.1.4
                                     }
-                                         
                                     offset += 2;
                                 }
                             }
-
                             //run is processed
                             i += offset;
                         }
@@ -185,6 +182,8 @@ namespace XstReader.Common
                     {
                         throw new XstException("Input stream is corrupt: index out of range");
                     }
+
+                    destination.Dispose();
                     break;
 
                 default:
@@ -200,7 +199,7 @@ namespace XstReader.Common
             UInt32 crc = 0;
             for (int i = offset; i < buffer.Length; i++)
                 crc = (CrcDictionary[((crc ^ buffer[i])) & 0xFF]) ^ (crc >> 8);
- 
+
             return crc;
         }
 

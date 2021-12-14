@@ -82,14 +82,18 @@ namespace XstReader
             Attachments.Clear();
         }
 
-        public void ReadSignedOrEncryptedMessage(XstFile xstFile)
+        public void ReadSignedOrEncryptedMessage()
         {
             XstAttachment a = Message.Attachments[0];
 
+            byte[] attachmentBytes = new byte[0];
+
             //get attachment bytes
-            var ms = new MemoryStream();
-            xstFile.SaveAttachment(ms, a);
-            byte[] attachmentBytes = ms.ToArray();
+            using (var ms = new MemoryStream())
+            {
+                a.SaveToStream(ms);
+                attachmentBytes = ms.ToArray();
+            }
 
             Message.ReadSignedOrEncryptedMessage(attachmentBytes);
         }
@@ -121,10 +125,7 @@ namespace XstReader
 
         private void OnPropertyChanged(String info)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
 
     }

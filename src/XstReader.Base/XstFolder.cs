@@ -54,8 +54,15 @@ namespace XstReader
 
             return _Folders;
         }
-        public void UnloadFolders()
-            => _Folders = null;
+        public void ClearForlders()
+        {
+            if (_Folders != null)
+            {
+                foreach (var folder in _Folders)
+                    folder.ClearContents();
+                _Folders = null;
+            }
+        }
         #endregion Folders
 
         #region Messages
@@ -78,8 +85,15 @@ namespace XstReader
             return _Messages;
         }
 
-        public void UnloadMessages()
-            => _Messages = null;
+        public void ClearMessages()
+        {
+            if(_Messages!=null)
+            {
+                foreach (var message in _Messages)
+                    message.ClearContents();
+                _Messages = null;
+            }
+        }
 
         private XstMessage Add4KMessageProperties(XstMessage m)
         {
@@ -88,5 +102,11 @@ namespace XstReader
         }
 
         #endregion Messages
+
+        public void ClearContents()
+        {
+            ClearForlders();
+            ClearMessages();
+        }
     }
 }

@@ -59,6 +59,15 @@ namespace XstReader
 
         private bool _IsContentLoaded = false;
         private Func<BTree<Node>> _ContentLoader = null;
+        internal Func<BTree<Node>> ContentLoader
+        {
+            get
+            {
+                ClearContents();
+                return _ContentLoader;
+            }
+            set => _ContentLoader = value;
+        }
 
         internal BodyType NativeBody { get; set; }
         private string _Body = null;
@@ -72,7 +81,7 @@ namespace XstReader
             internal set => _Body = value;
         }
         public bool IsBodyText => NativeBody == BodyType.PlainText ||
-                                  (NativeBody == BodyType.Undefined && Body != null && Body.Length > 0);
+                                  (NativeBody == BodyType.Undefined && Body?.Length > 0);
 
         private string _BodyHtml = null;
         public string BodyHtml
@@ -96,8 +105,7 @@ namespace XstReader
         }
 
         public bool IsBodyHtml => NativeBody == BodyType.HTML ||
-                                  (NativeBody == BodyType.Undefined &&
-                                      ((BodyHtml != null && BodyHtml.Length > 0) || (Html != null && Html.Length > 0)));
+                                  (NativeBody == BodyType.Undefined && (BodyHtml?.Length > 0 || Html?.Length > 0));
 
         private byte[] _RtfCompressed;
         public byte[] RtfCompressed
@@ -110,14 +118,15 @@ namespace XstReader
             internal set => _RtfCompressed = value;
         }
 
-        public bool IsBodyRtf => NativeBody == BodyType.RTF || (NativeBody == BodyType.Undefined && RtfCompressed != null && RtfCompressed.Length > 0);
+        public bool IsBodyRtf => NativeBody == BodyType.RTF ||
+                                 (NativeBody == BodyType.Undefined && RtfCompressed?.Length > 0);
 
         private List<XstAttachment> _Attachments = null;
         public List<XstAttachment> Attachments => GetAttachments();
         public bool HasAttachment => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
-        public bool MayHaveInlineAttachment => Attachments.FirstOrDefault(a => a.HasContentId) != null;
-        public bool HasFileAttachment => Attachments.FirstOrDefault(a => a.IsFile) != null;
-        public bool HasVisibleFileAttachment => Attachments.FirstOrDefault(a => a.IsFile && !a.Hide) != null;
+        public bool MayHaveInlineAttachment => Attachments.Any(a => a.HasContentId);
+        public bool HasFileAttachment => Attachments.Any(a => a.IsFile);
+        public bool HasVisibleFileAttachment => Attachments.Any(a => a.IsFile && !a.Hide);
 
         private List<XstProperty> _Properties = null;
         public List<XstProperty> Properties => GetProperties();
@@ -156,10 +165,8 @@ namespace XstReader
         {
             Folder = folder;
 
-            ClearContents();
-
             // Read the contents properties
-            _ContentLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
+            ContentLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
 
             return this;
         }
@@ -190,7 +197,6 @@ namespace XstReader
                 };
 
                 // Read the basic and contents properties
-                m.ClearContents();
                 m._ContentLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertiesGetter.pgMessageAttachment, m, true);
 
                 return m;
@@ -212,7 +218,7 @@ namespace XstReader
             return _Properties;
         }
 
-        public void UnloadProperties()
+        public void ClearProperties()
         {
             _Properties = null;
         }
@@ -257,7 +263,7 @@ namespace XstReader
             return _Attachments;
         }
 
-        public void UnloadAttachments()
+        public void ClearAttachments()
         {
             _Attachments = null;
         }
@@ -291,7 +297,7 @@ namespace XstReader
             return _Recipients;
         }
 
-        public void UnloadRecipients()
+        public void ClearRecipients()
         {
             _Recipients = null;
         }
@@ -299,13 +305,14 @@ namespace XstReader
 
         public void ClearContents()
         {
-            UnloadBody();
-            UnloadAttachments();
-            UnloadProperties();
-            UnloadRecipients();
+            ClearBody();
+            ClearAttachments();
+            ClearProperties();
+            ClearRecipients();
         }
-        public void UnloadBody()
+        public void ClearBody()
         {
+            SubNodeTreeProperties = null;
             _Body = null;
             _BodyHtml = null;
             _Html = null;
@@ -331,13 +338,29 @@ namespace XstReader
             return null;
         }
 
-        public void ExportToFile(string fullFileName, XstFile xstFile)
+
+        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName)
+        {
+            if (HasVisibleFileAttachment)
+            {
+                var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
+                    Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
+                if (!Directory.Exists(targetFolder))
+                {
+                    Directory.CreateDirectory(targetFolder);
+                    if (Date != null)
+                        Directory.SetCreationTime(targetFolder, (DateTime)Date);
+                }
+                Attachments.Where(a => a.IsFile && !a.Hide).SaveToFolder(targetFolder, Date);
+            }
+        }
+        public void SaveToFile(string fullFileName, bool includeVisibleAttachments = true)
         {
             if (IsBodyHtml)
             {
                 string body = GetBodyAsHtmlString();
                 if (MayHaveInlineAttachment)
-                    body = EmbedAttachments(body, xstFile);  // Returns null if this is not appropriate
+                    body = EmbedAttachments(body);  // Returns null if this is not appropriate
 
                 if (body != null)
                 {
@@ -379,6 +402,8 @@ namespace XstReader
                 if (Date != null)
                     File.SetCreationTime(fullFileName, (DateTime)Date);
             }
+            if (includeVisibleAttachments)
+                SaveVisibleAttachmentsToAssociatedFolder(fullFileName);
         }
 
 #if !NETCOREAPP
@@ -423,14 +448,12 @@ namespace XstReader
             if (body == null)
                 return null;
 
-            int insertAt;
-
             // look for an insertion point after a variety of tags in descending priority order
-            if (!LookForInsertionPoint(body, "body", out insertAt))
-                if (!LookForInsertionPoint(body, "meta", out insertAt))
-                    if (!LookForInsertionPoint(body, "html", out insertAt))
-                        //throw new Exception("Cannot locate insertion point in HTML email contents");
-                        insertAt = 0; // Just insert at the beginning
+            if (!LookForInsertionPoint(body, "body", out int insertAt) &&
+                !LookForInsertionPoint(body, "meta", out insertAt) &&
+                !LookForInsertionPoint(body, "html", out insertAt))
+                    //throw new Exception("Cannot locate insertion point in HTML email contents");
+                    insertAt = 0; // Just insert at the beginning
 
             const string row = "<tr style=\"font-family:Arial,Helvetica,sans-serif;font-size:12px;\">" +
                 "<td style=\"width:175px;vertical-align:top\"><b>{0}<b></td><td>{1}</td></tr>";
@@ -526,7 +549,7 @@ namespace XstReader
             { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
         }
 #endif
-        public string EmbedAttachments(string body, XstFile xst)
+        public string EmbedAttachments(string body)
         {
             if (body == null)
                 return null;
@@ -538,18 +561,19 @@ namespace XstReader
 
             return Regex.Replace(body, @"(="")cid:(.*?)("")", match =>
             {
-                XstAttachment a;
-
-                if (dict.TryGetValue(match.Groups[2].Value, out a))
+                if (dict.TryGetValue(match.Groups[2].Value, out XstAttachment a))
                 {
                     // There are limits to what we can push into an inline data image, 
                     // but we don't know exactly what
                     // Todo handle limit when known
                     a.WasRenderedInline = true;
-                    var s = new MemoryStream();
-                    xst.SaveAttachment(s, a);
-                    s.Seek(0, SeekOrigin.Begin);
-                    var cooked = match.Groups[1] + @"data:image/jpg;base64," + EscapeString(Convert.ToBase64String(s.ToArray())) + match.Groups[3];
+                    string cooked = null;
+                    using (var s = new MemoryStream())
+                    {
+                        a.SaveToStream(s);
+                        s.Seek(0, SeekOrigin.Begin);
+                        cooked = match.Groups[1] + @"data:image/jpg;base64," + EscapeString(Convert.ToBase64String(s.ToArray())) + match.Groups[3];
+                    }
                     return cooked;
                 }
 
@@ -728,9 +752,9 @@ namespace XstReader
         private Dictionary<string, string> GetHeaders(StringReader mimeText)
         {
             Dictionary<string, string> Headers = new Dictionary<string, string>();
-
-            string line = string.Empty;
             string lastHeader = string.Empty;
+
+            string line;
             while ((!string.IsNullOrEmpty(line = mimeText.ReadLine()) && (line.Trim().Length != 0)))
             {
 

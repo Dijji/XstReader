@@ -52,10 +52,7 @@ namespace XstReader.Common.BTrees
                 }
                 else // key matches
                 {
-                    if (n is TreeIntermediate)
-                        return LookupTreeNode((TreeIntermediate)n, key, readDeferred);
-                    else
-                        return n;
+                    return n is TreeIntermediate ? LookupTreeNode((TreeIntermediate)n, key, readDeferred) : n;
                 }
             }
             if (next != null)

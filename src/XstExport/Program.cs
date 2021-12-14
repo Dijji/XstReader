@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using XstReader;
-using XstReader.Properties;
 
 namespace XstExport
 {
@@ -120,7 +119,7 @@ namespace XstExport
                 {
                     throw new XstExportException
                     {
-                        Description = @"Cannot find Outlook file '{outlookFile}'",
+                        Description = $"Cannot find Outlook file '{outlookFile}'",
                         ErrorCode = WindowsErrorCodes.ERROR_FILE_NOT_FOUND
                     };
                 }
@@ -147,7 +146,7 @@ namespace XstExport
                         {
                             throw new XstExportException
                             {
-                                Description = @"Cannot find folder '{outlookFolder}' in '{outlookFile}'",
+                                Description = $"Cannot find folder '{outlookFolder}' in '{outlookFile}'",
                                 ErrorCode = WindowsErrorCodes.ERROR_INVALID_PARAMETER
                             };
                         }
@@ -184,7 +183,7 @@ namespace XstExport
                         else
                             targetDir = exportDir;
 
-                        ExportFolder(xstFile, f, command, targetDir);
+                        ExportFolder(f, command, targetDir);
                     }
                 }
             }
@@ -210,7 +209,7 @@ namespace XstExport
             return 0;
         }
 
-        private static void ExportFolder(XstFile xstFile, XstFolder folder, Command command, string exportDir)
+        private static void ExportFolder(XstFolder folder, Command command, string exportDir)
         {
             if (folder.ContentCount == 0)
             {
@@ -228,13 +227,13 @@ namespace XstExport
             switch (command)
             {
                 case Command.Email:
-                    ExtractEmailsInFolder(xstFile, folder, exportDir);
+                    ExtractEmailsInFolder(folder, exportDir);
                     break;
                 case Command.Properties:
-                    ExtractPropertiesInFolder(xstFile, folder, exportDir);
+                    ExtractPropertiesInFolder(folder, exportDir);
                     break;
                 case Command.Attachments:
-                    ExtractAttachmentsInFolder(xstFile, folder, exportDir);
+                    ExtractAttachmentsInFolder(folder, exportDir);
                     break;
                 case Command.Help:
                 default:
@@ -306,7 +305,7 @@ namespace XstExport
             if (string.IsNullOrEmpty(f.ParentFolder?.Name))
                 return RemoveInvalidChars(f.Name);
             else
-                return $"{ValidFolderPath(f.ParentFolder)}\\{RemoveInvalidChars(f.Name)}";
+                return Path.Combine(ValidFolderPath(f.ParentFolder), RemoveInvalidChars(f.Name));
         }
 
         private static string RemoveInvalidChars(string filename)
@@ -314,7 +313,7 @@ namespace XstExport
             return filename.ReplaceInvalidFileNameChars("");
         }
 
-        private static void ExtractEmailsInFolder(XstFile xstFile, XstFolder folder, string exportDirectory)
+        private static void ExtractEmailsInFolder(XstFolder folder, string exportDirectory)
         {
             XstMessage current = null;
             int good = 0, bad = 0;
@@ -337,38 +336,31 @@ namespace XstExport
                             break;
                         }
                         else
-                            fileName = String.Format("{0} ({1})", m.ExportFileName, i);
+                            fileName = $"{m.ExportFileName} ({i})";
                     }
 
-                    Console.WriteLine("Exporting " + m.ExportFileName);
+                    Console.WriteLine($"Exporting {m.ExportFileName}");
 
-                    // Ensure that we have the message contents
-                    m.ReadMessageDetails();
-                    var fullFileName = String.Format(@"{0}\{1}.{2}",
-                                exportDirectory, fileName, m.ExportFileExtension);
-                    m.ExportToFile(fullFileName, xstFile);
-                    xstFile.SaveVisibleAttachmentsToAssociatedFolder(fullFileName, m);
+                    m.SaveToFile(Path.Combine(exportDirectory, $"{fileName}.{m.ExportFileExtension}"));
                     good++;
                 }
                 catch (System.Exception ex)
                 {
-                    Console.WriteLine(String.Format("Error '{0}' exporting email '{1}'",
-                        ex.Message, current.Subject));
+                    Console.WriteLine($"Error '{ex.Message}' exporting email '{current.Subject}'");
                     bad++;
-
                 }
             }
             Console.WriteLine($"Folder '{folder.Name}' completed with {good} successes and {bad} failures");
         }
 
-        private static void ExtractPropertiesInFolder(XstFile xstFile, XstFolder folder, string exportDirectory)
+        private static void ExtractPropertiesInFolder(XstFolder folder, string exportDirectory)
         {
-            var fileName = Path.Combine(exportDirectory, RemoveInvalidChars(folder.Name)) + ".csv";
-            Console.WriteLine("Exporting " + fileName);
-            xstFile.ExportMessageProperties(folder.Messages, fileName);
+            var fileName = Path.Combine(exportDirectory, $"{RemoveInvalidChars(folder.Name)}.csv");
+            Console.WriteLine($"Exporting {fileName}");
+            folder.Messages.SavePropertiesToFile(fileName);
         }
 
-        private static void ExtractAttachmentsInFolder(XstFile xstFile, XstFolder folder, string exportDirectory)
+        private static void ExtractAttachmentsInFolder(XstFolder folder, string exportDirectory)
         {
             int good = 0, bad = 0;
 
@@ -376,7 +368,6 @@ namespace XstExport
             {
                 try
                 {
-                    message.ReadMessageDetails();
                     foreach (var att in message.Attachments)
                     {
                         if (att.IsFile)
@@ -386,26 +377,18 @@ namespace XstExport
                             var actionName = string.Empty;
 
                             if (!fi.Exists)
-                            {
                                 actionName = "Create";
-                            }
+                            else if (fi.CreationTime < message.Received)
+                                actionName = "CreateNewer";
                             else
-                            {
-                                if (fi.CreationTime < message.Received)
-                                {
-                                    actionName = "CreateNewer";
-                                }
-                                else
-                                {
-                                    actionName = "Skip";
-                                }
-                            }
+                                actionName = "Skip";
+                            
                             Console.WriteLine($"{actionName} : {attachmentExpectedName}");
                             switch (actionName)
                             {
                                 case "Create":
                                 case "CreateNewer":
-                                    xstFile.SaveAttachment(attachmentExpectedName, message.Received, att);
+                                    att.SaveToFile(attachmentExpectedName, message.Received);
                                     break;
                                 default:
                                     break;
@@ -416,10 +399,8 @@ namespace XstExport
                 }
                 catch (System.Exception ex)
                 {
-                    Console.WriteLine(String.Format("Error '{0}' exporting email '{1}'",
-                        ex.Message, message.Subject));
+                    Console.WriteLine($"Error '{ex.Message}' exporting email '{message.Subject}'");
                     bad++;
-
                 }
             }
 

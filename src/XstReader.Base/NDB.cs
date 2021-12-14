@@ -168,54 +168,59 @@ namespace XstReader
         private void ReadHeaderAndIndexes()
         {
             var fs = XstFile.ReadStream;
-            var h = Map.ReadType<FileHeader1>(fs);
+            lock (XstFile.StreamLock)
+            {
+                var h = Map.ReadType<FileHeader1>(fs);
 
-            if (h.dwMagic != 0x4e444221)
-                throw new XstException("File is not a .ost or .pst file: the magic cookie is missing");
+                if (h.dwMagic != 0x4e444221)
+                    throw new XstException("File is not a .ost or .pst file: the magic cookie is missing");
 
-            if (h.wVer == 0x15 || h.wVer == 0x17)
-            {
-                var h2 = Map.ReadType<FileHeader2Unicode>(fs);
-                bCryptMethod = h2.bCryptMethod;
-                IsUnicode = true;
-                ReadBTPageUnicode(fs, h2.root.BREFNBT.ib, nodeTree.Root);
-                ReadBTPageUnicode(fs, h2.root.BREFBBT.ib, dataTree.Root);
+                if (h.wVer == 0x15 || h.wVer == 0x17)
+                {
+                    var h2 = Map.ReadType<FileHeader2Unicode>(fs);
+                    bCryptMethod = h2.bCryptMethod;
+                    IsUnicode = true;
+                    ReadBTPageUnicode(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                    ReadBTPageUnicode(fs, h2.root.BREFBBT.ib, dataTree.Root);
+                }
+                else if (h.wVer == 0x24)
+                {
+                    // This value indicates the use of 4K pages, as opposed to 512 bytes
+                    // It is used only in .ost files, and was introduced in Office 2013
+                    // It is not documented in [MS-PST], being .ost only
+                    var h2 = Map.ReadType<FileHeader2Unicode>(fs);
+                    bCryptMethod = h2.bCryptMethod;
+                    IsUnicode = true;
+                    IsUnicode4K = true;
+                    ReadBTPageUnicode4K(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                    ReadBTPageUnicode4K(fs, h2.root.BREFBBT.ib, dataTree.Root);
+                }
+                else if (h.wVer == 0x0e || h.wVer == 0x0f)
+                {
+                    var h2 = Map.ReadType<FileHeader2ANSI>(fs);
+                    bCryptMethod = h2.bCryptMethod;
+                    IsUnicode = false;
+                    ReadBTPageANSI(fs, h2.root.BREFNBT.ib, nodeTree.Root);
+                    ReadBTPageANSI(fs, h2.root.BREFBBT.ib, dataTree.Root);
+                }
+                else
+                    throw new XstException("Unrecognised header type");
             }
-            else if (h.wVer == 0x24)
-            {
-                // This value indicates the use of 4K pages, as opposed to 512 bytes
-                // It is used only in .ost files, and was introduced in Office 2013
-                // It is not documented in [MS-PST], being .ost only
-                var h2 = Map.ReadType<FileHeader2Unicode>(fs);
-                bCryptMethod = h2.bCryptMethod;
-                IsUnicode = true;
-                IsUnicode4K = true;
-                ReadBTPageUnicode4K(fs, h2.root.BREFNBT.ib, nodeTree.Root);
-                ReadBTPageUnicode4K(fs, h2.root.BREFBBT.ib, dataTree.Root);
-            }
-            else if (h.wVer == 0x0e || h.wVer == 0x0f)
-            {
-                var h2 = Map.ReadType<FileHeader2ANSI>(fs);
-                bCryptMethod = h2.bCryptMethod;
-                IsUnicode = false;
-                ReadBTPageANSI(fs, h2.root.BREFNBT.ib, nodeTree.Root);
-                ReadBTPageANSI(fs, h2.root.BREFBBT.ib, dataTree.Root);
-            }
-            else
-                throw new XstException("Unrecognised header type");
         }
 
         // A callback to be used when searching a tree to read part of the index whose loading has been deferred
         private void ReadDeferredIndex(TreeIntermediate inter)
         {
             var fs = XstFile.ReadStream;
-            if (IsUnicode4K)
-                ReadBTPageUnicode4K(fs, (ulong)inter.fileOffset, inter);
-            else if (IsUnicode)
-                ReadBTPageUnicode(fs, (ulong)inter.fileOffset, inter);
-            else
-                ReadBTPageANSI(fs, (ulong)inter.fileOffset, inter);
-
+            lock (XstFile.StreamLock)
+            {
+                if (IsUnicode4K)
+                    ReadBTPageUnicode4K(fs, (ulong)inter.fileOffset, inter);
+                else if (IsUnicode)
+                    ReadBTPageUnicode(fs, (ulong)inter.fileOffset, inter);
+                else
+                    ReadBTPageANSI(fs, (ulong)inter.fileOffset, inter);
+            }
             // Don't read it again
             inter.fileOffset = null;
         }
@@ -381,8 +386,7 @@ namespace XstReader
         private IEnumerable<byte[]> ReadDataBlocksInternal(UInt64 dataBid, uint totalLength = 0)
         {
             var rb = LookupDataBlock(dataBid);
-            int read;
-            byte[] buffer = ReadAndDecompress(rb, out read);
+            byte[] buffer = ReadAndDecompress(rb, out _);
 
             if (rb.IsInternal)
             {
@@ -437,8 +441,7 @@ namespace XstReader
 
             // First guy in allocates enough to hold the initial block
             // This is either the one and only block, or gets replaced when we find out how much data there is in total
-            int read;
-            buffer = ReadAndDecompress(rb, out read, buffer, offset);
+            buffer = ReadAndDecompress(rb, out int read, buffer, offset);
 
             if (rb.IsInternal)
             {
@@ -510,33 +513,35 @@ namespace XstReader
                 throw new XstException("Data block does not exist");
 
             var fs = XstFile.ReadStream;
-            if (IsUnicode4K && rb.Length != rb.InflatedLength)
+            lock (XstFile.StreamLock)
             {
-                fs.Seek((long)rb.Offset, SeekOrigin.Begin);
+                if (IsUnicode4K && rb.Length != rb.InflatedLength)
+                {
+                    fs.Seek((long)rb.Offset, SeekOrigin.Begin);
 
-                // The first two bytes are a zlib header which DeflateStream does not understand
-                // They should be 0x789c, the magic code for default compression
-                if (fs.ReadByte() != 0x78 || fs.ReadByte() != 0x9c)
-                    throw new XstException("Unexpected header in compressed data stream");
+                    // The first two bytes are a zlib header which DeflateStream does not understand
+                    // They should be 0x789c, the magic code for default compression
+                    if (fs.ReadByte() != 0x78 || fs.ReadByte() != 0x9c)
+                        throw new XstException("Unexpected header in compressed data stream");
 
-                using (DeflateStream decompressionStream = new DeflateStream(fs, CompressionMode.Decompress, true))
+                    using (DeflateStream decompressionStream = new DeflateStream(fs, CompressionMode.Decompress, true))
+                    {
+                        if (buffer == null)
+                            buffer = new byte[rb.InflatedLength];
+
+                        decompressionStream.Read(buffer, offset, rb.InflatedLength);
+                    }
+                    read = rb.InflatedLength;
+                }
+                else
                 {
                     if (buffer == null)
-                        buffer = new byte[rb.InflatedLength];
-
-                    decompressionStream.Read(buffer, offset, rb.InflatedLength);
+                        buffer = new byte[rb.Length];
+                    fs.Seek((long)rb.Offset, SeekOrigin.Begin);
+                    fs.Read(buffer, offset, rb.Length);
+                    read = rb.Length;
                 }
-                read = rb.InflatedLength;
             }
-            else
-            {
-                if (buffer == null)
-                    buffer = new byte[rb.Length];
-                fs.Seek((long)rb.Offset, SeekOrigin.Begin);
-                fs.Read(buffer, offset, rb.Length);
-                read = rb.Length;
-            }
-
             // To actually get the block trailer, we would need to skip to the next 64 byte boundary, minus size of trailer
             //var t = Map.ReadType<BLOCKTRAILERUnicode>(fs);
 
@@ -551,8 +556,7 @@ namespace XstReader
             if (rb == null)
                 throw new XstException("SubNode data block does not exist");
 
-            int read;
-            byte[] buffer = ReadAndDecompress(rb, out read);
+            byte[] buffer = ReadAndDecompress(rb, out _);
             var sl = Map.MapType<SLBLOCKUnicode>(buffer);
 
             if (sl.cLevel > 0)
@@ -587,8 +591,7 @@ namespace XstReader
             if (rb == null)
                 throw new XstException("SubNode data block does not exist");
 
-            int read;
-            byte[] buffer = ReadAndDecompress(rb, out read);
+            byte[] buffer = ReadAndDecompress(rb, out _);
             var sl = Map.MapType<SLBLOCKANSI>(buffer);
 
             if (sl.cLevel > 0)
