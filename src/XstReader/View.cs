@@ -23,26 +23,65 @@ namespace XstReader
         public ObservableCollection<FolderView> RootFolderViews { get; private set; } = new ObservableCollection<FolderView>();
         public FolderView SelectedFolder
         {
-            get { return selectedFolder; }
-            set { selectedFolder = value; OnPropertyChanged(nameof(SelectedFolder), nameof(CanExportFolder)); }
+            get => selectedFolder;
+            set
+            {
+                if (selectedFolder != value)
+                {
+                    selectedFolder = value;
+                    OnPropertyChanged(nameof(SelectedFolder), nameof(CanExportFolder));
+                }
+            }
         }
         public bool DisplayPrintHeaders { get; set; } = false;
         public bool DisplayEmailType { get; set; } = false;
-        public bool DisplayHeaderFields { get { return !DisplayPrintHeaders; } }
-        public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged(nameof(IsBusy), nameof(IsNotBusy), nameof(CanExportFolder)); } }
-        public bool IsNotBusy { get { return !isBusy; } }
+        public bool DisplayHeaderFields => !DisplayPrintHeaders;
+        public bool IsBusy
+        {
+            get => isBusy;
+            set
+            {
+                if (isBusy != value)
+                {
+                    isBusy = value;
+                    OnPropertyChanged(nameof(IsBusy), nameof(IsNotBusy), nameof(CanExportFolder));
+                }
+            }
+        }
+        public bool IsNotBusy => !isBusy;
         public ObservableCollection<XstProperty> CurrentProperties { get; private set; } = new ObservableCollection<XstProperty>();
-        public bool IsMessagePresent { get { return (CurrentMessage != null); } }
-        public bool CanSaveEmail { get { return ShowContent && CurrentMessage != null; } }
-        public bool CanPopMessage { get { return (stackMessage.Count > 0); } }
-        public bool CanExportFolder { get { return !IsBusy && SelectedFolder != null; } }
-        public bool CanExportProperties { get { return IsMessagePresent && ShowProperties; } }
-        public bool IsAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasAttachment); } }
-        public bool IsFileAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasFileAttachment); } }
-        public bool IsFileAttachmentSelected { get { return fileAttachmentSelected; } set { fileAttachmentSelected = value; OnPropertyChanged(nameof(IsFileAttachmentSelected)); } }
-        public bool IsEmailAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment); } }
-        public bool IsEmailAttachmentSelected { get { return emailAttachmentSelected; } set { emailAttachmentSelected = value; OnPropertyChanged(nameof(IsEmailAttachmentSelected)); } }
-
+        public bool IsMessagePresent => (CurrentMessage != null);
+        public bool CanSaveEmail => ShowContent && CurrentMessage != null;
+        public bool CanPopMessage => stackMessage.Count > 0;
+        public bool CanExportFolder => !IsBusy && SelectedFolder != null;
+        public bool CanExportProperties => IsMessagePresent && ShowProperties;
+        public bool IsAttachmentPresent => ShowContent && CurrentMessage != null && CurrentMessage.HasAttachment;
+        public bool IsFileAttachmentPresent => ShowContent && CurrentMessage != null && CurrentMessage.HasFileAttachment;
+        public bool IsFileAttachmentSelected
+        {
+            get => fileAttachmentSelected;
+            set
+            {
+                if (fileAttachmentSelected != value)
+                {
+                    fileAttachmentSelected = value;
+                    OnPropertyChanged(nameof(IsFileAttachmentSelected));
+                }
+            }
+        }
+        public bool IsEmailAttachmentPresent => ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment;
+        public bool IsEmailAttachmentSelected
+        {
+            get => emailAttachmentSelected;
+            set
+            {
+                if (emailAttachmentSelected != value)
+                {
+                    emailAttachmentSelected = value;
+                    OnPropertyChanged(nameof(IsEmailAttachmentSelected));
+                }
+            }
+        }
         public MessageView CurrentMessage
         {
             get { return currentMessage; }
@@ -132,7 +171,9 @@ namespace XstReader
 
         public void Clear()
         {
+            SelectedFolder?.Folder?.ClearContents();
             SelectedFolder = null;
+            CurrentMessage?.Message?.ClearContents();
             CurrentMessage = null;
             RootFolderViews.Clear();
             stackMessage.Clear();

@@ -11,9 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XstPortableExport", "XstPor
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "XstReader.Base", "XstReader.Base\XstReader.Base.shproj", "{33078474-CED1-4BB0-8D5E-6454379A78F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XstReader.Api", "XstReader.Api\XstReader.Api.csproj", "{762573D6-8F96-4149-8249-DE6D44DFDA4B}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		XstReader.Base\XstReader.Base.projitems*{33078474-ced1-4bb0-8d5e-6454379a78f4}*SharedItemsImports = 13
+		XstReader.Base\XstReader.Base.projitems*{762573d6-8f96-4149-8249-de6d44dfda4b}*SharedItemsImports = 4
 		XstReader.Base\XstReader.Base.projitems*{7f44a6aa-0279-4cbc-8c15-414a591f39bc}*SharedItemsImports = 5
 		XstReader.Base\XstReader.Base.projitems*{bb8e0530-8ea6-4e02-9399-03a9ab13705f}*SharedItemsImports = 4
 		XstReader.Base\XstReader.Base.projitems*{c2753a62-a0bd-41ae-b029-59ce54bfc007}*SharedItemsImports = 4
@@ -35,6 +38,10 @@ Global
 		{7F44A6AA-0279-4CBC-8C15-414A591F39BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F44A6AA-0279-4CBC-8C15-414A591F39BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F44A6AA-0279-4CBC-8C15-414A591F39BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{762573D6-8F96-4149-8249-DE6D44DFDA4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{762573D6-8F96-4149-8249-DE6D44DFDA4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{762573D6-8F96-4149-8249-DE6D44DFDA4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{762573D6-8F96-4149-8249-DE6D44DFDA4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,18 +8,15 @@ namespace XstReader
     public class FolderView
     {
         public XstFolder Folder { get; private set; }
-        public string Name { get { return Folder.Name; } }
-        public uint ContentCount { get { return Folder.ContentCount; } }
-        public string Description { get { return String.Format("{0} ({1})", Name, ContentCount); } }
+        public string Name => Folder.Name;
+        public uint ContentCount => Folder.ContentCount;
+        public string Description => $"{Name} ({ContentCount})";
         public ObservableCollection<FolderView> FolderViews { get; private set; } = new ObservableCollection<FolderView>();
         public ObservableCollection<MessageView> MessageViews { get; private set; } = new ObservableCollection<MessageView>();
 
         public FolderView(XstFolder folder)
         {
-            if (folder == null)
-                throw new XstException("FolderView requires a Folder object");
-
-            Folder = folder;
+            Folder = folder ?? throw new XstException("FolderView requires a Folder object");
 
             // Recursively add views for any subfolders
             foreach (XstFolder f in folder.Folders)

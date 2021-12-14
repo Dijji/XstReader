@@ -23,48 +23,48 @@ namespace XstReader
         }
 
         public XstMessage Message { get; private set; }
-        public string From { get { return Message.From; } }
-        public string To { get { return Message.To; } }
-        public string Cc { get { return Message.Cc; } }
-        public string FromTo { get { return Message.Folder.Name.StartsWith("Sent") ? To : From; } }
-        public string Subject { get { return Message.Subject; } }
-        public DateTime? Received { get { return Message.Received; } }
-        public DateTime? Submitted { get { return Message.Submitted; } }
-        public DateTime? Modified { get { return Message.Modified; } }  // When any attachment was last modified
-        public DateTime? Date { get { return Received ?? Submitted; } }
-        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; } }
-        public string Body { get { return Message.Body; } }
-        public string BodyHtml { get { return Message.BodyHtml; } }
-        public byte[] Html { get { return Message.Html; } }
-        public byte[] RtfCompressed { get { return Message.RtfCompressed; } }
+        public string From => Message.From; 
+        public string To => Message.To; 
+        public string Cc => Message.Cc; 
+        public string FromTo => Message.Folder.Name.StartsWith("Sent") ? To : From; 
+        public string Subject => Message.Subject;
+        public DateTime? Received => Message.Received; 
+        public DateTime? Submitted => Message.Submitted; 
+        public DateTime? Modified => Message.Modified; // When any attachment was last modified
+        public DateTime? Date => Received ?? Submitted; 
+        public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; 
+        public string Body => Message.Body;
+        public string BodyHtml => Message.BodyHtml; 
+        public byte[] Html => Message.Html; 
+        public byte[] RtfCompressed => Message.RtfCompressed; 
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
-        public List<XstRecipient> Recipients { get { return Message.Recipients; } }
-        public List<XstProperty> Properties { get { return Message.Properties; } }
-        public bool MayHaveInlineAttachment { get { return Message.MayHaveInlineAttachment; } }
-        public bool IsEncryptedOrSigned { get { return Message.IsEncryptedOrSigned; } }
+        public List<XstRecipient> Recipients => Message.Recipients; 
+        public List<XstProperty> Properties => Message.Properties; 
+        public bool MayHaveInlineAttachment => Message.MayHaveInlineAttachment; 
+        public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned; 
 
         // The following properties are used in XAML bindings to control the UI
-        public bool HasAttachment { get { return Message.HasAttachment; } }
-        public bool HasFileAttachment { get { return Message.HasFileAttachment; } }
-        public bool HasVisibleFileAttachment { get { return Message.HasVisibleFileAttachment; } }
-        public bool HasEmailAttachment { get { return (Attachments.FirstOrDefault(a => a.IsEmail) != null); } }
-        public bool ShowText { get { return Message.IsBodyText; } }
-        public bool ShowHtml { get { return Message.IsBodyHtml; } }
-        public bool ShowRtf { get { return Message.IsBodyRtf; } }
+        public bool HasAttachment => Message.HasAttachment; 
+        public bool HasFileAttachment => Message.HasFileAttachment; 
+        public bool HasVisibleFileAttachment => Message.HasVisibleFileAttachment; 
+        public bool HasEmailAttachment => Attachments.Any(a => a.IsEmail); 
+        public bool ShowText => Message.IsBodyText;
+        public bool ShowHtml => Message.IsBodyHtml; 
+        public bool ShowRtf => Message.IsBodyRtf; 
 
-        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
-        public string ToDisplayList { get { return Message.ToDisplayList; } }
-        public bool HasCcDisplayList { get { return CcDisplayList.Length > 0; } }
-        public string CcDisplayList { get { return Message.CcDisplayList; } }
-        public bool HasBccDisplayList { get { return BccDisplayList.Length > 0; } }
-        public string BccDisplayList { get { return Message.BccDisplayList; } }
-        public string FileAttachmentDisplayList { get { return Message.FileAttachmentDisplayList; } }
-        public string ExportFileName { get { return Message.ExportFileName; } }
-        public string ExportFileExtension { get { return Message.ExportFileExtension; } }
+        public bool HasToDisplayList => ToDisplayList.Length > 0; 
+        public string ToDisplayList => Message.ToDisplayList; 
+        public bool HasCcDisplayList => CcDisplayList.Length > 0; 
+        public string CcDisplayList => Message.CcDisplayList; 
+        public bool HasBccDisplayList => BccDisplayList.Length > 0; 
+        public string BccDisplayList => Message.BccDisplayList; 
+        public string FileAttachmentDisplayList => Message.FileAttachmentDisplayList;
+        public string ExportFileName => Message.ExportFileName;
+        public string ExportFileExtension => Message.ExportFileExtension; 
 
         public bool IsSelected
         {
-            get { return isSelected; }
+            get => isSelected; 
             set
             {
                 if (value != isSelected)
