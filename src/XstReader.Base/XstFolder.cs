@@ -54,7 +54,7 @@ namespace XstReader
 
             return _Folders;
         }
-        public void ClearForlders()
+        private void ClearForlders()
         {
             if (_Folders != null)
             {

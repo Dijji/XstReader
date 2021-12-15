@@ -10,7 +10,7 @@ namespace XstReader
 {
     public class XstAttachment
     {
-        public XstMessage Message { get; set; }
+        public XstMessage Message { get; internal set; }
         public XstFolder Folder => Message.Folder;
         public XstFile XstFile => Folder.XstFile;
         internal LTP Ltp => XstFile.Ltp;
@@ -35,7 +35,7 @@ namespace XstReader
         public bool WasRenderedInline { get; set; } = false;
         public bool WasLoadedFromMime { get; set; } = false;
 
-        public string Type => IsFile ? "File" : IsEmail ? "Email" : "Other";
+        public XstAttachmentType Type => IsFile ? XstAttachmentType.File : IsEmail ? XstAttachmentType.Email : XstAttachmentType.Other;
 
         public string Description => IsFile ? FileName : DisplayName;
 
@@ -86,7 +86,7 @@ namespace XstReader
             return new List<XstProperty>(Ltp.ReadAllProperties(subNodeTreeMessage, Nid, XstAttachment.attachmentContentExclusions, true));
         }
 
-        internal static readonly HashSet<EpropertyTag> attachmentContentExclusions = new HashSet<EpropertyTag>
+        private static readonly HashSet<EpropertyTag> attachmentContentExclusions = new HashSet<EpropertyTag>
         {
             EpropertyTag.PidTagAttachDataBinary,
         };

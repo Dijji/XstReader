@@ -562,9 +562,7 @@ namespace XstReader
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (mv.ShowHtml)
                     {
-                        string body = mv.Message.GetBodyAsHtmlString();
-                        if (mv.MayHaveInlineAttachment)
-                            body = mv.Message.EmbedAttachments(body);  // Returns null if this is not appropriate
+                        string body = mv.Message.GetBodyAsHtmlString(true);
 
                         if (body != null)
                         {

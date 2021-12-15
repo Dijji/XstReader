@@ -67,7 +67,7 @@ namespace XstReader
         /// <summary>
         /// Clears information and memory used in RootFolder
         /// </summary>
-        public void ClearRootFolder()
+        private void ClearRootFolder()
         {
             if (_RootFolder != null)
             {

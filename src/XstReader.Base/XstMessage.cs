@@ -23,6 +23,8 @@ namespace XstReader
 
     public class XstMessage
     {
+        private static RtfDecompressor RtfDecompressor = new RtfDecompressor();
+
         public XstFolder Folder { get; private set; }
         public XstAttachment ParentAttachment { get; private set; }
         public XstFile XstFile => Folder.XstFile;
@@ -118,6 +120,20 @@ namespace XstReader
             internal set => _RtfCompressed = value;
         }
 
+        private string _BodyRtfText = null;
+        public string BodyRtfText
+        {
+            get
+            {
+                if (_BodyRtfText == null)
+                {
+                    using (MemoryStream ms = RtfDecompressor.Decompress(RtfCompressed, true))
+                        _BodyRtfText = GetEncoding().GetString(ms.ToArray());
+                }
+                return _BodyRtfText;
+            }
+        }
+
         public bool IsBodyRtf => NativeBody == BodyType.RTF ||
                                  (NativeBody == BodyType.Undefined && RtfCompressed?.Length > 0);
 
@@ -130,7 +146,7 @@ namespace XstReader
 
         private List<XstProperty> _Properties = null;
         public List<XstProperty> Properties => GetProperties();
-        public bool IsEncryptedOrSigned => GetBodyAsHtmlString() == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m";
+        public bool IsEncryptedOrSigned => GetBodyAsHtmlString(false) == null && Attachments.Count() == 1 && Attachments[0].FileName == "smime.p7m";
 
         public string FileAttachmentDisplayList => String.Join("; ", Attachments.Where(a => a.IsFile && !a.Hide).Select(a => a.FileName));
 
@@ -143,10 +159,8 @@ namespace XstReader
         internal BTree<Node> SubNodeTreeParentAttachment = null;
         public bool IsAttached => SubNodeTreeParentAttachment != null;
 
-        #region PropertyGetters
-        // We use sets of PropertyGetters to define the equivalent of queries when reading property sets and tables
-
-        internal static readonly HashSet<EpropertyTag> contentExclusions = new HashSet<EpropertyTag>
+        #region Content Exclusions
+        private static readonly HashSet<EpropertyTag> ContentExclusions = new HashSet<EpropertyTag>
         {
             EpropertyTag.PidTagNativeBody,
             EpropertyTag.PidTagBody,
@@ -154,7 +168,7 @@ namespace XstReader
             EpropertyTag.PidTagRtfCompressed,
         };
 
-        #endregion PropertyGetters
+        #endregion Content Exclusions
 
         /// <summary>
         /// Initialization for Messages in a Folder
@@ -169,12 +183,6 @@ namespace XstReader
             ContentLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
 
             return this;
-        }
-
-        private void LoadContents()
-        {
-            SubNodeTreeProperties = _ContentLoader?.Invoke();
-            _IsContentLoaded = SubNodeTreeProperties != null;
         }
 
         internal static XstMessage GetAttachedMessage(XstAttachment attachment)
@@ -211,14 +219,14 @@ namespace XstReader
             if (_Properties == null)
             {
                 if (SubNodeTreeParentAttachment != null)
-                    _Properties = Ltp.ReadAllProperties(SubNodeTreeParentAttachment, Nid, contentExclusions, true).ToList();
+                    _Properties = Ltp.ReadAllProperties(SubNodeTreeParentAttachment, Nid, ContentExclusions, true).ToList();
                 else
-                    _Properties = Ltp.ReadAllProperties(Nid, contentExclusions).ToList();
+                    _Properties = Ltp.ReadAllProperties(Nid, ContentExclusions).ToList();
             }
             return _Properties;
         }
 
-        public void ClearProperties()
+        private void ClearProperties()
         {
             _Properties = null;
         }
@@ -263,7 +271,7 @@ namespace XstReader
             return _Attachments;
         }
 
-        public void ClearAttachments()
+        private void ClearAttachments()
         {
             _Attachments = null;
         }
@@ -297,11 +305,18 @@ namespace XstReader
             return _Recipients;
         }
 
-        public void ClearRecipients()
+        private void ClearRecipients()
         {
             _Recipients = null;
         }
         #endregion Recipients
+
+        #region Content
+        private void LoadContents()
+        {
+            SubNodeTreeProperties = _ContentLoader?.Invoke();
+            _IsContentLoaded = SubNodeTreeProperties != null;
+        }
 
         public void ClearContents()
         {
@@ -310,17 +325,29 @@ namespace XstReader
             ClearProperties();
             ClearRecipients();
         }
-        public void ClearBody()
+        #endregion Content
+
+        private void ClearBody()
         {
             SubNodeTreeProperties = null;
             _Body = null;
             _BodyHtml = null;
             _Html = null;
             _RtfCompressed = null;
+            _BodyRtfText = null;
             _IsContentLoaded = false;
         }
 
-        public string GetBodyAsHtmlString()
+        public string GetBodyAsHtmlString(bool embedInlineAttachments = true)
+        {
+            string body = GetBodyAsHtmlStringBase();
+
+            if (MayHaveInlineAttachment)
+                body = EmbedAttachments(body);  // Returns null if this is not appropriate
+
+            return body;
+        }
+        private string GetBodyAsHtmlStringBase()
         {
             if (BodyHtml != null)
                 return BodyHtml; // This will be plain ASCII
@@ -336,74 +363,6 @@ namespace XstReader
                 return EscapeUnicodeCharacters(Body);
 
             return null;
-        }
-
-
-        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName)
-        {
-            if (HasVisibleFileAttachment)
-            {
-                var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
-                    Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
-                if (!Directory.Exists(targetFolder))
-                {
-                    Directory.CreateDirectory(targetFolder);
-                    if (Date != null)
-                        Directory.SetCreationTime(targetFolder, (DateTime)Date);
-                }
-                Attachments.Where(a => a.IsFile && !a.Hide).SaveToFolder(targetFolder, Date);
-            }
-        }
-        public void SaveToFile(string fullFileName, bool includeVisibleAttachments = true)
-        {
-            if (IsBodyHtml)
-            {
-                string body = GetBodyAsHtmlString();
-                if (MayHaveInlineAttachment)
-                    body = EmbedAttachments(body);  // Returns null if this is not appropriate
-
-                if (body != null)
-                {
-                    body = EmbedHtmlPrintHeader(body);
-                    using (var stream = new FileStream(fullFileName, FileMode.Create))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(body);
-                        stream.Write(bytes, 0, bytes.Count());
-                    }
-                    if (Date != null)
-                        File.SetCreationTime(fullFileName, (DateTime)Date);
-                }
-            }
-            else if (IsBodyRtf)
-            {
-#if !NETCOREAPP
-
-                var doc = GetBodyAsFlowDocument();
-                EmbedRtfPrintHeader(doc);
-                TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
-                using (var stream = new FileStream(fullFileName, FileMode.Create))
-                {
-                    content.Save(stream, DataFormats.Rtf);
-                }
-                if (Date != null)
-                    File.SetCreationTime(fullFileName, (DateTime)Date);
-#else
-                throw new XstException("Emails with body in RTF format not supported on this platform");
-#endif
-            }
-            else
-            {
-                var body = EmbedTextPrintHeader(Body);
-                using (var stream = new FileStream(fullFileName, FileMode.Create))
-                {
-                    var bytes = Encoding.UTF8.GetBytes(body);
-                    stream.Write(bytes, 0, bytes.Count());
-                }
-                if (Date != null)
-                    File.SetCreationTime(fullFileName, (DateTime)Date);
-            }
-            if (includeVisibleAttachments)
-                SaveVisibleAttachmentsToAssociatedFolder(fullFileName);
         }
 
 #if !NETCOREAPP
@@ -493,7 +452,6 @@ namespace XstReader
         }
 
 #if !NETCOREAPP
-
         public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
         {
             if (doc == null)
@@ -537,7 +495,6 @@ namespace XstReader
         }
 #endif
 #if !NETCOREAPP
-
         private void AddRtfTableRow(Table table, string c0, string c1)
         {
             var currentRow = new TableRow();
@@ -549,7 +506,7 @@ namespace XstReader
             { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
         }
 #endif
-        public string EmbedAttachments(string body)
+        private string EmbedAttachments(string body)
         {
             if (body == null)
                 return null;
@@ -819,6 +776,73 @@ namespace XstReader
             }
             return "";
         }
-    }
 
+        #region Save
+        private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName)
+        {
+            if (HasVisibleFileAttachment)
+            {
+                var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
+                    Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
+                if (!Directory.Exists(targetFolder))
+                {
+                    Directory.CreateDirectory(targetFolder);
+                    if (Date != null)
+                        Directory.SetCreationTime(targetFolder, (DateTime)Date);
+                }
+                Attachments.Where(a => a.IsFile && !a.Hide).SaveToFolder(targetFolder, Date);
+            }
+        }
+       
+        public void SaveToFile(string fullFileName, bool includeVisibleAttachments = true)
+        {
+            if (IsBodyHtml)
+            {
+                string body = GetBodyAsHtmlString();
+
+                if (body != null)
+                {
+                    body = EmbedHtmlPrintHeader(body);
+                    using (var stream = new FileStream(fullFileName, FileMode.Create))
+                    {
+                        var bytes = Encoding.UTF8.GetBytes(body);
+                        stream.Write(bytes, 0, bytes.Count());
+                    }
+                    if (Date != null)
+                        File.SetCreationTime(fullFileName, (DateTime)Date);
+                }
+            }
+            else if (IsBodyRtf)
+            {
+#if !NETCOREAPP
+
+                var doc = GetBodyAsFlowDocument();
+                EmbedRtfPrintHeader(doc);
+                TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
+                using (var stream = new FileStream(fullFileName, FileMode.Create))
+                {
+                    content.Save(stream, DataFormats.Rtf);
+                }
+                if (Date != null)
+                    File.SetCreationTime(fullFileName, (DateTime)Date);
+#else
+                throw new XstException("Emails with body in RTF format not supported on this platform");
+#endif
+            }
+            else
+            {
+                var body = EmbedTextPrintHeader(Body);
+                using (var stream = new FileStream(fullFileName, FileMode.Create))
+                {
+                    var bytes = Encoding.UTF8.GetBytes(body);
+                    stream.Write(bytes, 0, bytes.Count());
+                }
+                if (Date != null)
+                    File.SetCreationTime(fullFileName, (DateTime)Date);
+            }
+            if (includeVisibleAttachments)
+                SaveVisibleAttachmentsToAssociatedFolder(fullFileName);
+        }
+        #endregion Save
+    }
 }

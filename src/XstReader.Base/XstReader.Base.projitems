@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Properties\PropertiesGetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\RecipientTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstAttachment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstAttachmentType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstProperty.cs" />
