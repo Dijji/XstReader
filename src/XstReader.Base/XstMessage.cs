@@ -72,37 +72,16 @@ namespace XstReader
             }
         }
 
+        private Encoding _Encoding = null;
+        public Encoding Encoding => _Encoding ?? (_Encoding = GetEncoding());
         internal BodyType NativeBody { get; set; }
 
-        public XstMessageBodyFormat BodyFormat => IsBodyPlainText ? XstMessageBodyFormat.PlainText
-                                                  : IsBodyHtml ? XstMessageBodyFormat.Html
-                                                  : IsBodyRtf ? XstMessageBodyFormat.Rtf
-                                                  : XstMessageBodyFormat.Unknown;
-        private string _BodyText = null;
-        public string BodyText => GetBodyText();
-        public string GetBodyText()
-        {
-            if (_BodyText == null)
-            {
-                switch (BodyFormat)
-                {
-                    case XstMessageBodyFormat.Html:
-                        _BodyText = GetBodyHtmlWithImages();
-                        break;
-                    case XstMessageBodyFormat.Rtf:
-                        _BodyText = GetBodyRtf();
-                        break;
-                    case XstMessageBodyFormat.PlainText:
-                    default:
-                        _BodyText = BodyPlainText;
-                        break;
-                }
-            }
-            return _BodyText;
-        }
-
-        private byte[] _BodyBytes = null;
-        public byte[] BodyBytes => _BodyBytes ?? (_BodyBytes = GetEncoding().GetBytes(_BodyText));
+        private XstMessageBodyFormat BodyFormat => IsBodyPlainText ? XstMessageBodyFormat.PlainText
+                                                   : IsBodyHtml ? XstMessageBodyFormat.Html
+                                                   : IsBodyRtf ? XstMessageBodyFormat.Rtf
+                                                   : XstMessageBodyFormat.Unknown;
+        private XstMessageBody _Body = null;
+        public XstMessageBody Body => _Body ?? (_Body = new XstMessageBody(this, GetBodyText(), BodyFormat));
 
         private string _BodyPlainText = null;
         internal string BodyPlainText
@@ -328,6 +307,16 @@ namespace XstReader
         #endregion Recipients
 
         #region Body
+        private string GetBodyText()
+        {
+            switch (_BodyFormat)
+            {
+                case XstMessageBodyFormat.Html: return GetBodyHtmlWithImages();
+                case XstMessageBodyFormat.Rtf: return GetBodyRtf();
+                case XstMessageBodyFormat.PlainText:
+                default: return BodyPlainText;
+            }
+        }
         private string GetBodyHtmlWithImages()
         {
             if (!IsBodyHtml)
@@ -338,9 +327,8 @@ namespace XstReader
                 htmlWithImages = BodyHtml; // This will be plain ASCII
             else if (Html != null)
             {
-                var enc = GetEncoding();
-                if (enc != null)
-                    htmlWithImages = EscapeUnicodeCharacters(enc.GetString(Html));
+                if (Encoding != null)
+                    htmlWithImages = EscapeUnicodeCharacters(Encoding.GetString(Html));
             }
             htmlWithImages = EmbedAttachments(htmlWithImages);
             return htmlWithImages;
@@ -351,8 +339,9 @@ namespace XstReader
                 return null;
 
             string rtfText = null;
-            using (MemoryStream ms = RtfDecompressor.Decompress(BodyRtfCompressed, true))
-                rtfText = GetEncoding().GetString(ms.ToArray());
+            if (Encoding != null)
+                using (MemoryStream ms = RtfDecompressor.Decompress(BodyRtfCompressed, true))
+                    rtfText = Encoding.GetString(ms.ToArray());
 
             return rtfText;
         }
@@ -370,8 +359,7 @@ namespace XstReader
             _BodyHtml = null;
             _Html = null;
             _BodyRtfCompressed = null;
-            _BodyBytes = null;
-            _BodyText = null;
+            _Body = null;
 
             _IsBodyLoaded = false;
         }
@@ -401,10 +389,9 @@ namespace XstReader
                 return BodyHtml; // This will be plain ASCII
             else if (Html != null)
             {
-                var e = GetEncoding();
-                if (e != null)
+                if (Encoding != null)
                 {
-                    return EscapeUnicodeCharacters(new String(e.GetChars(Html)));
+                    return EscapeUnicodeCharacters(new String(Encoding.GetChars(Html)));
                 }
             }
             else if (BodyPlainText != null) // Not really expecting this as a source of HTML
