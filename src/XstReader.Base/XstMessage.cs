@@ -10,11 +10,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using XstReader.Properties;
+using XstReader.Common;
 using XstReader.Common.BTrees;
 #if !NETCOREAPP
 using System.Windows.Documents;
 using System.Windows.Media;
-using XstReader.Common;
 #endif
 
 namespace XstReader
