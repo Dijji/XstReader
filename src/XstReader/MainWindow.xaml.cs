@@ -591,7 +591,7 @@ namespace XstReader
                     // Could bind text content, but use push so that we can optionally add headers
                     else if (mv.ShowText)
                     {
-                        var body = mv.Body;
+                        var body = mv.BodyPlainText;
 
                         // For testing purposes, can show print header in main visualisation
                         if (view.DisplayPrintHeaders)

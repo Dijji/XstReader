@@ -152,7 +152,7 @@ namespace XstReader
                     // No subNodeTree given: assume we can look it up in the main tree
                     Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
 
-                var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, Nid, PropertiesGetter.pgAttachmentContent, this);
+                var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, Nid, PropertyGetters.AttachmentContentProperties, this);
 
                 if (Content is object)
                 {

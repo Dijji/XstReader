@@ -12,6 +12,7 @@ using System.Windows;
 using XstReader.Properties;
 using XstReader.Common;
 using XstReader.Common.BTrees;
+
 #if !NETCOREAPP
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -59,83 +60,98 @@ namespace XstReader
 
         internal NID Nid { get; set; }
 
-        private bool _IsContentLoaded = false;
-        private Func<BTree<Node>> _ContentLoader = null;
-        internal Func<BTree<Node>> ContentLoader
+        private bool _IsBodyLoaded = false;
+        private Func<BTree<Node>> _BodyLoader = null;
+        internal Func<BTree<Node>> BodyLoader
         {
-            get => _ContentLoader;
+            get => _BodyLoader;
             set
             {
                 ClearContents();
-                _ContentLoader = value;
+                _BodyLoader = value;
             }
         }
 
         internal BodyType NativeBody { get; set; }
-        private string _Body = null;
-        public string Body
+
+        public XstMessageBodyFormat BodyFormat => IsBodyPlainText ? XstMessageBodyFormat.PlainText
+                                                  : IsBodyHtml ? XstMessageBodyFormat.Html
+                                                  : IsBodyRtf ? XstMessageBodyFormat.Rtf
+                                                  : XstMessageBodyFormat.Unknown;
+        private string _BodyText = null;
+        public string BodyText => GetBodyText();
+        public string GetBodyText()
+        {
+            if (_BodyText == null)
+            {
+                switch (BodyFormat)
+                {
+                    case XstMessageBodyFormat.Html:
+                        _BodyText = GetBodyHtmlWithImages();
+                        break;
+                    case XstMessageBodyFormat.Rtf:
+                        _BodyText = GetBodyRtf();
+                        break;
+                    case XstMessageBodyFormat.PlainText:
+                    default:
+                        _BodyText = BodyPlainText;
+                        break;
+                }
+            }
+            return _BodyText;
+        }
+
+        private byte[] _BodyBytes = null;
+        public byte[] BodyBytes => _BodyBytes ?? (_BodyBytes = GetEncoding().GetBytes(_BodyText));
+
+        private string _BodyPlainText = null;
+        internal string BodyPlainText
         {
             get
             {
-                if (!_IsContentLoaded) LoadContents();
-                return _Body;
+                if (!_IsBodyLoaded) LoadBody();
+                return _BodyPlainText;
             }
-            internal set => _Body = value;
+            set => _BodyPlainText = value;
         }
-        public bool IsBodyText => NativeBody == BodyType.PlainText ||
-                                  (NativeBody == BodyType.Undefined && Body?.Length > 0);
+        private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
+                                       (NativeBody == BodyType.Undefined && BodyPlainText?.Length > 0);
 
         private string _BodyHtml = null;
-        public string BodyHtml
+        internal string BodyHtml
         {
             get
             {
-                if (!_IsContentLoaded) LoadContents();
+                if (!_IsBodyLoaded) LoadBody();
                 return _BodyHtml;
             }
-            internal set => _BodyHtml = value;
+            set => _BodyHtml = value;
         }
         private byte[] _Html = null;
-        public byte[] Html
+        internal byte[] Html
         {
             get
             {
-                if (!_IsContentLoaded) LoadContents();
+                if (!_IsBodyLoaded) LoadBody();
                 return _Html;
             }
-            internal set => _Html = value;
+            set => _Html = value;
         }
-
-        public bool IsBodyHtml => NativeBody == BodyType.HTML ||
+        private bool IsBodyHtml => NativeBody == BodyType.HTML ||
                                   (NativeBody == BodyType.Undefined && (BodyHtml?.Length > 0 || Html?.Length > 0));
 
-        private byte[] _RtfCompressed;
-        public byte[] RtfCompressed
+        private byte[] _BodyRtfCompressed;
+        internal byte[] BodyRtfCompressed
         {
             get
             {
-                if (!_IsContentLoaded) LoadContents();
-                return _RtfCompressed;
+                if (!_IsBodyLoaded) LoadBody();
+                return _BodyRtfCompressed;
             }
-            internal set => _RtfCompressed = value;
+            set => _BodyRtfCompressed = value;
         }
-
-        private string _BodyRtfText = null;
-        public string BodyRtfText
-        {
-            get
-            {
-                if (_BodyRtfText == null)
-                {
-                    using (MemoryStream ms = RtfDecompressor.Decompress(RtfCompressed, true))
-                        _BodyRtfText = GetEncoding().GetString(ms.ToArray());
-                }
-                return _BodyRtfText;
-            }
-        }
-
-        public bool IsBodyRtf => NativeBody == BodyType.RTF ||
-                                 (NativeBody == BodyType.Undefined && RtfCompressed?.Length > 0);
+        private bool IsBodyRtf => NativeBody == BodyType.RTF ||
+                                 (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
 
         private List<XstAttachment> _Attachments = null;
         public List<XstAttachment> Attachments => GetAttachments();
@@ -180,7 +196,7 @@ namespace XstReader
             Folder = folder;
 
             // Read the contents properties
-            ContentLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertiesGetter.pgMessageContent, this);
+            BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
 
             return this;
         }
@@ -193,7 +209,7 @@ namespace XstReader
                 // No subNodeTree given: assume we can look it up in the main tree
                 attachment.Ndb.LookupNodeAndReadItsSubNodeBtree(attachment.Message.Nid, out subNodeTreeMessage);
 
-            var subNodeTreeAttachment = attachment.Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, attachment.Nid, PropertiesGetter.pgAttachmentContent, attachment);
+            var subNodeTreeAttachment = attachment.Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, attachment.Nid, PropertyGetters.AttachmentContentProperties, attachment);
             if (attachment.Content.GetType() == typeof(PtypObjectValue))
             {
                 XstMessage m = new XstMessage
@@ -205,7 +221,7 @@ namespace XstReader
                 };
 
                 // Read the basic and contents properties
-                m._ContentLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertiesGetter.pgMessageAttachment, m, true);
+                m.BodyLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertyGetters.MessageAttachmentProperties, m, true);
 
                 return m;
             }
@@ -247,17 +263,17 @@ namespace XstReader
                         throw new XstException("Could not find expected Attachment table");
 
                     // Read the attachment table, which is held in the subnode of the message
-                    var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, PropertiesGetter.pgAttachmentList, (a, id) => a.Nid = new NID(id)).ToList();
+                    var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, PropertyGetters.AttachmentListProperties, (a, id) => a.Nid = new NID(id)).ToList();
                     foreach (var a in atts)
                     {
                         a.Message = this; // For lazy reading of the complete properties: a.Message.Folder.XstFile
 
                         // If the long name wasn't in the attachment table, go look for it in the attachment properties
                         if (a.LongFileName == null)
-                            Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachmentName, a);
+                            Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertyGetters.AttachmentNameProperties, a);
 
                         // Read properties relating to HTML images presented as attachments
-                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertiesGetter.pgAttachedHtmlImages, a);
+                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertyGetters.AttachedHtmlImagesProperties, a);
 
                         // If this is an embedded email, tell the attachment where to look for its properties
                         // This is needed because the email node is not in the main node tree
@@ -288,7 +304,7 @@ namespace XstReader
                 var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
                 if (Ltp.IsTablePresent(SubNodeTreeProperties, recipientsNid))
                 {
-                    var rs = Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertiesGetter.pgMessageRecipient, null, (r, p) => r.Properties.Add(p));
+                    var rs = Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertyGetters.MessageRecipientProperties, null, (r, p) => r.Properties.Add(p));
                     foreach (var r in rs)
                     {
                         // Sort the properties
@@ -311,12 +327,55 @@ namespace XstReader
         }
         #endregion Recipients
 
-        #region Content
-        private void LoadContents()
+        #region Body
+        private string GetBodyHtmlWithImages()
         {
-            SubNodeTreeProperties = _ContentLoader?.Invoke();
-            _IsContentLoaded = SubNodeTreeProperties != null;
+            if (!IsBodyHtml)
+                return null;
+
+            string htmlWithImages = null;
+            if (BodyHtml != null)
+                htmlWithImages = BodyHtml; // This will be plain ASCII
+            else if (Html != null)
+            {
+                var enc = GetEncoding();
+                if (enc != null)
+                    htmlWithImages = EscapeUnicodeCharacters(enc.GetString(Html));
+            }
+            htmlWithImages = EmbedAttachments(htmlWithImages);
+            return htmlWithImages;
         }
+        private string GetBodyRtf()
+        {
+            if (!IsBodyRtf)
+                return null;
+
+            string rtfText = null;
+            using (MemoryStream ms = RtfDecompressor.Decompress(BodyRtfCompressed, true))
+                rtfText = GetEncoding().GetString(ms.ToArray());
+
+            return rtfText;
+        }
+
+        private void LoadBody()
+        {
+            SubNodeTreeProperties = _BodyLoader?.Invoke();
+            _IsBodyLoaded = SubNodeTreeProperties != null;
+        }
+
+        private void ClearBody()
+        {
+            SubNodeTreeProperties = null;
+            _BodyPlainText = null;
+            _BodyHtml = null;
+            _Html = null;
+            _BodyRtfCompressed = null;
+            _BodyBytes = null;
+            _BodyText = null;
+
+            _IsBodyLoaded = false;
+        }
+        #endregion Body
 
         public void ClearContents()
         {
@@ -325,24 +384,13 @@ namespace XstReader
             ClearProperties();
             ClearRecipients();
         }
-        #endregion Content
 
-        private void ClearBody()
-        {
-            SubNodeTreeProperties = null;
-            _Body = null;
-            _BodyHtml = null;
-            _Html = null;
-            _RtfCompressed = null;
-            _BodyRtfText = null;
-            _IsContentLoaded = false;
-        }
 
         public string GetBodyAsHtmlString(bool embedInlineAttachments = true)
         {
             string body = GetBodyAsHtmlStringBase();
 
-            if (MayHaveInlineAttachment)
+            if (embedInlineAttachments && MayHaveInlineAttachment)
                 body = EmbedAttachments(body);  // Returns null if this is not appropriate
 
             return body;
@@ -359,8 +407,8 @@ namespace XstReader
                     return EscapeUnicodeCharacters(new String(e.GetChars(Html)));
                 }
             }
-            else if (Body != null) // Not really expecting this as a source of HTML
-                return EscapeUnicodeCharacters(Body);
+            else if (BodyPlainText != null) // Not really expecting this as a source of HTML
+                return EscapeUnicodeCharacters(BodyPlainText);
 
             return null;
         }
@@ -372,7 +420,7 @@ namespace XstReader
 
             var decomp = new RtfDecompressor();
 
-            using (System.IO.MemoryStream ms = decomp.Decompress(RtfCompressed, true))
+            using (System.IO.MemoryStream ms = decomp.Decompress(BodyRtfCompressed, true))
             {
                 ms.Position = 0;
                 TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
@@ -510,6 +558,9 @@ namespace XstReader
         {
             if (body == null)
                 return null;
+
+            if (!MayHaveInlineAttachment)
+                return body;
 
             var dict = Attachments.Where(a => a.HasContentId)
                                   .GroupBy(a => a.ContentId)
@@ -793,7 +844,7 @@ namespace XstReader
                 Attachments.Where(a => a.IsFile && !a.Hide).SaveToFolder(targetFolder, Date);
             }
         }
-       
+
         public void SaveToFile(string fullFileName, bool includeVisibleAttachments = true)
         {
             if (IsBodyHtml)
@@ -831,7 +882,7 @@ namespace XstReader
             }
             else
             {
-                var body = EmbedTextPrintHeader(Body);
+                var body = EmbedTextPrintHeader(BodyPlainText);
                 using (var stream = new FileStream(fullFileName, FileMode.Create))
                 {
                     var bytes = Encoding.UTF8.GetBytes(body);

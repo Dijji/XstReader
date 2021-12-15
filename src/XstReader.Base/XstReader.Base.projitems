@@ -30,12 +30,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Properties\EpropertyTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\EpropertyType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\MessageFlags.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Properties\PropertiesGetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\RecipientTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstAttachment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstAttachmentType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstMessageBodyFormat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstProperty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\PropertyGetters.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstRecipient.cs" />

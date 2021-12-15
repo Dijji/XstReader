@@ -38,7 +38,7 @@ namespace XstReader
             XstFile = xstFile;
             Nid = nid;
             ParentFolder = parentFolder;
-            SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertiesGetter.pgFolder, this);
+            SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertyGetters.FolderProperties, this);
         }
         #endregion Ctor
 
@@ -74,7 +74,7 @@ namespace XstReader
                     // Get the Contents table for the folder
                     // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
                     _Messages = Ltp.ReadTable<XstMessage>(NID.TypedNID(EnidType.CONTENTS_TABLE, Nid),
-                                                          Ndb.IsUnicode4K ? PropertiesGetter.pgMessageList4K : PropertiesGetter.pgMessageList, (m, id) => m.Nid = new NID(id))
+                                                          Ndb.IsUnicode4K ? PropertyGetters.MessageList4KProperties : PropertyGetters.MessageListProperties, (m, id) => m.Nid = new NID(id))
                                    .Select(m => Ndb.IsUnicode4K ? Add4KMessageProperties(m) : m)
                                    .Select(m => m.Initialize(this))
                                    .ToList(); // to force complete execution on the current thread
@@ -85,7 +85,7 @@ namespace XstReader
             return _Messages;
         }
 
-        public void ClearMessages()
+        private void ClearMessages()
         {
             if(_Messages!=null)
             {
@@ -97,7 +97,7 @@ namespace XstReader
 
         private XstMessage Add4KMessageProperties(XstMessage m)
         {
-            Ltp.ReadProperties<XstMessage>(m.Nid, PropertiesGetter.pgMessageDetail4K, m);
+            Ltp.ReadProperties<XstMessage>(m.Nid, PropertyGetters.MessageDetail4KProperties, m);
             return m;
         }
 

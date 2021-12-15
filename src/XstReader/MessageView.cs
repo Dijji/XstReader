@@ -23,48 +23,46 @@ namespace XstReader
         }
 
         public XstMessage Message { get; private set; }
-        public string From => Message.From; 
-        public string To => Message.To; 
-        public string Cc => Message.Cc; 
-        public string FromTo => Message.Folder.Name.StartsWith("Sent") ? To : From; 
+        public string From => Message.From;
+        public string To => Message.To;
+        public string Cc => Message.Cc;
+        public string FromTo => Message.Folder.Name.StartsWith("Sent") ? To : From;
         public string Subject => Message.Subject;
-        public DateTime? Received => Message.Received; 
-        public DateTime? Submitted => Message.Submitted; 
+        public DateTime? Received => Message.Received;
+        public DateTime? Submitted => Message.Submitted;
         public DateTime? Modified => Message.Modified; // When any attachment was last modified
-        public DateTime? Date => Received ?? Submitted; 
-        public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; 
-        public string Body => Message.Body;
-        public string BodyHtml => Message.BodyHtml; 
-        public byte[] Html => Message.Html; 
-        public byte[] RtfCompressed => Message.RtfCompressed; 
+        public DateTime? Date => Received ?? Submitted;
+        public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
+        public string BodyPlainText => Message.BodyPlainText;
+        public string BodyHtml => Message.BodyHtml;
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
-        public List<XstRecipient> Recipients => Message.Recipients; 
-        public List<XstProperty> Properties => Message.Properties; 
-        public bool MayHaveInlineAttachment => Message.MayHaveInlineAttachment; 
-        public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned; 
+        public List<XstRecipient> Recipients => Message.Recipients;
+        public List<XstProperty> Properties => Message.Properties;
+        public bool MayHaveInlineAttachment => Message.MayHaveInlineAttachment;
+        public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned;
 
         // The following properties are used in XAML bindings to control the UI
-        public bool HasAttachment => Message.HasAttachment; 
-        public bool HasFileAttachment => Message.HasFileAttachment; 
-        public bool HasVisibleFileAttachment => Message.HasVisibleFileAttachment; 
-        public bool HasEmailAttachment => Attachments.Any(a => a.IsEmail); 
-        public bool ShowText => Message.IsBodyText;
-        public bool ShowHtml => Message.IsBodyHtml; 
-        public bool ShowRtf => Message.IsBodyRtf; 
+        public bool HasAttachment => Message.HasAttachment;
+        public bool HasFileAttachment => Message.HasFileAttachment;
+        public bool HasVisibleFileAttachment => Message.HasVisibleFileAttachment;
+        public bool HasEmailAttachment => Attachments.Any(a => a.IsEmail);
+        public bool ShowText => Message.BodyFormat == XstMessageBodyFormat.PlainText;
+        public bool ShowHtml => Message.BodyFormat == XstMessageBodyFormat.Html;
+        public bool ShowRtf => Message.BodyFormat == XstMessageBodyFormat.Rtf;
 
-        public bool HasToDisplayList => ToDisplayList.Length > 0; 
-        public string ToDisplayList => Message.ToDisplayList; 
-        public bool HasCcDisplayList => CcDisplayList.Length > 0; 
-        public string CcDisplayList => Message.CcDisplayList; 
-        public bool HasBccDisplayList => BccDisplayList.Length > 0; 
-        public string BccDisplayList => Message.BccDisplayList; 
+        public bool HasToDisplayList => ToDisplayList.Length > 0;
+        public string ToDisplayList => Message.ToDisplayList;
+        public bool HasCcDisplayList => CcDisplayList.Length > 0;
+        public string CcDisplayList => Message.CcDisplayList;
+        public bool HasBccDisplayList => BccDisplayList.Length > 0;
+        public string BccDisplayList => Message.BccDisplayList;
         public string FileAttachmentDisplayList => Message.FileAttachmentDisplayList;
         public string ExportFileName => Message.ExportFileName;
-        public string ExportFileExtension => Message.ExportFileExtension; 
+        public string ExportFileExtension => Message.ExportFileExtension;
 
         public bool IsSelected
         {
-            get => isSelected; 
+            get => isSelected;
             set
             {
                 if (value != isSelected)
