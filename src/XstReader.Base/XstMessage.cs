@@ -61,12 +61,12 @@ namespace XstReader
         private Func<BTree<Node>> _ContentLoader = null;
         internal Func<BTree<Node>> ContentLoader
         {
-            get
+            get => _ContentLoader;
+            set
             {
                 ClearContents();
-                return _ContentLoader;
+                _ContentLoader = value;
             }
-            set => _ContentLoader = value;
         }
 
         internal BodyType NativeBody { get; set; }
@@ -452,8 +452,8 @@ namespace XstReader
             if (!LookForInsertionPoint(body, "body", out int insertAt) &&
                 !LookForInsertionPoint(body, "meta", out insertAt) &&
                 !LookForInsertionPoint(body, "html", out insertAt))
-                    //throw new Exception("Cannot locate insertion point in HTML email contents");
-                    insertAt = 0; // Just insert at the beginning
+                //throw new Exception("Cannot locate insertion point in HTML email contents");
+                insertAt = 0; // Just insert at the beginning
 
             const string row = "<tr style=\"font-family:Arial,Helvetica,sans-serif;font-size:12px;\">" +
                 "<td style=\"width:175px;vertical-align:top\"><b>{0}<b></td><td>{1}</td></tr>";
