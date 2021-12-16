@@ -42,6 +42,7 @@ namespace XstReader.Properties
         // Recipient
         PidTagRecipientType = 0x0c15,
         PidTagEmailAddress = 0x3003,
+        PidTagSmtpAddress = 0x39fe,
 
         // Attachment
         PidTagAttachFilenameW = 0x3704,

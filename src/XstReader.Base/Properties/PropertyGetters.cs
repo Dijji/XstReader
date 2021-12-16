@@ -75,7 +75,8 @@ namespace XstReader.Properties
         {
             {EpropertyTag.PidTagRecipientType, (r, val) => r.RecipientType = (RecipientTypes)val },
             {EpropertyTag.PidTagDisplayName, (r, val) => r.DisplayName = val },
-            {EpropertyTag.PidTagEmailAddress, (r, val) => r.EmailAddress = val },
+            {EpropertyTag.PidTagSmtpAddress, (r, val) => r.EmailAddress = val },
+            {EpropertyTag.PidTagEmailAddress, (r, val) => r.EmailAddress = r.EmailAddress ?? val},
         };
 
         //The properties we read when accessing a message attached to a message

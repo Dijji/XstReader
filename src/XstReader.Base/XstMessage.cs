@@ -76,9 +76,9 @@ namespace XstReader
         public Encoding Encoding => _Encoding ?? (_Encoding = GetEncoding());
         internal BodyType NativeBody { get; set; }
 
-        private XstMessageBodyFormat BodyFormat => IsBodyPlainText ? XstMessageBodyFormat.PlainText
-                                                   : IsBodyHtml ? XstMessageBodyFormat.Html
+        private XstMessageBodyFormat BodyFormat => IsBodyHtml ? XstMessageBodyFormat.Html
                                                    : IsBodyRtf ? XstMessageBodyFormat.Rtf
+                                                   : IsBodyPlainText ? XstMessageBodyFormat.PlainText
                                                    : XstMessageBodyFormat.Unknown;
         private XstMessageBody _Body = null;
         public XstMessageBody Body => _Body ?? (_Body = new XstMessageBody(this, GetBodyText(), BodyFormat));
@@ -131,6 +131,8 @@ namespace XstReader
         }
         private bool IsBodyRtf => NativeBody == BodyType.RTF ||
                                  (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
+
+        public bool IsRead => (Flags & MessageFlags.mfRead) == MessageFlags.mfRead;
 
         private List<XstAttachment> _Attachments = null;
         public List<XstAttachment> Attachments => GetAttachments();
@@ -309,7 +311,7 @@ namespace XstReader
         #region Body
         private string GetBodyText()
         {
-            switch (_BodyFormat)
+            switch (BodyFormat)
             {
                 case XstMessageBodyFormat.Html: return GetBodyHtmlWithImages();
                 case XstMessageBodyFormat.Rtf: return GetBodyRtf();
@@ -437,24 +439,15 @@ namespace XstReader
             return header.ToString() + body ?? "";
         }
 
-        public string EmbedHtmlPrintHeader(string body, bool showEmailType = false)
+        private string GetHtmlHeaderOld(bool showEmailType = false)
         {
-            if (body == null)
-                return null;
-
-            // look for an insertion point after a variety of tags in descending priority order
-            if (!LookForInsertionPoint(body, "body", out int insertAt) &&
-                !LookForInsertionPoint(body, "meta", out insertAt) &&
-                !LookForInsertionPoint(body, "html", out insertAt))
-                //throw new Exception("Cannot locate insertion point in HTML email contents");
-                insertAt = 0; // Just insert at the beginning
-
-            const string row = "<tr style=\"font-family:Arial,Helvetica,sans-serif;font-size:12px;\">" +
-                "<td style=\"width:175px;vertical-align:top\"><b>{0}<b></td><td>{1}</td></tr>";
+            //const string row = "<tr style=\"font-family:Arial,Helvetica,sans-serif;font-size:12px;\">" +
+            //    "<td style=\"width:175px;vertical-align:top\"><b>{0}<b></td><td>{1}</td></tr>";
+            const string row = "<tr><td style=\"width:175px;vertical-align:top\"><strong>{0}</strong></td><td>{1}</td></tr>";
             StringBuilder header = new StringBuilder();
             //omit MyName and the line under it for now, as we have no reliable source for it
             //header.AppendFormat("<h3>{0}</h3><hr/><table><tbody>", MyName);
-            header.Append("<table><tbody style=\"font-family:serif;font-size:12px;\">");
+            header.Append("<table><tbody>");
             header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", From);
             header.AppendFormat(row, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
             header.AppendFormat(row, "To:", ToDisplayList);
@@ -467,7 +460,45 @@ namespace XstReader
                 header.AppendFormat(row, "Attachments:", FileAttachmentDisplayList);
             header.Append("</tbody></table><p/><p/>");
 
-            return body.Insert(insertAt, header.ToString());
+            return header.ToString();
+        }
+
+        private string GetHtmlHeader(bool showEmailType = false)
+        {
+            const string row = "<b>{0}</b> {1}<br>";
+            StringBuilder header = new StringBuilder();
+            //omit MyName and the line under it for now, as we have no reliable source for it
+            //header.AppendFormat("<h3>{0}</h3><hr/><table><tbody>", MyName);
+            header.Append("<p class=\"MsoNormal\">");
+            header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", From);
+            header.AppendFormat(row, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
+            header.AppendFormat(row, "To:", ToDisplayList);
+            if (HasCcDisplayList)
+                header.AppendFormat(row, "Cc:", CcDisplayList);
+            if (HasBccDisplayList)
+                header.AppendFormat(row, "Bcc:", BccDisplayList);
+            header.AppendFormat(row, "Subject:", Subject);
+            if (HasVisibleFileAttachment)
+                header.AppendFormat(row, "Attachments:", FileAttachmentDisplayList);
+            header.Append("</p><p/><p/>");
+
+            return header.ToString();
+        }
+
+
+        public string EmbedHtmlPrintHeader(string body, bool showEmailType = false)
+        {
+            if (body == null)
+                return null;
+
+            // look for an insertion point after a variety of tags in descending priority order
+            if (!LookForInsertionPoint(body, "body", out int insertAt) &&
+                !LookForInsertionPoint(body, "meta", out insertAt) &&
+                !LookForInsertionPoint(body, "html", out insertAt))
+                //throw new Exception("Cannot locate insertion point in HTML email contents");
+                insertAt = 0; // Just insert at the beginning
+
+            return body.Insert(insertAt, GetHtmlHeader(showEmailType));
         }
 
         private bool LookForInsertionPoint(string body, string tag, out int insertAt)
