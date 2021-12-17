@@ -5,6 +5,9 @@ using System.IO;
 
 namespace XstReader
 {
+    // See: https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxcmsg/7fd7ec40-deec-4c06-9493-1bc06b349682
+
+
     // The code here implements the messaging layer, which depends on and invokes the NDP and LTP layers
 
     /// <summary>

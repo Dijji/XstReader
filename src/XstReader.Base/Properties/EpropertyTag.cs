@@ -4,9 +4,11 @@ using System;
 
 namespace XstReader.Properties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-
+    /// <summary>
+    /// Enums and classes used in property handling
+    /// Enum names are taken from <MS-PST>
+    /// <see cref="https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/mapi-properties"/>
+    /// </summary>
     public enum EpropertyTag : UInt16
     {
         PidTagDisplayName = 0x3001,
