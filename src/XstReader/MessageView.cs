@@ -36,8 +36,8 @@ namespace XstReader
         public string BodyPlainText => Message.BodyPlainText;
         public string BodyHtml => Message.BodyHtml;
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
-        public List<XstRecipient> Recipients => Message.Recipients;
-        public List<XstProperty> Properties => Message.Properties;
+        public IEnumerable<XstRecipient> Recipients => Message.Recipients;
+        public IEnumerable<XstProperty> Properties => Message.Properties;
         public bool MayHaveInlineAttachment => Message.MayHaveInlineAttachment;
         public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned;
 
@@ -82,7 +82,7 @@ namespace XstReader
 
         public void ReadSignedOrEncryptedMessage()
         {
-            XstAttachment a = Message.Attachments[0];
+            XstAttachment a = Message.Attachments.First();
 
             byte[] attachmentBytes = new byte[0];
 

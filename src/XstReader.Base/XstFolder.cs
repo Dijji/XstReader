@@ -18,16 +18,16 @@ namespace XstReader
         internal NID Nid { get; set; }  // Where folder data is held
 
         public XstFolder ParentFolder { get; set; }
-        private List<XstFolder> _Folders = null;
-        public List<XstFolder> Folders => GetFolders();
-        public bool HasSubFolders => Folders.Count > 0;
+        private IEnumerable<XstFolder> _Folders = null;
+        public IEnumerable<XstFolder> Folders => GetFolders();
+        public bool HasSubFolders => Folders.Any();
 
         private string _Path = null;
         public string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.Name) ? Name : $"{ParentFolder.Path}\\{Name}");
 
         public uint ContentCount { get; set; } = 0;
-        private List<XstMessage> _Messages = null;
-        public List<XstMessage> Messages => GetMessages();
+        private IEnumerable<XstMessage> _Messages = null;
+        public IEnumerable<XstMessage> Messages => GetMessages();
 
         internal BTree<Node> SubnodeTreeProperties = null;
 
@@ -43,14 +43,13 @@ namespace XstReader
         #endregion Ctor
 
         #region Folders
-        public List<XstFolder> GetFolders()
+        public IEnumerable<XstFolder> GetFolders()
         {
             if (_Folders == null)
                 _Folders = Ltp.ReadTableRowIds(NID.TypedNID(EnidType.HIERARCHY_TABLE, Nid))
                               .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
                               .Select(id => new XstFolder(XstFile, id, this))
-                              .OrderBy(sf => sf.Name)
-                              .ToList();
+                              .OrderBy(sf => sf.Name);
 
             return _Folders;
         }
@@ -66,7 +65,7 @@ namespace XstReader
         #endregion Folders
 
         #region Messages
-        public List<XstMessage> GetMessages()
+        public IEnumerable<XstMessage> GetMessages()
         {
             if (_Messages == null)
             {
@@ -76,11 +75,9 @@ namespace XstReader
                     _Messages = Ltp.ReadTable<XstMessage>(NID.TypedNID(EnidType.CONTENTS_TABLE, Nid),
                                                           Ndb.IsUnicode4K ? PropertyGetters.MessageList4KProperties : PropertyGetters.MessageListProperties, (m, id) => m.Nid = new NID(id))
                                    .Select(m => Ndb.IsUnicode4K ? Add4KMessageProperties(m) : m)
-                                   .Select(m => m.Initialize(this))
-                                   .ToList(); // to force complete execution on the current thread
-
+                                   .Select(m => m.Initialize(this));
                 else
-                    _Messages = new List<XstMessage>();
+                    _Messages = new XstMessage[0];
             }
             return _Messages;
         }

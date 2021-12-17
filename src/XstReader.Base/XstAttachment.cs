@@ -55,25 +55,22 @@ namespace XstReader
             }
         }
 
-        private List<XstProperty> _Properties = null;
-        public List<XstProperty> Properties
+        private IEnumerable<XstProperty> _Properties = null;
+        public IEnumerable<XstProperty> Properties
         {
             get
             {
                 // We read the full set of attachment property values only on demand
                 if (_Properties == null)
                 {
-                    _Properties = new List<XstProperty>();
                     if (!WasLoadedFromMime)
-                    {
-                        _Properties.AddRange(ReadProperties());
-                    }
+                        _Properties = ReadProperties();
                 }
                 return _Properties;
             }
         }
 
-        private List<XstProperty> ReadProperties()
+        private IEnumerable<XstProperty> ReadProperties()
         {
             BTree<Node> subNodeTreeMessage = SubNodeTreeProperties;
 
@@ -82,8 +79,7 @@ namespace XstReader
                 Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
 
             // Read all non-content properties
-            // Convert to list so that we can dispose the file access
-            return new List<XstProperty>(Ltp.ReadAllProperties(subNodeTreeMessage, Nid, XstAttachment.attachmentContentExclusions, true));
+            return Ltp.ReadAllProperties(subNodeTreeMessage, Nid, XstAttachment.attachmentContentExclusions, true);
         }
 
         private static readonly HashSet<EpropertyTag> attachmentContentExclusions = new HashSet<EpropertyTag>

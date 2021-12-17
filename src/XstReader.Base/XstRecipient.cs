@@ -10,6 +10,6 @@ namespace XstReader
         public RecipientTypes RecipientType { get; set; }
         public string DisplayName { get; set; }
         public string EmailAddress { get; set; }
-        public List<XstProperty> Properties { get; private set; } = new List<XstProperty>();
+        public List<XstProperty> Properties { get; internal set; } = new List<XstProperty>();
     }
 }

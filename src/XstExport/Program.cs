@@ -162,7 +162,7 @@ namespace XstExport
                     List<XstFolder> sources = new List<XstFolder>();
                     if (only)
                     {
-                        sources.Add(sourceFolder ?? root.Folders[0]);
+                        sources.Add(sourceFolder ?? root.Folders.First());
                     }
                     else
                     {
@@ -282,7 +282,7 @@ namespace XstExport
             for (int i = 1; i < folderNames.Length; i++)
             {
                 // This exploits the fact that there can be only one child of a given folder with a given name
-                folder = folder.Folders.Find(f => String.Compare(f.Name, folderNames[i], true) == 0);
+                folder = folder.Folders.FirstOrDefault(f => String.Compare(f.Name, folderNames[i], true) == 0);
                 if (folder == null)
                     return null;
             }

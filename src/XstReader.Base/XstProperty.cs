@@ -43,8 +43,8 @@ namespace XstReader
                 if (IsNamed)
                 {
                     return String.Format("Guid: {0}\r\nName: {1}",
-                        GuidName != null ? GuidName : Guid,
-                        Name != null ? Name : String.Format("0x{0:x8}", Lid));
+                        GuidName ?? Guid,
+                        Name ?? String.Format("0x{0:x8}", Lid));
                 }
                 else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
                     return description;
@@ -74,8 +74,8 @@ namespace XstReader
                 if (IsNamed)
                 {
                     return String.Format("{0}: {1}",
-                        GuidName != null ? GuidName : Guid,
-                        Name != null ? Name : String.Format("0x{0:x8}", Lid));
+                        GuidName ?? Guid,
+                        Name ?? String.Format("0x{0:x8}", Lid));
                 }
                 else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
                 {
@@ -99,8 +99,8 @@ namespace XstReader
                     return String.Join(", ", Value);
                 else if (Value is string[])
                     return String.Join(",\r\n", Value);
-                else if (Value is List<byte[]>)
-                    return String.Join(",\r\n", ((List<byte[]>)Value).Select(v => BitConverter.ToString(v)));
+                else if (Value is List<byte[]> list)
+                    return String.Join(",\r\n", list.Select(v => BitConverter.ToString(v)));
                 else if (Value == null)
                     return null;
                 else

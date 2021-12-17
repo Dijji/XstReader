@@ -557,7 +557,7 @@ namespace XstReader
                     }
 
                     // Populate the view of the attachments
-                    mv.SortAndSaveAttachments(mv.Message.Attachments);
+                    mv.SortAndSaveAttachments(mv.Message.Attachments.ToList());
 
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (mv.ShowHtml)

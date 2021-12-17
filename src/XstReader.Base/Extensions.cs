@@ -26,7 +26,7 @@ namespace XstReader
             return removeInvalidChars.Replace(value, with);
         }
 
-        public static void PopulateWith<T>(this ObservableCollection<T> collection, List<T> list)
+        public static void PopulateWith<T>(this ObservableCollection<T> collection, IEnumerable<T> list)
         {
             collection.Clear();
             foreach (T value in list)
