@@ -11,7 +11,7 @@ namespace XstReader
     public class XstAttachment
     {
         public XstMessage Message { get; internal set; }
-        public XstFolder Folder => Message.Folder;
+        public XstFolder Folder => Message.ParentFolder;
         public XstFile XstFile => Folder.XstFile;
         internal LTP Ltp => XstFile.Ltp;
         internal NDB Ndb => XstFile.Ndb;

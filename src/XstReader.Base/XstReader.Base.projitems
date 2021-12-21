@@ -15,10 +15,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\TreeIntermediate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\BTrees\TreeNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\Crypto.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstExportOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstAttachmentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstMessageExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstPropertyExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IEnumerableXstRecipientExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Layouts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsA.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LayoutsU.cs" />
@@ -35,6 +37,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)XstAttachmentType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XstMessage.Export.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstMessageBody.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstMessageBodyFormat.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XstProperty.cs" />

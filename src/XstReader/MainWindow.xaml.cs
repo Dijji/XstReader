@@ -568,7 +568,7 @@ namespace XstReader
                         {
                             // For testing purposes, can show print header in main visualisation
                             if (view.DisplayPrintHeaders)
-                                body = mv.Message.EmbedHtmlPrintHeader(body, view.DisplayEmailType);
+                                body = mv.Message.EmbedHtmlPrintHeader(body);
 
                             wbMessage.NavigateToString(body);
                             if (mv.MayHaveInlineAttachment)

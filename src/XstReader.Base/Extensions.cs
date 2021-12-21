@@ -11,6 +11,26 @@ namespace XstReader
 {
     internal static class Extensions
     {
+        public static string AppendNewLine(this string text)
+            => text + Environment.NewLine;
+
+        public static string TextToHtml(this string text)
+        {
+            var replacements = new Dictionary<string, string>
+            {
+                {"<", "&lt;"},
+                {">", "&gt;" },
+                {"/", "&sol;" },
+                {"\\", "&bsol;" },
+                {"\r\n", "\r" },
+                {"\n", "\r" },
+                {"\r", "<br>\r\n" },
+                {"  ", " &nbsp;" }
+            };
+            foreach (var rep in replacements)
+                text = text.Replace(rep.Key, rep.Value);
+            return text;
+        }
         public static string Truncate(this string value, int maxLength)
         {
             if (string.IsNullOrEmpty(value)) return value;

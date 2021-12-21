@@ -26,7 +26,7 @@ namespace XstReader
         public string From => Message.From;
         public string To => Message.To;
         public string Cc => Message.Cc;
-        public string FromTo => Message.Folder.Name.StartsWith("Sent") ? To : From;
+        public string FromTo => Message.ParentFolder.Name.StartsWith("Sent") ? To : From;
         public string Subject => Message.Subject;
         public DateTime? Received => Message.Received;
         public DateTime? Submitted => Message.Submitted;
@@ -51,12 +51,12 @@ namespace XstReader
         public bool ShowRtf => Message.Body.Format == XstMessageBodyFormat.Rtf;
 
         public bool HasToDisplayList => ToDisplayList.Length > 0;
-        public string ToDisplayList => Message.ToDisplayList;
+        public string ToDisplayList => Message.ToDisplay;
         public bool HasCcDisplayList => CcDisplayList.Length > 0;
-        public string CcDisplayList => Message.CcDisplayList;
+        public string CcDisplayList => Message.CcDisplay;
         public bool HasBccDisplayList => BccDisplayList.Length > 0;
-        public string BccDisplayList => Message.BccDisplayList;
-        public string FileAttachmentDisplayList => Message.FileAttachmentDisplayList;
+        public string BccDisplayList => Message.BccDisplay;
+        public string FileAttachmentDisplayList => Message.FileAttachmentDisplay;
         public string ExportFileName => Message.ExportFileName;
         public string ExportFileExtension => Message.ExportFileExtension;
 
