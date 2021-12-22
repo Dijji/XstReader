@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XstReader</RootNamespace>
     <AssemblyName>XstReader</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -127,6 +128,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions.cs" />
     <Compile Include="FolderView.cs" />
     <Compile Include="MessageView.cs" />
     <Compile Include="SearchTextBox\ListBoxEx.cs" />
@@ -206,7 +208,12 @@
     <Resource Include="Resources\ic_search_black_18dp.png" />
     <Resource Include="Resources\ic_unfold_more_black_18dp.png" />
   </ItemGroup>
-  <Import Project="..\XstReader.Base\XstReader.Base.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\XstReader.Api\XstReader.Api.csproj">
+      <Project>{d908dfc8-97e8-430a-8f59-715047c17334}</Project>
+      <Name>XstReader.Api</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -580,13 +580,14 @@ namespace XstReader
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (mv.ShowRtf)
                     {
-                        var body = mv.Message.GetBodyAsFlowDocument();
+                        //TODO: Rtf support
+                        //var body = mv.Message.GetBodyAsFlowDocument();
 
-                        // For testing purposes, can show print header in main visualisation
-                        if (view.DisplayPrintHeaders)
-                            mv.Message.EmbedRtfPrintHeader(body, view.DisplayEmailType);
+                        //// For testing purposes, can show print header in main visualisation
+                        //if (view.DisplayPrintHeaders)
+                        //    mv.Message.EmbedRtfPrintHeader(body, view.DisplayEmailType);
 
-                        rtfMessage.Document = body;
+                        //rtfMessage.Document = body;
                     }
                     // Could bind text content, but use push so that we can optionally add headers
                     else if (mv.ShowText)

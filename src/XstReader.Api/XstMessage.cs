@@ -75,7 +75,7 @@ namespace XstReader
         public XstMessageBody Body => _Body ?? (_Body = new XstMessageBody(this, GetBodyText(), BodyFormat));
 
         private string _BodyPlainText = null;
-        internal string BodyPlainText
+        public string BodyPlainText
         {
             get
             {
@@ -88,7 +88,7 @@ namespace XstReader
                                        (NativeBody == BodyType.Undefined && BodyPlainText?.Length > 0);
 
         private string _BodyHtml = null;
-        internal string BodyHtml
+        public string BodyHtml
         {
             get
             {
@@ -169,7 +169,7 @@ namespace XstReader
             return this;
         }
 
-        internal static XstMessage GetAttachedMessage(XstAttachment attachment)
+        public static XstMessage GetAttachedMessage(XstAttachment attachment)
         {
             BTree<Node> subNodeTreeMessage = attachment.SubNodeTreeProperties;
 

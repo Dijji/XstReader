@@ -6,12 +6,6 @@ using System.Text.RegularExpressions;
 using XstReader.Common;
 using XstReader.Properties;
 
-#if !NETCOREAPP
-using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Media;
-#endif
-
 namespace XstReader
 {
     public partial class XstMessage
@@ -72,20 +66,20 @@ namespace XstReader
             }
             else if (IsBodyRtf)
             {
-#if !NETCOREAPP
-
-                var doc = GetBodyAsFlowDocument();
-                EmbedRtfPrintHeader(doc);
-                TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
-                using (var stream = new FileStream(fullFileName, FileMode.Create))
-                {
-                    content.Save(stream, DataFormats.Rtf);
-                }
-                if (Date != null)
-                    File.SetCreationTime(fullFileName, (DateTime)Date);
-#else
-                throw new XstException("Emails with body in RTF format not supported on this platform");
-#endif
+                //TODO: Rtf Support
+                //#if !NETCOREAPP
+                //                var doc = GetBodyAsFlowDocument();
+                //                EmbedRtfPrintHeader(doc);
+                //                TextRange content = new TextRange(doc.ContentStart, doc.ContentEnd);
+                //                using (var stream = new FileStream(fullFileName, FileMode.Create))
+                //                {
+                //                    content.Save(stream, DataFormats.Rtf);
+                //                }
+                //                if (Date != null)
+                //                    File.SetCreationTime(fullFileName, (DateTime)Date);
+                //#else
+                //                throw new XstException("Emails with body in RTF format not supported on this platform");
+                //#endif
             }
             else
             {
@@ -144,24 +138,25 @@ namespace XstReader
             return null;
         }
 
-#if !NETCOREAPP
-        public FlowDocument GetBodyAsFlowDocument()
-        {
-            FlowDocument doc = new FlowDocument();
+        ////TODO: Rtf Support
+        //#if !NETCOREAPP
+        //        public FlowDocument GetBodyAsFlowDocument()
+        //        {
+        //            FlowDocument doc = new FlowDocument();
 
-            var decomp = new RtfDecompressor();
+        //            var decomp = new RtfDecompressor();
 
-            using (System.IO.MemoryStream ms = decomp.Decompress(BodyRtfCompressed, true))
-            {
-                ms.Position = 0;
-                TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
-                selection.Load(ms, DataFormats.Rtf);
-            }
-            // For debug, a way to look at the document
-            //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
-            return doc;
-        }
-#endif
+        //            using (System.IO.MemoryStream ms = decomp.Decompress(BodyRtfCompressed, true))
+        //            {
+        //                ms.Position = 0;
+        //                TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
+        //                selection.Load(ms, DataFormats.Rtf);
+        //            }
+        //            // For debug, a way to look at the document
+        //            //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
+        //            return doc;
+        //        }
+        //#endif
         public string EmbedTextPrintHeader(string body, bool forDisplay = false, bool showEmailType = false)
         {
             string row = forDisplay ? "{0,-15}\t{1}\r\n" : "{0,-15}{1}\r\n";
@@ -263,61 +258,62 @@ namespace XstReader
             }
         }
 
-#if !NETCOREAPP
-        public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
-        {
-            if (doc == null)
-                return;
+        //TODO: Rtf Support
+        //#if !NETCOREAPP
+        //        public void EmbedRtfPrintHeader(FlowDocument doc, bool showEmailType = false)
+        //        {
+        //            if (doc == null)
+        //                return;
 
-            //omit MyName and the line under it for now, as we have no reliable source for it
-            //Paragraph p = new Paragraph(new Run(MyName));
-            //p.FontSize = 14;
-            //p.FontWeight = FontWeights.Bold;
-            //p.TextDecorations = TextDecorations.Underline;
+        //            //omit MyName and the line under it for now, as we have no reliable source for it
+        //            //Paragraph p = new Paragraph(new Run(MyName));
+        //            //p.FontSize = 14;
+        //            //p.FontWeight = FontWeights.Bold;
+        //            //p.TextDecorations = TextDecorations.Underline;
 
-            // Create the Table...
-            var table1 = new Table();
+        //            // Create the Table...
+        //            var table1 = new Table();
 
-            table1.Columns.Add(new TableColumn { Width = new GridLength(150) });
-            table1.Columns.Add(new TableColumn { Width = new GridLength(500) });
-            table1.RowGroups.Add(new TableRowGroup());
+        //            table1.Columns.Add(new TableColumn { Width = new GridLength(150) });
+        //            table1.Columns.Add(new TableColumn { Width = new GridLength(500) });
+        //            table1.RowGroups.Add(new TableRowGroup());
 
-            AddRtfTableRow(table1, showEmailType ? "RTF From:" : "From:", From);
+        //            AddRtfTableRow(table1, showEmailType ? "RTF From:" : "From:", From);
 
-            AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
-            AddRtfTableRow(table1, "To:", ToFormatted);
-            if (HasCcDisplayList)
-                AddRtfTableRow(table1, "Cc:", CcFormatted);
-            if (HasBccDisplayList)
-                AddRtfTableRow(table1, "Bcc:", BccFormatted);
-            AddRtfTableRow(table1, "Subject:", Subject);
-            if (HasAttachmentsFiles)
-                AddRtfTableRow(table1, "Attachments:", AttachmentsVisibleFilesFormatted);
+        //            AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
+        //            AddRtfTableRow(table1, "To:", ToFormatted);
+        //            if (HasCcDisplayList)
+        //                AddRtfTableRow(table1, "Cc:", CcFormatted);
+        //            if (HasBccDisplayList)
+        //                AddRtfTableRow(table1, "Bcc:", BccFormatted);
+        //            AddRtfTableRow(table1, "Subject:", Subject);
+        //            if (HasAttachmentsFiles)
+        //                AddRtfTableRow(table1, "Attachments:", AttachmentsVisibleFilesFormatted);
 
-            // Cope with the empty document case
-            if (doc.Blocks.Count == 0)
-                doc.Blocks.Add(new Paragraph(new Run("")));
-            else
-                doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
-            doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
-            doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, table1);
+        //            // Cope with the empty document case
+        //            if (doc.Blocks.Count == 0)
+        //                doc.Blocks.Add(new Paragraph(new Run("")));
+        //            else
+        //                doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
+        //            doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, new Paragraph(new Run("")));
+        //            doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, table1);
 
-            //omit MyName and the line under it for now, as we have no reliable source for it
-            //doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, p);
-        }
-#endif
-#if !NETCOREAPP
-        private void AddRtfTableRow(Table table, string c0, string c1)
-        {
-            var currentRow = new TableRow();
-            table.RowGroups[0].Rows.Add(currentRow);
+        //            //omit MyName and the line under it for now, as we have no reliable source for it
+        //            //doc.Blocks.InsertBefore(doc.Blocks.FirstBlock, p);
+        //        }
+        //#endif
+        //#if !NETCOREAPP
+        //        private void AddRtfTableRow(Table table, string c0, string c1)
+        //        {
+        //            var currentRow = new TableRow();
+        //            table.RowGroups[0].Rows.Add(currentRow);
 
-            currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c0))
-            { FontFamily = new FontFamily("Arial"), FontSize = 12, FontWeight = FontWeights.Bold }));
-            currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c1))
-            { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
-        }
-#endif
+        //            currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c0))
+        //            { FontFamily = new FontFamily("Arial"), FontSize = 12, FontWeight = FontWeights.Bold }));
+        //            currentRow.Cells.Add(new TableCell(new Paragraph(new Run(c1))
+        //            { FontFamily = new FontFamily("Arial"), FontSize = 12 }));
+        //        }
+        //#endif
         private string EmbedAttachments(string body)
         {
             if (body == null)
