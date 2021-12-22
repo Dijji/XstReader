@@ -25,24 +25,24 @@ namespace XstReader
                                                   DisplayName = From,
                                                   //EmailAddress = ??,
                                               };
-        public string FromDisplay => ExportOptions.Format(FromRecipient);
-        public string ToDisplay => ExportOptions.Format(Recipients.To());
-        public string CcDisplay => ExportOptions.Format(Recipients.Cc());
-        public string BccDisplay => ExportOptions.Format(Recipients.Bcc());
+        public string FromFormatted => ExportOptions.Format(FromRecipient);
+        public string ToFormatted => ExportOptions.Format(Recipients.To());
+        public string CcFormatted => ExportOptions.Format(Recipients.Cc());
+        public string BccFormatted => ExportOptions.Format(Recipients.Bcc());
 
-        public string DateDisplay => ExportOptions.Format(Date);
+        public string DateFormatted => ExportOptions.Format(Date);
 
-        public string FileAttachmentDisplay => ExportOptions.Format(Attachments.Where(a => a.IsFile && !a.Hide));
+        public string AttachmentsVisibleFilesFormatted => ExportOptions.Format(AttachmentsVisibleFiles);
 
         private string HtmlHeader
             => "<p class=\"MsoNormal\">" +
-                    $"<b>From:</b> {FromDisplay.AppendNewLine().TextToHtml()}" +
-                    $"<b>Sent:</b> {DateDisplay.AppendNewLine().TextToHtml()}" +
-                    $"<b>To:</b> {ToDisplay.AppendNewLine().TextToHtml()}" +
-                    (HasCcDisplayList ? $"<b>Cc:</b> {CcDisplay.AppendNewLine().TextToHtml()}" : "") +
-                    (HasBccDisplayList ? $"<b>Bcc:</b> {BccDisplay.AppendNewLine().TextToHtml()}" : "") +
+                    $"<b>From:</b> {FromFormatted.AppendNewLine().TextToHtml()}" +
+                    $"<b>Sent:</b> {DateFormatted.AppendNewLine().TextToHtml()}" +
+                    $"<b>To:</b> {ToFormatted.AppendNewLine().TextToHtml()}" +
+                    (HasCcDisplayList ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (HasBccDisplayList ? $"<b>Bcc:</b> {BccFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>Subject:</b> {Subject.AppendNewLine().TextToHtml()}" +
-                    (HasVisibleFileAttachment ? $"<b>Attachments:</b> {FileAttachmentDisplay.AppendNewLine().TextToHtml()}" : "") +
+                    (HasAttachmentsVisibleFiles ? $"<b>Attachments:</b> {AttachmentsVisibleFilesFormatted.AppendNewLine().TextToHtml()}" : "") +
                 "</p><p/><p/>";
 
 
@@ -104,7 +104,7 @@ namespace XstReader
 
         private void SaveVisibleAttachmentsToAssociatedFolder(string fullFileName)
         {
-            if (HasVisibleFileAttachment)
+            if (HasAttachmentsVisibleFiles)
             {
                 var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
                     Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
@@ -122,7 +122,7 @@ namespace XstReader
         {
             string body = GetBodyAsHtmlStringBase();
 
-            if (embedInlineAttachments && MayHaveInlineAttachment)
+            if (embedInlineAttachments && MayHaveAttachmentsInline)
                 body = EmbedAttachments(body);  // Returns null if this is not appropriate
 
             return body;
@@ -168,14 +168,14 @@ namespace XstReader
             StringBuilder header = new StringBuilder();
             header.AppendFormat(row, "Sent:", String.Format("{0:dd MMMM yyyy HHmm}", Date));
             header.AppendFormat(row, showEmailType ? "Text From:" : "From:", From);
-            header.AppendFormat(row, "To:", ToDisplay);
+            header.AppendFormat(row, "To:", ToFormatted);
             if (HasCcDisplayList)
-                header.AppendFormat(row, "Cc:", CcDisplay);
+                header.AppendFormat(row, "Cc:", CcFormatted);
             if (HasBccDisplayList)
-                header.AppendFormat(row, "Bcc:", BccDisplay);
+                header.AppendFormat(row, "Bcc:", BccFormatted);
             header.AppendFormat(row, "Subject:", Subject);
-            if (HasFileAttachment)
-                header.AppendFormat(row, "Attachments:", FileAttachmentDisplay);
+            if (HasAttachmentsFiles)
+                header.AppendFormat(row, "Attachments:", AttachmentsVisibleFilesFormatted);
             header.Append("\r\n\r\n");
 
             return header.ToString() + body ?? "";
@@ -192,14 +192,14 @@ namespace XstReader
             header.Append("<table><tbody>");
             header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", From);
             header.AppendFormat(row, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
-            header.AppendFormat(row, "To:", ToDisplay);
+            header.AppendFormat(row, "To:", ToFormatted);
             if (HasCcDisplayList)
-                header.AppendFormat(row, "Cc:", CcDisplay);
+                header.AppendFormat(row, "Cc:", CcFormatted);
             if (HasBccDisplayList)
-                header.AppendFormat(row, "Bcc:", BccDisplay);
+                header.AppendFormat(row, "Bcc:", BccFormatted);
             header.AppendFormat(row, "Subject:", Subject);
-            if (HasFileAttachment)
-                header.AppendFormat(row, "Attachments:", FileAttachmentDisplay);
+            if (HasAttachmentsFiles)
+                header.AppendFormat(row, "Attachments:", AttachmentsVisibleFilesFormatted);
             header.Append("</tbody></table><p/><p/>");
 
             return header.ToString();
@@ -212,16 +212,16 @@ namespace XstReader
             //omit MyName and the line under it for now, as we have no reliable source for it
             //header.AppendFormat("<h3>{0}</h3><hr/><table><tbody>", MyName);
             header.Append("<p class=\"MsoNormal\">");
-            header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", FromDisplay.TextToHtml());
-            header.AppendFormat(row, "Sent:", DateDisplay.TextToHtml());
-            header.AppendFormat(row, "To:", ToDisplay.TextToHtml());
+            header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", FromFormatted.TextToHtml());
+            header.AppendFormat(row, "Sent:", DateFormatted.TextToHtml());
+            header.AppendFormat(row, "To:", ToFormatted.TextToHtml());
             if (HasCcDisplayList)
-                header.AppendFormat(row, "Cc:", CcDisplay.TextToHtml());
+                header.AppendFormat(row, "Cc:", CcFormatted.TextToHtml());
             if (HasBccDisplayList)
-                header.AppendFormat(row, "Bcc:", BccDisplay.TextToHtml());
+                header.AppendFormat(row, "Bcc:", BccFormatted.TextToHtml());
             header.AppendFormat(row, "Subject:", Subject.TextToHtml());
-            if (HasVisibleFileAttachment)
-                header.AppendFormat(row, "Attachments:", FileAttachmentDisplay.TextToHtml());
+            if (HasAttachmentsVisibleFiles)
+                header.AppendFormat(row, "Attachments:", AttachmentsVisibleFilesFormatted.TextToHtml());
             header.Append("</p><p/><p/>");
 
             return header.ToString();
@@ -285,14 +285,14 @@ namespace XstReader
             AddRtfTableRow(table1, showEmailType ? "RTF From:" : "From:", From);
 
             AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Date));
-            AddRtfTableRow(table1, "To:", ToDisplay);
+            AddRtfTableRow(table1, "To:", ToFormatted);
             if (HasCcDisplayList)
-                AddRtfTableRow(table1, "Cc:", CcDisplay);
+                AddRtfTableRow(table1, "Cc:", CcFormatted);
             if (HasBccDisplayList)
-                AddRtfTableRow(table1, "Bcc:", BccDisplay);
+                AddRtfTableRow(table1, "Bcc:", BccFormatted);
             AddRtfTableRow(table1, "Subject:", Subject);
-            if (HasFileAttachment)
-                AddRtfTableRow(table1, "Attachments:", FileAttachmentDisplay);
+            if (HasAttachmentsFiles)
+                AddRtfTableRow(table1, "Attachments:", AttachmentsVisibleFilesFormatted);
 
             // Cope with the empty document case
             if (doc.Blocks.Count == 0)
@@ -323,7 +323,7 @@ namespace XstReader
             if (body == null)
                 return null;
 
-            if (!MayHaveInlineAttachment)
+            if (!MayHaveAttachmentsInline)
                 return body;
 
             var dict = Attachments.Where(a => a.HasContentId)

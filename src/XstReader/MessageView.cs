@@ -38,25 +38,25 @@ namespace XstReader
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
         public IEnumerable<XstRecipient> Recipients => Message.Recipients;
         public IEnumerable<XstProperty> Properties => Message.Properties;
-        public bool MayHaveInlineAttachment => Message.MayHaveInlineAttachment;
+        public bool MayHaveInlineAttachment => Message.MayHaveAttachmentsInline;
         public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned;
 
         // The following properties are used in XAML bindings to control the UI
-        public bool HasAttachment => Message.HasAttachment;
-        public bool HasFileAttachment => Message.HasFileAttachment;
-        public bool HasVisibleFileAttachment => Message.HasVisibleFileAttachment;
+        public bool HasAttachment => Message.HasAttachments;
+        public bool HasFileAttachment => Message.HasAttachmentsFiles;
+        public bool HasVisibleFileAttachment => Message.HasAttachmentsVisibleFiles;
         public bool HasEmailAttachment => Attachments.Any(a => a.IsEmail);
         public bool ShowText => Message.Body.Format == XstMessageBodyFormat.PlainText;
         public bool ShowHtml => Message.Body.Format == XstMessageBodyFormat.Html;
         public bool ShowRtf => Message.Body.Format == XstMessageBodyFormat.Rtf;
 
         public bool HasToDisplayList => ToDisplayList.Length > 0;
-        public string ToDisplayList => Message.ToDisplay;
+        public string ToDisplayList => Message.ToFormatted;
         public bool HasCcDisplayList => CcDisplayList.Length > 0;
-        public string CcDisplayList => Message.CcDisplay;
+        public string CcDisplayList => Message.CcFormatted;
         public bool HasBccDisplayList => BccDisplayList.Length > 0;
-        public string BccDisplayList => Message.BccDisplay;
-        public string FileAttachmentDisplayList => Message.FileAttachmentDisplay;
+        public string BccDisplayList => Message.BccFormatted;
+        public string FileAttachmentDisplayList => Message.AttachmentsVisibleFilesFormatted;
         public string ExportFileName => Message.ExportFileName;
         public string ExportFileExtension => Message.ExportFileExtension;
 

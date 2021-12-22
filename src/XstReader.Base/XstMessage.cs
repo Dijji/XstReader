@@ -127,10 +127,12 @@ namespace XstReader
 
         private IEnumerable<XstAttachment> _Attachments = null;
         public IEnumerable<XstAttachment> Attachments => GetAttachments();
-        public bool HasAttachment => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
-        public bool MayHaveInlineAttachment => Attachments.Any(a => a.HasContentId);
-        public bool HasFileAttachment => Attachments.Any(a => a.IsFile);
-        public bool HasVisibleFileAttachment => Attachments.Any(a => a.IsFile && !a.Hide);
+        public IEnumerable<XstAttachment> AttachmentsFiles => Attachments.Where(a => a.IsFile);
+        public IEnumerable<XstAttachment> AttachmentsVisibleFiles => AttachmentsFiles.Where(a => !a.Hide);
+        public bool HasAttachments => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
+        public bool MayHaveAttachmentsInline => Attachments.Any(a => a.HasContentId);
+        public bool HasAttachmentsFiles => AttachmentsFiles.Any();
+        public bool HasAttachmentsVisibleFiles => HasAttachments && AttachmentsVisibleFiles.Any();
 
         private IEnumerable<XstProperty> _Properties = null;
         public IEnumerable<XstProperty> Properties => GetProperties();
@@ -220,7 +222,7 @@ namespace XstReader
 
         private IEnumerable<XstAttachment> GetAttachmentsInternal()
         {
-            if (HasAttachment)
+            if (HasAttachments)
             {
                 // Read any attachments
                 var attachmentsNid = new NID(EnidSpecial.NID_ATTACHMENT_TABLE);
