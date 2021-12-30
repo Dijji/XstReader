@@ -10,12 +10,15 @@ namespace XstReader
     public class XstFolder
     {
         public XstFile XstFile { get; set; }
-        internal LTP Ltp => XstFile.Ltp;
-        internal NDB Ndb => XstFile.Ndb;
+        private LTP Ltp => XstFile.Ltp;
+        private NDB Ndb => XstFile.Ndb;
 
         public string Name { get; set; }
 
-        internal NID Nid { get; set; }  // Where folder data is held
+        private NID Nid { get; set; }  // Where folder data is held
+
+        private IEnumerable<XstProperty> _Properties = null;
+        public IEnumerable<XstProperty> Properties => GetProperties();
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
@@ -29,18 +32,32 @@ namespace XstReader
         private IEnumerable<XstMessage> _Messages = null;
         public IEnumerable<XstMessage> Messages => GetMessages();
 
-        internal BTree<Node> SubnodeTreeProperties = null;
+        private BTree<Node> _SubnodeTreeProperties = null;
 
-        
+
         #region Ctor
         internal XstFolder(XstFile xstFile, NID nid, XstFolder parentFolder = null)
         {
             XstFile = xstFile;
             Nid = nid;
             ParentFolder = parentFolder;
-            SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertyGetters.FolderProperties, this);
+            _SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertyGetters.FolderProperties, this);
         }
         #endregion Ctor
+
+        #region Properties
+        public IEnumerable<XstProperty> GetProperties()
+        {
+            if (_Properties == null)
+                _Properties = Ltp.ReadAllProperties(Nid, null);
+            return _Properties;
+        }
+
+        private void ClearProperties()
+        {
+            _Properties = null;
+        }
+        #endregion Properties
 
         #region Folders
         public IEnumerable<XstFolder> GetFolders()
@@ -84,7 +101,7 @@ namespace XstReader
 
         private void ClearMessages()
         {
-            if(_Messages!=null)
+            if (_Messages != null)
             {
                 foreach (var message in _Messages)
                     message.ClearContents();
