@@ -15,8 +15,8 @@ namespace XstReader
 
         private NID Nid { get; set; }  // Where folder data is held
 
-        private XstPropertySet PropertySet = new XstPropertySet();
-        private IEnumerable<XstProperty> _Properties = null;
+        private XstPropertySet _PropertySet = null;
+        private XstPropertySet PropertySet => _PropertySet ?? (_PropertySet = new XstPropertySet(LoadProperties));
         public IEnumerable<XstProperty> Properties => GetProperties();
 
         public string Name => PropertySet[EpropertyTag.PidTagDisplayName]?.Value;
@@ -48,19 +48,15 @@ namespace XstReader
         #endregion Ctor
 
         #region Properties
+        private IEnumerable<XstProperty> LoadProperties()
+            => Ltp.ReadAllProperties(Nid, null);
+
         public IEnumerable<XstProperty> GetProperties()
-        {
-            if (_Properties == null)
-            {
-                PropertySet.Add(Ltp.ReadAllProperties(Nid, null));
-                _Properties = PropertySet.Values;
-            }
-            return _Properties;
-        }
+            => PropertySet.Values;
 
         private void ClearProperties()
         {
-            _Properties = null;
+            PropertySet.ClearContents();
         }
         #endregion Properties
 
@@ -118,6 +114,7 @@ namespace XstReader
 
         public void ClearContents()
         {
+            ClearProperties();
             ClearForlders();
             ClearMessages();
         }

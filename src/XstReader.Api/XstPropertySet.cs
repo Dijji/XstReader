@@ -8,7 +8,22 @@ namespace XstReader
     {
         private Dictionary<EpropertyTag, XstProperty> DicProperties { get; } = new Dictionary<EpropertyTag, XstProperty>();
 
-        public IEnumerable<XstProperty> Values => DicProperties.Values;
+        public bool IsLoaded { get; private set; } = false;
+
+        public IEnumerable<XstProperty> Values
+        {
+            get
+            {
+                LoadProperties();
+                return DicProperties.Values;
+            }
+        }
+        private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
+
+        internal XstPropertySet(Func<IEnumerable<XstProperty>> propertiesGetter)
+        {
+            PropertiesGetter = propertiesGetter;
+        }
 
         public XstProperty this[UInt16 tag] => Get(tag);
         public XstProperty this[EpropertyTag tag] => Get(tag);
@@ -18,9 +33,21 @@ namespace XstReader
 
         public XstProperty Get(EpropertyTag tag)
         {
+            if (!IsLoaded && !Contains(tag))
+                LoadProperties();
             if (DicProperties.ContainsKey(tag))
                 return DicProperties[tag];
             return null;
+        }
+        private void LoadProperties()
+        {
+            if (IsLoaded) 
+                return;
+            if (PropertiesGetter == null)
+                return;
+
+            Add(PropertiesGetter());
+            IsLoaded = true;
         }
 
         public bool Contains(UInt16 tag)
@@ -29,17 +56,22 @@ namespace XstReader
         public bool Contains(EpropertyTag tag)
             => DicProperties.ContainsKey(tag);
 
-        public void Add(XstProperty property)
+        internal void Add(XstProperty property)
         {
             if (property != null)
                 DicProperties[property.Tag] = property;
         }
 
-        public void Add(IEnumerable<XstProperty> properties)
+        internal void Add(IEnumerable<XstProperty> properties)
         {
             foreach (var property in properties)
                 Add(property);
         }
 
+        public void ClearContents()
+        {
+            DicProperties.Clear();
+            IsLoaded = false;
+        }
     }
 }

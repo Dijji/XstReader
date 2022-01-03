@@ -28,6 +28,10 @@ namespace XstReader
         private NDB Ndb => XstFile.Ndb;
         internal NID Nid { get; set; }
 
+        private XstPropertySet _PropertySet = null;
+        internal XstPropertySet PropertySet => _PropertySet ?? (_PropertySet = new XstPropertySet(LoadProperties));
+        public IEnumerable<XstProperty> Properties => GetProperties();
+
         private IEnumerable<XstRecipient> _Recipients = null;
         public IEnumerable<XstRecipient> Recipients => GetRecipients();
 
@@ -135,9 +139,7 @@ namespace XstReader
         public bool HasAttachmentsFiles => AttachmentsFiles.Any();
         public bool HasAttachmentsVisibleFiles => HasAttachments && AttachmentsVisibleFiles.Any();
 
-        internal XstPropertySet PropertySet = new XstPropertySet();
-        private IEnumerable<XstProperty> _Properties = null;
-        public IEnumerable<XstProperty> Properties => GetProperties();
+
         public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null &&
                                            Attachments.First().FileName == "smime.p7m" && Attachments.Count() == 1;
 
@@ -202,21 +204,17 @@ namespace XstReader
         }
 
         #region Properties
+        private IEnumerable<XstProperty> LoadProperties()
+            => (SubNodeTreeParentAttachment != null)
+                ? Ltp.ReadAllProperties(SubNodeTreeParentAttachment, Nid, ContentExclusions, true)
+                : Ltp.ReadAllProperties(Nid, ContentExclusions);
+
         public IEnumerable<XstProperty> GetProperties()
-        {
-            if (_Properties == null)
-            {
-                if (SubNodeTreeParentAttachment != null)
-                    _Properties = Ltp.ReadAllProperties(SubNodeTreeParentAttachment, Nid, ContentExclusions, true);
-                else
-                    _Properties = Ltp.ReadAllProperties(Nid, ContentExclusions);
-            }
-            return _Properties;
-        }
+            => PropertySet.Values;
 
         private void ClearProperties()
         {
-            _Properties = null;
+            PropertySet.ClearContents();
         }
         #endregion Properties
 
