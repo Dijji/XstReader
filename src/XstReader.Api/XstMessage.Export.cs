@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using XstReader.Common;
-using XstReader.Properties;
+using XstReader.ItemProperties;
 
 namespace XstReader
 {

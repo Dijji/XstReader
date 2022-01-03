@@ -2,7 +2,7 @@
 
 using System;
 
-namespace XstReader.Properties
+namespace XstReader.ItemProperties
 {
     // Enums and classes used in property handling
     // Enum names are taken from <MS-PST>

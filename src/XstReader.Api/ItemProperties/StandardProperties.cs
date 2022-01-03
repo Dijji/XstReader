@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace XstReader.Properties
+namespace XstReader.ItemProperties
 {
     internal class StandardProperties
     {

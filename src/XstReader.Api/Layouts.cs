@@ -2,7 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using XstReader.Properties;
+using XstReader.ItemProperties;
 
 namespace XstReader
 {

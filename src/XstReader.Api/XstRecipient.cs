@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2016,2019, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.
 
 using System.Collections.Generic;
-using XstReader.Properties;
+using XstReader.ItemProperties;
 
 namespace XstReader
 {

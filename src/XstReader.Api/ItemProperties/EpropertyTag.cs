@@ -2,7 +2,7 @@
 
 using System;
 
-namespace XstReader.Properties
+namespace XstReader.ItemProperties
 {
     /// <summary>
     /// Enums and classes used in property handling

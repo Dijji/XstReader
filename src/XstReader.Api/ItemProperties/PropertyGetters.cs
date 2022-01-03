@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace XstReader.Properties
+namespace XstReader.ItemProperties
 {
     // Property getters are used to specify which properties should be retrieved from a property context
     // or table context, and where they should be stored.

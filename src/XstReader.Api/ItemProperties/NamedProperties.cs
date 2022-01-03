@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using XstReader.Common;
 
-namespace XstReader.Properties
+namespace XstReader.ItemProperties
 {
     internal class NamedProperties
     {

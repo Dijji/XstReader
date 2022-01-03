@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using XstReader.Common;
 using XstReader.Common.BTrees;
-using XstReader.Properties;
+using XstReader.ItemProperties;
 
 namespace XstReader
 {

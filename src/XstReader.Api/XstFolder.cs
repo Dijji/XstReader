@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using XstReader.Common.BTrees;
-using XstReader.Properties;
+using XstReader.ItemProperties;
 
 namespace XstReader
 {

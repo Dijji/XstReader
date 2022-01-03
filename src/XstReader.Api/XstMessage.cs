@@ -8,7 +8,7 @@ using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
-using XstReader.Properties;
+using XstReader.ItemProperties;
 using XstReader.Common;
 using XstReader.Common.BTrees;
 
