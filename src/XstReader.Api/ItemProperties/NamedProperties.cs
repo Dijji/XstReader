@@ -46,7 +46,7 @@ namespace XstReader.ItemProperties
                       {0x00008552,  "CurrentVersion" },
                       {0x00008554,  "CurrentVersionName" },
                       {0x00008560,  "ReminderSignalTime" },
-                      {0x00008578,  "undocumented (8578)" },
+                      {0x00008578,  "HeaderItem" },
                       {0x00008580,  "InternetAccountName" },
                       {0x00008581,  "InternetAccountStamp" },
                       {0x00008582,  "UseTnef" },
@@ -68,7 +68,7 @@ namespace XstReader.ItemProperties
                   GuidName = "PSETID_Appointment",
                   PropDesc = new Dictionary<uint, string>
                   {
-                      {0x00008200,  "undocumented (8200)" },
+                      {0x00008200,  "SendMeetingAsIcal" },
                       {0x00008201,  "AppointmentSequence" },
                       {0x00008203,  "AppointmentLastSequence" },
                       {0x00008205,  "BusyStatus" },

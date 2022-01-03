@@ -10,7 +10,7 @@ namespace XstReader.ItemProperties
 
     // Values of the PidTagMessageFlags property
     [Flags]
-    internal enum MessageFlags : Int32
+    public enum MessageFlags : Int32
     {
         /// <summary>
         /// The message is marked as having been read.

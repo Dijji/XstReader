@@ -25,15 +25,9 @@ namespace XstReader
         public UInt32? Lid { get; set; }        // Property identifier, when we know it
         public string Name { get; set; }        // String name of property, when we know it
 
-        public bool IsNamed { get { return (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff; } }
+        public bool IsNamed => (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff;
 
-        public string DisplayId
-        {
-            get
-            {
-                return String.Format("0x{0:x4}", (UInt16)Tag);
-            }
-        }
+        public string DisplayId => String.Format("0x{0:x4}", (UInt16)Tag);
 
         public string Description
         {

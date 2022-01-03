@@ -8,9 +8,9 @@ using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
-using XstReader.ItemProperties;
 using XstReader.Common;
 using XstReader.Common.BTrees;
+using XstReader.ItemProperties;
 
 
 namespace XstReader
@@ -26,30 +26,33 @@ namespace XstReader
         private XstFile XstFile => ParentFolder.XstFile;
         private LTP Ltp => XstFile.Ltp;
         private NDB Ndb => XstFile.Ndb;
+        internal NID Nid { get; set; }
 
         private IEnumerable<XstRecipient> _Recipients = null;
         public IEnumerable<XstRecipient> Recipients => GetRecipients();
 
-        public string From { get; set; }
-
         public bool HasToDisplayList => Recipients.To().Any();
-        public string To { get; set; }
-
         public bool HasCcDisplayList => Recipients.Cc().Any();
-        public string Cc { get; set; }
-
         public bool HasBccDisplayList => Recipients.Bcc().Any();
 
-        public string Subject { get; set; }
+        public string Subject => PropertySet[EpropertyTag.PidTagSubjectW]?.Value;
+        public string Cc => PropertySet[EpropertyTag.PidTagDisplayCcW]?.Value;
+        public string To => PropertySet[EpropertyTag.PidTagDisplayToW]?.Value;
+        public string From => PropertySet[EpropertyTag.PidTagSentRepresentingNameW]?.Value ??
+                              PropertySet[EpropertyTag.PidTagSentRepresentingEmailAddress]?.Value ??
+                              PropertySet[EpropertyTag.PidTagSenderName]?.Value;
 
-        internal MessageFlags Flags { get; set; }
+        private MessageFlags? _Flags = null;
+        public MessageFlags? Flags
+        {
+            get => _Flags ?? (MessageFlags?)PropertySet[EpropertyTag.PidTagMessageFlags].Value;
+            private set => _Flags = value;
+        }
+        public DateTime? Submitted => PropertySet[EpropertyTag.PidTagClientSubmitTime]?.Value;
+        public DateTime? Received => PropertySet[EpropertyTag.PidTagMessageDeliveryTime]?.Value;
+        public DateTime? Modified => PropertySet[EpropertyTag.PidTagLastModificationTime]?.Value;
 
-        public DateTime? Received { get; set; }
-        public DateTime? Submitted { get; set; }
-        public DateTime? Modified { get; set; }  // When any attachment was last modified
         public DateTime? Date => Received ?? Submitted;
-
-        internal NID Nid { get; set; }
 
         private bool _IsBodyLoaded = false;
         private Func<BTree<Node>> _BodyLoader = null;
@@ -65,8 +68,12 @@ namespace XstReader
 
         private Encoding _Encoding = null;
         public Encoding Encoding => _Encoding ?? (_Encoding = GetEncoding());
-        internal BodyType NativeBody { get; set; }
-
+        private BodyType? _NativeBody = null;
+        internal BodyType NativeBody
+        {
+            get => _NativeBody ?? PropertySet[EpropertyTag.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
+            private set => _NativeBody = value;
+        }
         private XstMessageBodyFormat BodyFormat => IsBodyHtml ? XstMessageBodyFormat.Html
                                                    : IsBodyRtf ? XstMessageBodyFormat.Rtf
                                                    : IsBodyPlainText ? XstMessageBodyFormat.PlainText
@@ -74,15 +81,13 @@ namespace XstReader
         private XstMessageBody _Body = null;
         public XstMessageBody Body => _Body ?? (_Body = new XstMessageBody(this, GetBodyText(), BodyFormat));
 
-        private string _BodyPlainText = null;
         public string BodyPlainText
         {
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return _BodyPlainText;
+                return PropertySet[EpropertyTag.PidTagBody]?.Value;
             }
-            set => _BodyPlainText = value;
         }
         private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
                                        (NativeBody == BodyType.Undefined && BodyPlainText?.Length > 0);
@@ -93,32 +98,28 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return _BodyHtml;
+                return _BodyHtml ?? PropertySet[EpropertyTag.PidTagHtml]?.Value as string;
             }
-            set => _BodyHtml = value;
+            private set => _BodyHtml = value;
         }
-        private byte[] _Html = null;
         internal byte[] Html
         {
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return _Html;
+                return PropertySet[EpropertyTag.PidTagHtml]?.Value as byte[];
             }
-            set => _Html = value;
         }
         private bool IsBodyHtml => NativeBody == BodyType.HTML ||
                                   (NativeBody == BodyType.Undefined && (BodyHtml?.Length > 0 || Html?.Length > 0));
 
-        private byte[] _BodyRtfCompressed;
         internal byte[] BodyRtfCompressed
         {
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return _BodyRtfCompressed;
+                return PropertySet[EpropertyTag.PidTagRtfCompressed]?.Value;
             }
-            set => _BodyRtfCompressed = value;
         }
         private bool IsBodyRtf => NativeBody == BodyType.RTF ||
                                  (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
@@ -134,9 +135,10 @@ namespace XstReader
         public bool HasAttachmentsFiles => AttachmentsFiles.Any();
         public bool HasAttachmentsVisibleFiles => HasAttachments && AttachmentsVisibleFiles.Any();
 
+        internal XstPropertySet PropertySet = new XstPropertySet();
         private IEnumerable<XstProperty> _Properties = null;
         public IEnumerable<XstProperty> Properties => GetProperties();
-        public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null && 
+        public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null &&
                                            Attachments.First().FileName == "smime.p7m" && Attachments.Count() == 1;
 
         internal BTree<Node> SubNodeTreeProperties = null;
@@ -164,7 +166,8 @@ namespace XstReader
             ParentFolder = folder;
 
             // Read the contents properties
-            BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
+            //BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
+            BodyLoader = () => Ltp.ReadProperties(Nid, PropertySet);
 
             return this;
         }
@@ -189,7 +192,8 @@ namespace XstReader
                 };
 
                 // Read the basic and contents properties
-                m.BodyLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertyGetters.MessageAttachmentProperties, m, true);
+                //m.BodyLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertyGetters.MessageAttachmentProperties, m, true);
+                m.BodyLoader = () => attachment.Ltp.ReadProperties(subNodeTreeAttachment, m.Nid, m.PropertySet, true);
 
                 return m;
             }
@@ -262,13 +266,13 @@ namespace XstReader
         #region Recipients
         public IEnumerable<XstRecipient> GetRecipients()
         {
-            if(_Recipients==null)
+            if (_Recipients == null)
             {
                 // Read the recipient table for the message
                 var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
                 if (Ltp.IsTablePresent(SubNodeTreeProperties, recipientsNid))
                 {
-                    _Recipients =  Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertyGetters.MessageRecipientProperties, null, (r, p) => r.Properties.Add(p))
+                    _Recipients = Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid, PropertyGetters.MessageRecipientProperties, null, (r, p) => r.Properties.Add(p))
                                       // Sort the properties
                                       .Select(r => { r.Properties.OrderBy(p => p.Tag).ToList(); return r; });
                 }
@@ -331,10 +335,8 @@ namespace XstReader
         private void ClearBody()
         {
             SubNodeTreeProperties = null;
-            _BodyPlainText = null;
+            _NativeBody = null;
             _BodyHtml = null;
-            _Html = null;
-            _BodyRtfCompressed = null;
             _Body = null;
 
             _IsBodyLoaded = false;
@@ -343,6 +345,7 @@ namespace XstReader
 
         public void ClearContents()
         {
+            _Flags = null;
             ClearBody();
             ClearAttachments();
             ClearProperties();
