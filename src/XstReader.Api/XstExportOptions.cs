@@ -41,7 +41,7 @@ namespace XstReader
             => RecipientFormatter?.Invoke(recipient) ?? recipient.ToString();
 
         public string Format(IEnumerable<XstRecipient> recipientList)
-            => RecipientListFormatter?.Invoke(recipientList) ?? String.Join("; ", recipientList.Select(r => Format(r)));
+            => RecipientListFormatter?.Invoke(recipientList ?? new List<XstRecipient>()) ?? String.Join("; ", recipientList.Select(r => Format(r)));
 
         public string Format(DateTime dateTime)
             => DateFormatter(dateTime);
@@ -50,9 +50,9 @@ namespace XstReader
             => dateTime == null ? UnknownValueText : Format(dateTime.Value);
 
         public string Format(XstAttachment attachment)
-            => AttachmentFormatter?.Invoke(attachment) ?? attachment.ToString();
+            => attachment == null ? "" : AttachmentFormatter?.Invoke(attachment) ?? attachment.ToString();
 
         public string Format(IEnumerable<XstAttachment> attachmentList)
-            => AttachmentListFormatter?.Invoke(attachmentList) ?? String.Join("; ", attachmentList.Select(a => Format(a)));
+            => AttachmentListFormatter?.Invoke(attachmentList ?? new List<XstAttachment>()) ?? String.Join("; ", attachmentList.Select(a => Format(a)));
     }
 }

@@ -20,9 +20,9 @@ namespace XstReader
         // The properties we read when accessing the named property definitions
         private static readonly PropertyGetters<NamedProperties> pgNamedProperties = new PropertyGetters<NamedProperties>
         {
-            {EpropertyTag.PidTagNameidStreamGuid, (np, val) => np.StreamGuid = val },
-            {EpropertyTag.PidTagNameidStreamEntry, (np, val) => np.StreamEntry = val },
-            {EpropertyTag.PidTagNameidStreamString, (np, val) => np.StreamString = val },
+            {(PropertyCanonicalName)NamedPropertyTag.PidTagNameidStreamGuid, (np, val) => np.StreamGuid = val },
+            {(PropertyCanonicalName)NamedPropertyTag.PidTagNameidStreamEntry, (np, val) => np.StreamEntry = val },
+            {(PropertyCanonicalName)NamedPropertyTag.PidTagNameidStreamString, (np, val) => np.StreamString = val },
         };
 
         // A heap-on-node data block
@@ -111,7 +111,7 @@ namespace XstReader
         // Returns a series of Property objects
         //
         // First form takes a node ID for a node in the main node tree
-        public IEnumerable<XstProperty> ReadAllProperties(NID nid, HashSet<EpropertyTag> excluding)
+        public IEnumerable<XstProperty> ReadAllProperties(NID nid, HashSet<PropertyCanonicalName> excluding)
         {
             BTree<Node> subNodeTree;
             var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
@@ -122,7 +122,7 @@ namespace XstReader
 
         // Second form takes a node ID for a node in the supplied sub node tree
         // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
-        public IEnumerable<XstProperty> ReadAllProperties(BTree<Node> subNodeTree, NID nid, HashSet<EpropertyTag> excluding, bool propertyValuesInChildNodeTree = false)
+        public IEnumerable<XstProperty> ReadAllProperties(BTree<Node> subNodeTree, NID nid, HashSet<PropertyCanonicalName> excluding, bool propertyValuesInChildNodeTree = false)
         {
             BTree<Node> childSubNodeTree;
             var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
@@ -238,7 +238,7 @@ namespace XstReader
 
 
         // Common implementation of property reading takes a data ID for a block in the main block tree
-        private IEnumerable<XstProperty> ReadAllPropertiesInternal(BTree<Node> subNodeTree, UInt64 dataBid, HashSet<EpropertyTag> excluding)
+        private IEnumerable<XstProperty> ReadAllPropertiesInternal(BTree<Node> subNodeTree, UInt64 dataBid, HashSet<PropertyCanonicalName> excluding)
         {
             var blocks = ReadHeapOnNode(dataBid);
             var h = blocks.First();
@@ -310,7 +310,7 @@ namespace XstReader
                     break;
 
                 case EpropertyType.PtypBinary:
-                    if (prop.dwValueHnid.HasValue && prop.dwValueHnid.hidType != EnidType.HID && prop.wPropId == EpropertyTag.PidTagAttachDataBinary)
+                    if (prop.dwValueHnid.HasValue && prop.dwValueHnid.hidType != EnidType.HID && prop.wPropId == PropertyCanonicalName.PidTagAttachDataBinary)
                     {
                         // Special case for out of line attachment contents: don't dereference to binary yet
                         val = prop.dwValueHnid.NID;
@@ -457,7 +457,7 @@ namespace XstReader
             return val;
         }
 
-        private XstProperty CreatePropertyObject(EpropertyTag propId, dynamic val)
+        private XstProperty CreatePropertyObject(PropertyCanonicalName propId, dynamic val)
         {
 
             XstProperty p = new XstProperty { Tag = propId, Value = val };
@@ -762,13 +762,13 @@ namespace XstReader
                         else
                         {
                             int skip = 0;
-                            if (col.wPropId == EpropertyTag.PidTagSubjectW)
+                            if (col.wPropId == PropertyCanonicalName.PidTagSubject)
                                 if (buf[0] == 0x01 && buf[1] == 0x00)  // Unicode 0x01
                                     skip = 4;
                             val = Encoding.Unicode.GetString(buf, skip, buf.Length - skip);
                         }
                     }
-                    if (val == "" && col.wPropId == EpropertyTag.PidTagSubjectW)
+                    if (val == "" && col.wPropId == PropertyCanonicalName.PidTagSubject)
                         val = "<No subject>";
                     break;
 
@@ -789,13 +789,13 @@ namespace XstReader
                         {
                             int skip = 0;
 
-                            if (col.wPropId == EpropertyTag.PidTagSubjectW)
+                            if (col.wPropId == PropertyCanonicalName.PidTagSubject)
                                 if (buf[0] == 0x01)  // ANSI 0x01
                                     skip = 2;
                             val = Encoding.UTF8.GetString(buf, skip, buf.Length - skip);
                         }
                     }
-                    if (val == "" && col.wPropId == EpropertyTag.PidTagSubjectW)
+                    if (val == "" && col.wPropId == PropertyCanonicalName.PidTagSubject)
                         val = "<No subject>";
                     break;
 

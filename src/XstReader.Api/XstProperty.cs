@@ -9,7 +9,7 @@ namespace XstReader
 {
     public class XstProperty
     {
-        public EpropertyTag Tag { get; set; }
+        public PropertyCanonicalName Tag { get; set; }
         public dynamic Value { get; set; }
 
         // Standard properties have a Tag value less than 0x8000,
@@ -19,69 +19,39 @@ namespace XstReader
         // where the Tag Is the key into a per .ost or .pst dictionary of properties
         // identified by a GUID (identifying a Property Set) and a name (identifying a property Within that set), 
         // which can be a string or a 32-bit value
-        //
-        public string Guid { get; set; }        // String representation of hex GUID
-        public string GuidName { get; set; }    // Equivalent name, where known e.g. PSETID_Common 
-        public UInt32? Lid { get; set; }        // Property identifier, when we know it
-        public string Name { get; set; }        // String name of property, when we know it
+
+        private string _PropertySetGuid = null;
+        // String representation of hex GUID
+        public string PropertySetGuid
+        {
+            get => _PropertySetGuid ?? Tag.PropertySet()?.Guid()?.ToString();
+            internal set => _PropertySetGuid = value;
+        }
+
+        private string _PropertySetName = null;
+        // Equivalent name, where known e.g. PSETID_Common
+        public string PropertySetName
+        {
+            get => _PropertySetName ?? Tag.PropertySet()?.ToString();
+            internal set => _PropertySetName = value;
+        }
+
+        private string _Name = null;
+        // String name of property, when we know it
+        public string Name
+        {
+            get => _Name ?? Tag.ToString();
+            internal set => _Name = value;
+        }
 
         public bool IsNamed => (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff;
 
-        public string DisplayId => String.Format("0x{0:x4}", (UInt16)Tag);
 
-        public string Description
-        {
-            get
-            {
-                string description;
-                if (IsNamed)
-                {
-                    return String.Format("Guid: {0}\r\nName: {1}",
-                        GuidName ?? Guid,
-                        Name ?? String.Format("0x{0:x8}", Lid));
-                }
-                else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
-                    return description;
-                else
-                    return null;
-            }
-        }
-
-        public string CsvId
-        {
-            get
-            {
-                if (IsNamed)
-                    // Prefix with 80 In order to ensure they collate last
-                    return String.Format("80{0}{1:x8}", Guid, Lid);
-                else
-                    return String.Format("{0:x4}", (UInt16)Tag);
-            }
-        }
-
-
-        public string CsvDescription
-        {
-            get
-            {
-                string description;
-                if (IsNamed)
-                {
-                    return String.Format("{0}: {1}",
-                        GuidName ?? Guid,
-                        Name ?? String.Format("0x{0:x8}", Lid));
-                }
-                else if (StandardProperties.TagToDescription.TryGetValue(Tag, out description))
-                {
-                    if (description.StartsWith("undocumented"))
-                        return "undocumented " + DisplayId;
-                    else
-                        return description;
-                }
-                else
-                    return DisplayId;
-            }
-        }
+        public string Id => Tag.Id0x();
+        public string CanonicalName => Tag.CanonicalName();
+        public string FriendlyName => Tag.FriendlyName();
+        public string Area => Tag.PropertyArea()?.FriendlyName();
+        public string Description => Tag.Description();
 
         public string DisplayValue
         {

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace XstReader
 {
-    internal static class Extensions
+    internal static class StringExtensions
     {
         public static string AppendNewLine(this string text)
             => text + Environment.NewLine;
@@ -45,16 +45,6 @@ namespace XstReader
                         RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.CultureInvariant);
             return removeInvalidChars.Replace(value, with);
         }
-
-        public static void PopulateWith<T>(this ObservableCollection<T> collection, IEnumerable<T> list)
-        {
-            collection.Clear();
-            foreach (T value in list)
-                collection.Add(value);
-        }
-
-        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> e, Func<T, IEnumerable<T>> f)
-            => e.SelectMany(c => f(c).Flatten(f)).Concat(e);
 
     }
 }

@@ -385,7 +385,7 @@ namespace XstReader
 
         private Encoding GetEncoding()
         {
-            var p = Properties.FirstOrDefault(x => x.Guid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
+            var p = Properties.FirstOrDefault(x => x.PropertySetGuid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
             if (p != null)
             {
 
@@ -394,7 +394,7 @@ namespace XstReader
                     return Encoding.GetEncoding(m.Groups[1].Value);
             }
 
-            p = Properties.FirstOrDefault(x => x.Tag == EpropertyTag.PidTagInternetCodepage);
+            p = Properties.FirstOrDefault(x => x.Tag == PropertyCanonicalName.PidTagInternetCodepage);
             if (p != null)
             {
                 return Encoding.GetEncoding((int)p.Value);

@@ -270,7 +270,7 @@ namespace XstReader
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct PCBTH
     {
-        public EpropertyTag wPropId;
+        public PropertyCanonicalName wPropId;
         public EpropertyType wPropType;
         public HNID dwValueHnid;
     }
@@ -312,7 +312,7 @@ namespace XstReader
     internal struct TCOLDESC
     {
         public UInt32 tag;
-        public EpropertyTag wPropId { get { return (EpropertyTag)(tag >> 16); } }
+        public PropertyCanonicalName wPropId { get { return (PropertyCanonicalName)(tag >> 16); } }
         public EpropertyType wPropType { get { return (EpropertyType)(tag & 0x0000ffff); } }
         public UInt16 ibData;
         public Byte cbData;

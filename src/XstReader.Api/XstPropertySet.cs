@@ -6,7 +6,7 @@ namespace XstReader
 {
     public class XstPropertySet
     {
-        private Dictionary<EpropertyTag, XstProperty> DicProperties { get; } = new Dictionary<EpropertyTag, XstProperty>();
+        private Dictionary<PropertyCanonicalName, XstProperty> DicProperties { get; } = new Dictionary<PropertyCanonicalName, XstProperty>();
 
         public bool IsLoaded { get; private set; } = false;
 
@@ -26,12 +26,12 @@ namespace XstReader
         }
 
         public XstProperty this[UInt16 tag] => Get(tag);
-        public XstProperty this[EpropertyTag tag] => Get(tag);
+        public XstProperty this[PropertyCanonicalName tag] => Get(tag);
 
         public XstProperty Get(UInt16 tag)
-            => Get((EpropertyTag)tag);
+            => Get((PropertyCanonicalName)tag);
 
-        public XstProperty Get(EpropertyTag tag)
+        public XstProperty Get(PropertyCanonicalName tag)
         {
             if (!IsLoaded && !Contains(tag))
                 LoadProperties();
@@ -51,9 +51,9 @@ namespace XstReader
         }
 
         public bool Contains(UInt16 tag)
-            => Contains((EpropertyTag)tag);
+            => Contains((PropertyCanonicalName)tag);
 
-        public bool Contains(EpropertyTag tag)
+        public bool Contains(PropertyCanonicalName tag)
             => DicProperties.ContainsKey(tag);
 
         internal void Add(XstProperty property)

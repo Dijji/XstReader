@@ -19,8 +19,8 @@ namespace XstReader
         private XstPropertySet PropertySet => _PropertySet ?? (_PropertySet = new XstPropertySet(LoadProperties));
         public IEnumerable<XstProperty> Properties => GetProperties();
 
-        public string Name => PropertySet[EpropertyTag.PidTagDisplayName]?.Value;
-        public uint ContentCount => PropertySet[EpropertyTag.PidTagContentCount]?.Value ?? 0;
+        public string Name => PropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+        public uint ContentCount => PropertySet[PropertyCanonicalName.PidTagContentCount]?.Value ?? 0;
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;

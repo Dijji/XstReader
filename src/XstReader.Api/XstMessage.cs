@@ -39,22 +39,22 @@ namespace XstReader
         public bool HasCcDisplayList => Recipients.Cc().Any();
         public bool HasBccDisplayList => Recipients.Bcc().Any();
 
-        public string Subject => PropertySet[EpropertyTag.PidTagSubjectW]?.Value;
-        public string Cc => PropertySet[EpropertyTag.PidTagDisplayCcW]?.Value;
-        public string To => PropertySet[EpropertyTag.PidTagDisplayToW]?.Value;
-        public string From => PropertySet[EpropertyTag.PidTagSentRepresentingNameW]?.Value ??
-                              PropertySet[EpropertyTag.PidTagSentRepresentingEmailAddress]?.Value ??
-                              PropertySet[EpropertyTag.PidTagSenderName]?.Value;
+        public string Subject => PropertySet[PropertyCanonicalName.PidTagSubject]?.Value;
+        public string Cc => PropertySet[PropertyCanonicalName.PidTagDisplayCc]?.Value;
+        public string To => PropertySet[PropertyCanonicalName.PidTagDisplayTo]?.Value;
+        public string From => PropertySet[PropertyCanonicalName.PidTagSentRepresentingName]?.Value ??
+                              PropertySet[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value ??
+                              PropertySet[PropertyCanonicalName.PidTagSenderName]?.Value;
 
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags
         {
-            get => _Flags ?? (MessageFlags?)PropertySet[EpropertyTag.PidTagMessageFlags].Value;
+            get => _Flags ?? (MessageFlags?)PropertySet[PropertyCanonicalName.PidTagMessageFlags].Value;
             private set => _Flags = value;
         }
-        public DateTime? Submitted => PropertySet[EpropertyTag.PidTagClientSubmitTime]?.Value;
-        public DateTime? Received => PropertySet[EpropertyTag.PidTagMessageDeliveryTime]?.Value;
-        public DateTime? Modified => PropertySet[EpropertyTag.PidTagLastModificationTime]?.Value;
+        public DateTime? Submitted => PropertySet[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
+        public DateTime? Received => PropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
+        public DateTime? Modified => PropertySet[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
 
         public DateTime? Date => Received ?? Submitted;
 
@@ -75,7 +75,7 @@ namespace XstReader
         private BodyType? _NativeBody = null;
         internal BodyType NativeBody
         {
-            get => _NativeBody ?? PropertySet[EpropertyTag.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
+            get => _NativeBody ?? PropertySet[PropertyCanonicalName.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
             private set => _NativeBody = value;
         }
         private XstMessageBodyFormat BodyFormat => IsBodyHtml ? XstMessageBodyFormat.Html
@@ -90,7 +90,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return PropertySet[EpropertyTag.PidTagBody]?.Value;
+                return PropertySet[PropertyCanonicalName.PidTagBody]?.Value;
             }
         }
         private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
@@ -102,7 +102,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return _BodyHtml ?? PropertySet[EpropertyTag.PidTagHtml]?.Value as string;
+                return _BodyHtml ?? PropertySet[PropertyCanonicalName.PidTagHtml]?.Value as string;
             }
             private set => _BodyHtml = value;
         }
@@ -111,7 +111,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return PropertySet[EpropertyTag.PidTagHtml]?.Value as byte[];
+                return PropertySet[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
             }
         }
         private bool IsBodyHtml => NativeBody == BodyType.HTML ||
@@ -122,7 +122,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return PropertySet[EpropertyTag.PidTagRtfCompressed]?.Value;
+                return PropertySet[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
             }
         }
         private bool IsBodyRtf => NativeBody == BodyType.RTF ||
@@ -148,12 +148,12 @@ namespace XstReader
         public bool IsAttached => SubNodeTreeParentAttachment != null;
 
         #region Content Exclusions
-        private static readonly HashSet<EpropertyTag> ContentExclusions = new HashSet<EpropertyTag>
+        private static readonly HashSet<PropertyCanonicalName> ContentExclusions = new HashSet<PropertyCanonicalName>
         {
-            EpropertyTag.PidTagNativeBody,
-            EpropertyTag.PidTagBody,
-            EpropertyTag.PidTagHtml,
-            EpropertyTag.PidTagRtfCompressed,
+            PropertyCanonicalName.PidTagNativeBody,
+            PropertyCanonicalName.PidTagBody,
+            PropertyCanonicalName.PidTagHtml,
+            PropertyCanonicalName.PidTagRtfCompressed,
         };
 
         #endregion Content Exclusions

@@ -82,9 +82,9 @@ namespace XstReader
             return Ltp.ReadAllProperties(subNodeTreeMessage, Nid, XstAttachment.attachmentContentExclusions, true);
         }
 
-        private static readonly HashSet<EpropertyTag> attachmentContentExclusions = new HashSet<EpropertyTag>
+        private static readonly HashSet<PropertyCanonicalName> attachmentContentExclusions = new HashSet<PropertyCanonicalName>
         {
-            EpropertyTag.PidTagAttachDataBinary,
+            PropertyCanonicalName.PidTagAttachDataBinary,
         };
 
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using XstReader.ItemProperties;
 
 namespace XstReader
 {
@@ -30,10 +31,10 @@ namespace XstReader
             {
                 foreach(var p in line)
                 {
-                    if (!dict.TryGetValue(p.CsvId, out Queue<LineProp> queue))
+                    if (!dict.TryGetValue(p.Tag.Id0x(), out Queue<LineProp> queue))
                     {
                         queue = new Queue<LineProp>();
-                        dict[p.CsvId] = queue;
+                        dict[p.Tag.Id0x()] = queue;
                     }
                     queue.Enqueue(new LineProp { line = lines, p = p });
                 }
@@ -57,7 +58,7 @@ namespace XstReader
 
                         // First line is always the column headers
                         if (line == 0)
-                            AddCsvValue(sb, q.Peek().p.CsvDescription, ref hasValue);
+                            AddCsvValue(sb, q.Peek().p.Tag.FriendlyName(), ref hasValue);
 
                         // After that, output the column value if it has one
                         else if (q.Count > 0 && q.Peek().line == line)

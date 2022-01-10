@@ -247,18 +247,18 @@ namespace XstReader.ItemProperties
                 if (entry.wGuid == 1 || entry.wGuid == 2)
                 {
                     ps = IndexedPropertySets[entry.wGuid - 1];
-                    p.Guid = ps.Guid;
-                    p.GuidName = ps.GuidName;
+                    p.PropertySetGuid = ps.Guid;
+                    p.PropertySetName = ps.GuidName;
                 }
                 else if(entry.wGuid >= 3)
                 {
                     var bytes = new byte[16];
                     Array.Copy(StreamGuid, (entry.wGuid - 3) * 16, bytes, 0, 16);
-                    p.Guid = (new Guid(bytes)).ToString();
+                    p.PropertySetGuid = (new Guid(bytes)).ToString();
                    
-                    if (GuidToPropertySet.TryGetValue(p.Guid, out ps))
+                    if (GuidToPropertySet.TryGetValue(p.PropertySetGuid, out ps))
                     {
-                        p.GuidName = ps.GuidName;
+                        p.PropertySetName = ps.GuidName;
                     }
                 }
 
@@ -270,7 +270,6 @@ namespace XstReader.ItemProperties
                 else
                 {
                     string name;
-                    p.Lid = entry.dwPropertyID;
                     if (ps != null && ps.PropDesc != null && ps.PropDesc.TryGetValue(entry.dwPropertyID, out name))
                         p.Name = name;
                 }
