@@ -145,6 +145,7 @@ namespace XstReader
                         {
                             ShowStatus(null);
                             Mouse.OverrideCursor = null;
+                            view.SelectedFolderChanged(fv.Folder);
                         }));
                     });
 

@@ -137,6 +137,16 @@ namespace XstReader
             }
         }
 
+        public void SelectedFolderChanged(XstFolder folder)
+        {
+            if(folder != null)
+            {
+                CurrentProperties.PopulateWith(folder.Properties);
+                OnPropertyChanged(nameof(CurrentProperties));
+            }
+        }
+
+
         public void SelectedAttachmentsChanged(IEnumerable<XstAttachment> selection)
         {
             IsFileAttachmentSelected = selection.FirstOrDefault(a => a.IsFile) != null;
