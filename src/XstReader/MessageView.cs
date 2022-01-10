@@ -27,7 +27,7 @@ namespace XstReader
         public string To => Message.To;
         public string Cc => Message.Cc;
         public string FromTo => Message.ParentFolder.DisplayName.StartsWith("Sent") ? To : From;
-        public string Subject => Message.Subject;
+        public string Subject => Message.Subject ?? Message.DisplayName;
         public DateTime? Received => Message.Received;
         public DateTime? Submitted => Message.Submitted;
         public DateTime? Modified => Message.Modified; // When any attachment was last modified

@@ -40,6 +40,7 @@ namespace XstReader
         public bool HasBccDisplayList => Recipients.Bcc().Any();
 
         public string Subject => PropertySet[PropertyCanonicalName.PidTagSubject]?.Value;
+        public string DisplayName => PropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
         public string Cc => PropertySet[PropertyCanonicalName.PidTagDisplayCc]?.Value;
         public string To => PropertySet[PropertyCanonicalName.PidTagDisplayTo]?.Value;
         public string From => PropertySet[PropertyCanonicalName.PidTagSentRepresentingName]?.Value ??
