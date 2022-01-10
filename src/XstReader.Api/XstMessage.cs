@@ -141,7 +141,8 @@ namespace XstReader
 
 
         public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null &&
-                                           Attachments.First().FileName == "smime.p7m" && Attachments.Count() == 1;
+                                           Attachments.Count() == 1 &&
+                                           Attachments.First().FileName == "smime.p7m";
 
         internal BTree<Node> SubNodeTreeProperties = null;
         internal BTree<Node> SubNodeTreeParentAttachment = null;
@@ -275,7 +276,7 @@ namespace XstReader
                                       .Select(r => { r.Properties.OrderBy(p => p.Tag).ToList(); return r; });
                 }
             }
-            return _Recipients;
+            return _Recipients ?? new List<XstRecipient>();
         }
 
         private void ClearRecipients()

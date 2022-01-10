@@ -26,7 +26,7 @@ namespace XstReader
         public string From => Message.From;
         public string To => Message.To;
         public string Cc => Message.Cc;
-        public string FromTo => Message.ParentFolder.Name.StartsWith("Sent") ? To : From;
+        public string FromTo => Message.ParentFolder.DisplayName.StartsWith("Sent") ? To : From;
         public string Subject => Message.Subject;
         public DateTime? Received => Message.Received;
         public DateTime? Submitted => Message.Submitted;

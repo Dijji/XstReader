@@ -40,7 +40,13 @@ namespace XstReader
         // String name of property, when we know it
         public string Name
         {
-            get => _Name ?? Tag.ToString();
+            get
+            {
+                string name = _Name ?? Tag.CanonicalName();
+                if (string.IsNullOrEmpty(name))
+                    name = Tag.ToString();
+                return name;
+            }
             internal set => _Name = value;
         }
 
@@ -65,6 +71,8 @@ namespace XstReader
                     return String.Join(",\r\n", Value);
                 else if (Value is List<byte[]> list)
                     return String.Join(",\r\n", list.Select(v => BitConverter.ToString(v)));
+                else if (Value is DateTime dateTime)
+                    return dateTime.ToUniversalTime().ToString("u");
                 else if (Value == null)
                     return null;
                 else

@@ -19,8 +19,9 @@ namespace XstReader
         private XstPropertySet PropertySet => _PropertySet ?? (_PropertySet = new XstPropertySet(LoadProperties));
         public IEnumerable<XstProperty> Properties => GetProperties();
 
-        public string Name => PropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+        public string DisplayName => PropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
         public uint ContentCount => PropertySet[PropertyCanonicalName.PidTagContentCount]?.Value ?? 0;
+        public uint ContentUnreadCount => PropertySet[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? 0;
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
@@ -28,7 +29,7 @@ namespace XstReader
         public bool HasSubFolders => Folders.Any();
 
         private string _Path = null;
-        public string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.Name) ? Name : $"{ParentFolder.Path}\\{Name}");
+        public string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.DisplayName) ? DisplayName : $"{ParentFolder.Path}\\{DisplayName}");
 
         private IEnumerable<XstMessage> _Messages = null;
         public IEnumerable<XstMessage> Messages => GetMessages();
@@ -67,7 +68,7 @@ namespace XstReader
                 _Folders = Ltp.ReadTableRowIds(NID.TypedNID(EnidType.HIERARCHY_TABLE, Nid))
                               .Where(id => id.nidType == EnidType.NORMAL_FOLDER)
                               .Select(id => new XstFolder(XstFile, id, this))
-                              .OrderBy(sf => sf.Name);
+                              .OrderBy(sf => sf.DisplayName);
 
             return _Folders;
         }

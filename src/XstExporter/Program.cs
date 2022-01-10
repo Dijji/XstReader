@@ -213,7 +213,7 @@ namespace XstExport
         {
             if (folder.ContentCount == 0)
             {
-                Console.WriteLine($"Skipping folder '{folder.Name}', which is empty");
+                Console.WriteLine($"Skipping folder '{folder.DisplayName}', which is empty");
                 return;
             }
 
@@ -275,14 +275,14 @@ namespace XstExport
         private static XstFolder FolderMatch(XstFolder folder, string[] folderNames)
         {
             // First name segment must match
-            if (String.Compare(folder.Name, folderNames[0], true) != 0)
+            if (String.Compare(folder.DisplayName, folderNames[0], true) != 0)
                 return null;
 
             // And subsequent segments must be matched by some child
             for (int i = 1; i < folderNames.Length; i++)
             {
                 // This exploits the fact that there can be only one child of a given folder with a given name
-                folder = folder.Folders.FirstOrDefault(f => String.Compare(f.Name, folderNames[i], true) == 0);
+                folder = folder.Folders.FirstOrDefault(f => String.Compare(f.DisplayName, folderNames[i], true) == 0);
                 if (folder == null)
                     return null;
             }
@@ -302,10 +302,10 @@ namespace XstExport
 
         private static string ValidFolderPath(XstFolder f)
         {
-            if (string.IsNullOrEmpty(f.ParentFolder?.Name))
-                return RemoveInvalidChars(f.Name);
+            if (string.IsNullOrEmpty(f.ParentFolder?.DisplayName))
+                return RemoveInvalidChars(f.DisplayName);
             else
-                return Path.Combine(ValidFolderPath(f.ParentFolder), RemoveInvalidChars(f.Name));
+                return Path.Combine(ValidFolderPath(f.ParentFolder), RemoveInvalidChars(f.DisplayName));
         }
 
         private static string RemoveInvalidChars(string filename)
@@ -350,12 +350,12 @@ namespace XstExport
                     bad++;
                 }
             }
-            Console.WriteLine($"Folder '{folder.Name}' completed with {good} successes and {bad} failures");
+            Console.WriteLine($"Folder '{folder.DisplayName}' completed with {good} successes and {bad} failures");
         }
 
         private static void ExtractPropertiesInFolder(XstFolder folder, string exportDirectory)
         {
-            var fileName = Path.Combine(exportDirectory, $"{RemoveInvalidChars(folder.Name)}.csv");
+            var fileName = Path.Combine(exportDirectory, $"{RemoveInvalidChars(folder.DisplayName)}.csv");
             Console.WriteLine($"Exporting {fileName}");
             folder.Messages.SavePropertiesToFile(fileName);
         }
@@ -404,7 +404,7 @@ namespace XstExport
                 }
             }
 
-            Console.WriteLine($"Folder '{folder.Name}' completed with {good} successes and {bad} failures");
+            Console.WriteLine($"Folder '{folder.DisplayName}' completed with {good} successes and {bad} failures");
         }
     }
 }
