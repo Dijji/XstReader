@@ -10,42 +10,33 @@
 
 using System;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
-    /// Attribute to specify the Guid related to an element
+    /// Attribute to specify the PropertyArea related
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class GuidAttribute : Attribute
+    public class PropertyAreaAttribute : Attribute
     {
         /// <summary>
-        /// The Guid
+        /// The PropertyArea
         /// </summary>
-        public Guid? Guid { get; private set; } = null;
+        public PropertyArea? PropertyArea { get; private set; } = null;
 
         /// <summary>
         /// Ctor
         /// </summary>
-        public GuidAttribute()
+        public PropertyAreaAttribute()
         {
         }
 
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="guid"></param>
-        public GuidAttribute(Guid guid)
+        /// <param name="propertyArea"></param>
+        public PropertyAreaAttribute(PropertyArea propertyArea)
         {
-            Guid = guid;
-        }
-
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="guid"></param>
-        public GuidAttribute(string guid)
-        {
-            Guid = new Guid(guid);
+            PropertyArea = propertyArea;
         }
     }
 }

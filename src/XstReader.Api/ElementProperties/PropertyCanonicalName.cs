@@ -14,7 +14,7 @@
 using System;
 using System.ComponentModel;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
     /// All properties defined in 

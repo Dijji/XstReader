@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using XstReader.Common;
 using XstReader.Common.BTrees;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
@@ -17,14 +17,6 @@ namespace XstReader
     /// </summary>
     internal class LTP
     {
-        // The properties we read when accessing the named property definitions
-        private static readonly PropertyGetters<NamedProperties> pgNamedProperties = new PropertyGetters<NamedProperties>
-        {
-            {(PropertyCanonicalName)NamedPropertyTag.PidTagNameidStreamGuid, (np, val) => np.StreamGuid = val },
-            {(PropertyCanonicalName)NamedPropertyTag.PidTagNameidStreamEntry, (np, val) => np.StreamEntry = val },
-            {(PropertyCanonicalName)NamedPropertyTag.PidTagNameidStreamString, (np, val) => np.StreamString = val },
-        };
-
         // A heap-on-node data block
         private class HNDataBlock
         {
@@ -46,7 +38,6 @@ namespace XstReader
         }
 
         private NDB ndb;
-        private NamedProperties namedProperties = null;
 
         #region Public methods
 
@@ -111,7 +102,7 @@ namespace XstReader
         // Returns a series of Property objects
         //
         // First form takes a node ID for a node in the main node tree
-        public IEnumerable<XstProperty> ReadAllProperties(NID nid, HashSet<PropertyCanonicalName> excluding)
+        public IEnumerable<XstProperty> ReadAllProperties(NID nid, HashSet<PropertyCanonicalName> excluding = null)
         {
             BTree<Node> subNodeTree;
             var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
@@ -122,7 +113,7 @@ namespace XstReader
 
         // Second form takes a node ID for a node in the supplied sub node tree
         // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
-        public IEnumerable<XstProperty> ReadAllProperties(BTree<Node> subNodeTree, NID nid, HashSet<PropertyCanonicalName> excluding, bool propertyValuesInChildNodeTree = false)
+        public IEnumerable<XstProperty> ReadAllProperties(BTree<Node> subNodeTree, NID nid, HashSet<PropertyCanonicalName> excluding = null, bool propertyValuesInChildNodeTree = false)
         {
             BTree<Node> childSubNodeTree;
             var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
@@ -151,7 +142,6 @@ namespace XstReader
 
         // This is the full-scale table reader, that reads all of the data in a table
         // T is the type of the row object to be populated
-        // Property getters must be supplied to map property IDs to members of T
         //
         // First form takes a node ID for a node in the main node tree
         public IEnumerable<T> ReadTable<T>(NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null, Action<T, XstProperty> storeProp = null) where T : new()
@@ -165,7 +155,6 @@ namespace XstReader
 
         // This is the full-scale table reader, that reads all of the data in a table
         // T is the type of the row object to be populated
-        // Property getters must be supplied to map property IDs to members of T
         //
         // First form takes a node ID for a node in the main node tree
         public IEnumerable<T> ReadTable<T>(NID nid, Action<T, UInt32> idGetter, Action<T, XstProperty> storeProp) where T : new()
@@ -230,8 +219,7 @@ namespace XstReader
 
             foreach (var prop in props)
             {
-                dynamic val = ReadPropertyValue(subNodeTree, blocks, prop);
-                XstProperty p = CreatePropertyObject(prop.wPropId, val);
+                XstProperty p = CreatePropertyObject(prop.wPropId, () => ReadPropertyValue(subNodeTree, blocks, prop));
                 propertySet.Add(p);
             }
         }
@@ -253,9 +241,7 @@ namespace XstReader
                 if (excluding != null && excluding.Contains(prop.wPropId))
                     continue;
 
-                dynamic val = ReadPropertyValue(subNodeTree, blocks, prop);
-
-                XstProperty p = CreatePropertyObject(prop.wPropId, val);
+                XstProperty p = CreatePropertyObject(prop.wPropId, () => ReadPropertyValue(subNodeTree, blocks, prop));
 
                 yield return p;
             }
@@ -457,26 +443,8 @@ namespace XstReader
             return val;
         }
 
-        private XstProperty CreatePropertyObject(PropertyCanonicalName propId, dynamic val)
-        {
-
-            XstProperty p = new XstProperty { Tag = propId, Value = val };
-
-            if (p.IsNamed)
-            {
-                // If we haven't read the named properties dictionary, do so now
-                if (namedProperties == null)
-                {
-                    namedProperties = new NamedProperties();
-                    ReadProperties<NamedProperties>(new NID(EnidSpecial.NID_NAME_TO_ID_MAP), pgNamedProperties, namedProperties);
-                }
-
-                // Fill in property details as far as we can
-                namedProperties.LookupNPID((UInt16)p.Tag, p);
-            }
-
-            return p;
-        }
+        private XstProperty CreatePropertyObject(PropertyCanonicalName propId, Func<dynamic> valGetter)
+            => new XstProperty { Tag = propId, ValueGetter = valGetter };
 
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
@@ -532,8 +500,8 @@ namespace XstReader
         }
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
-        private IEnumerable<T> ReadTableInternal<T>(BTree<Node> subNodeTree, UInt64 dataBid, Action<T, UInt32> idGetter, 
-                                                    Action<T, XstProperty> storeProp) 
+        private IEnumerable<T> ReadTableInternal<T>(BTree<Node> subNodeTree, UInt64 dataBid, Action<T, UInt32> idGetter,
+                                                    Action<T, XstProperty> storeProp)
             where T : new()
         {
             var blocks = ReadHeapOnNode(dataBid);
@@ -638,10 +606,7 @@ namespace XstReader
                         if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
                             continue;
 
-                        dynamic val = ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col);
-
-                        XstProperty p = CreatePropertyObject(col.wPropId, val);
-
+                        XstProperty p = CreatePropertyObject(col.wPropId, () => ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col));
                         storeProp(row, p);
                     }
                 }
@@ -652,9 +617,9 @@ namespace XstReader
         }
 
         // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters, and optionally getting all columns as properties
-        private IEnumerable<T> ReadTableData<T>(TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols, 
-                                                BTree<Node> subNodeTree, TCROWIDUnicode[] indexes, 
-                                                Action<T, UInt32> idGetter, Action<T, XstProperty> storeProp) 
+        private IEnumerable<T> ReadTableData<T>(TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols,
+                                                BTree<Node> subNodeTree, TCROWIDUnicode[] indexes,
+                                                Action<T, UInt32> idGetter, Action<T, XstProperty> storeProp)
             where T : new()
         {
             int rgCEBSize = (int)Math.Ceiling((decimal)t.cCols / 8);
@@ -668,42 +633,29 @@ namespace XstReader
 
             foreach (var index in indexes)
             {
-                int blockNum = (int)(index.dwRowIndex / rowsPerBlock);
-                if (blockNum >= dataBlocks.Count)
-                    throw new XstException("Data block number out of bounds");
-
-                var db = dataBlocks[blockNum];
-
-                long rowOffset = db.Offset + (index.dwRowIndex % rowsPerBlock) * t.rgibTCI_bm;
                 T row = new T();
 
                 // Retrieve the node ID that accesses the message
-                if (idGetter != null)
-                    idGetter(row, index.dwRowID);
-
-                if (rowOffset + t.rgibTCI_bm > db.Offset + db.Length)
-                {
-                    throw new XstException("Out of bounds reading table data");
-                }
-
-                // Read the column existence data
-                var rgCEB = Map.MapArray<Byte>(db.Buffer, (int)(rowOffset + t.rgibTCI_1b), rgCEBSize);
+                idGetter?.Invoke(row, index.dwRowID);
 
                 // If we were asked for all column values as properties, read them and store them
                 if (storeProp != null)
                 {
-                    foreach (var col in cols)
-                    {
-                        // Check if the column exists
-                        if ((rgCEB[col.iBit / 8] & (0x01 << (7 - (col.iBit % 8)))) == 0)
-                            continue;
+                    int blockNum = (int)(index.dwRowIndex / rowsPerBlock);
+                    if (blockNum >= dataBlocks.Count)
+                        throw new XstException("Data block number out of bounds");
 
-                        dynamic val = ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col);
+                    var db = dataBlocks[blockNum];
+                    long rowOffset = db.Offset + (index.dwRowIndex % rowsPerBlock) * t.rgibTCI_bm;
+                    if (rowOffset + t.rgibTCI_bm > db.Offset + db.Length)
+                        throw new XstException("Out of bounds reading table data");
 
-                        XstProperty p = CreatePropertyObject(col.wPropId, val);
+                    // Read the column existence data
+                    var rgCEB = Map.MapArray<Byte>(db.Buffer, (int)(rowOffset + t.rgibTCI_1b), rgCEBSize);
 
-                        storeProp(row, p);
-                    }
+                    // Check if the column exists
+                    foreach (var col in cols.Where(c => (rgCEB[c.iBit / 8] & (0x01 << (7 - (c.iBit % 8)))) != 0))
+                        storeProp(row, CreatePropertyObject(col.wPropId, () => ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col)));
                 }
 
                 yield return row;

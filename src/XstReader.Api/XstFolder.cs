@@ -3,25 +3,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using XstReader.Common.BTrees;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
-    public class XstFolder
+    public class XstFolder : XstElement
     {
-        public XstFile XstFile { get; set; }
-        private LTP Ltp => XstFile.Ltp;
-        private NDB Ndb => XstFile.Ndb;
+        internal protected override XstFile XstFile { get; }
 
-        private NID Nid { get; set; }  // Where folder data is held
-
-        private XstPropertySet _PropertySet = null;
-        private XstPropertySet PropertySet => _PropertySet ?? (_PropertySet = new XstPropertySet(LoadProperties));
-        public IEnumerable<XstProperty> Properties => GetProperties();
-
-        public string DisplayName => PropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
-        public uint ContentCount => PropertySet[PropertyCanonicalName.PidTagContentCount]?.Value ?? 0;
-        public uint ContentUnreadCount => PropertySet[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? 0;
+        public string DisplayName => XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+        public uint ContentCount => XstPropertySet[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
+        public uint ContentUnreadCount => XstPropertySet[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
@@ -43,22 +35,15 @@ namespace XstReader
             XstFile = xstFile;
             Nid = nid;
             ParentFolder = parentFolder;
-            _SubnodeTreeProperties = Ltp.ReadProperties(nid, PropertySet);
+            _SubnodeTreeProperties = Ltp.ReadProperties(nid, XstPropertySet);
             //_SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertyGetters.FolderProperties, this);
         }
         #endregion Ctor
 
         #region Properties
-        private IEnumerable<XstProperty> LoadProperties()
-            => Ltp.ReadAllProperties(Nid, null);
-
-        public IEnumerable<XstProperty> GetProperties()
-            => PropertySet.Values;
-
-        private void ClearProperties()
-        {
-            PropertySet.ClearContents();
-        }
+        private protected override IEnumerable<XstProperty> LoadProperties()
+            => Ltp.ReadAllProperties(Nid);
+        
         #endregion Properties
 
         #region Folders
@@ -92,9 +77,8 @@ namespace XstReader
                     // Get the Contents table for the folder
                     // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
                     _Messages = Ltp.ReadTable<XstMessage>(NID.TypedNID(EnidType.CONTENTS_TABLE, Nid),
-                                                          (m, id) => m.Nid = new NID(id),
-                                                          (m, p) => m.PropertySet.Add(p))
-                                   .Select(m => m.Initialize(this));
+                                                          (m, id) => m.Initialize(new NID(id), this),
+                                                          (m, p) => m.AddProperty(p));
                 else
                     _Messages = new XstMessage[0];
             }
@@ -113,9 +97,10 @@ namespace XstReader
 
         #endregion Messages
 
-        public void ClearContents()
+        public override void ClearContents()
         {
-            ClearProperties();
+            base.ClearContents();
+            
             ClearForlders();
             ClearMessages();
         }

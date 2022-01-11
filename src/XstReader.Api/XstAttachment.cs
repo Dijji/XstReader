@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using XstReader.Common.BTrees;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {

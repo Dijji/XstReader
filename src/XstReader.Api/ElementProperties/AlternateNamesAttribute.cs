@@ -9,27 +9,36 @@
 // Copyright (c) 2021, iluvadev, and released under Ms-PL License.
 
 using System;
+using System.Collections.Generic;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
-    /// Attribute to specify an HTML Description
+    /// Attribute to define Alternate Names
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class HtmlDescriptionAttribute : Attribute
+    public class AlternateNamesAttribute : Attribute
     {
         /// <summary>
-        /// The Description in Html format
+        /// The Alternate Names
         /// </summary>
-        public string HtmlDescription { get; private set; }
-        
+        public IEnumerable<string> AlternateNames { get; private set; }
+
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="htmlDescription"></param>
-        public HtmlDescriptionAttribute(string htmlDescription)
+        /// <param name="names"></param>
+        public AlternateNamesAttribute(params string[] names)
         {
-            HtmlDescription = htmlDescription;
+            AlternateNames = names;
+        }
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        public AlternateNamesAttribute()
+        {
+            AlternateNames = new List<string>();
         }
     }
 }

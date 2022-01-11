@@ -10,7 +10,7 @@
 
 using System;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
     /// Attribute to specify the FriendlyName of an element

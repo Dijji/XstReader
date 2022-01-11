@@ -10,33 +10,26 @@
 
 using System;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
-    /// Attribute to specify the PropertyArea related
+    /// Attribute to specify an HTML Description
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class PropertyAreaAttribute : Attribute
+    public class HtmlDescriptionAttribute : Attribute
     {
         /// <summary>
-        /// The PropertyArea
+        /// The Description in Html format
         /// </summary>
-        public PropertyArea? PropertyArea { get; private set; } = null;
-
+        public string HtmlDescription { get; private set; }
+        
         /// <summary>
         /// Ctor
         /// </summary>
-        public PropertyAreaAttribute()
+        /// <param name="htmlDescription"></param>
+        public HtmlDescriptionAttribute(string htmlDescription)
         {
-        }
-
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="propertyArea"></param>
-        public PropertyAreaAttribute(PropertyArea propertyArea)
-        {
-            PropertyArea = propertyArea;
+            HtmlDescription = htmlDescription;
         }
     }
 }

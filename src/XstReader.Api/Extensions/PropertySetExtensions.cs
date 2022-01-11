@@ -9,7 +9,7 @@
 // Copyright (c) 2021, iluvadev, and released under Ms-PL License.
 
 using System;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {

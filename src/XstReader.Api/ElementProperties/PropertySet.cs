@@ -13,7 +13,7 @@
 
 using System;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
     /// Property Sets for the properties defined in 

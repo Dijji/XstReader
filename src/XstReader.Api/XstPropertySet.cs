@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
     public class XstPropertySet
     {
-        private Dictionary<PropertyCanonicalName, XstProperty> DicProperties { get; } = new Dictionary<PropertyCanonicalName, XstProperty>();
+        private Dictionary<PropertyCanonicalName, XstProperty> _DicProperties = null;
+        private Dictionary<PropertyCanonicalName, XstProperty> DicProperties
+            => _DicProperties ?? (_DicProperties = new Dictionary<PropertyCanonicalName, XstProperty>());
 
         public bool IsLoaded { get; private set; } = false;
 
@@ -41,7 +43,7 @@ namespace XstReader
         }
         private void LoadProperties()
         {
-            if (IsLoaded) 
+            if (IsLoaded)
                 return;
             if (PropertiesGetter == null)
                 return;
@@ -71,6 +73,7 @@ namespace XstReader
         public void ClearContents()
         {
             DicProperties.Clear();
+            _DicProperties = null;
             IsLoaded = false;
         }
     }

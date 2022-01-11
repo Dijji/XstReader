@@ -10,27 +10,21 @@ using System.Text;
 using System.Text.RegularExpressions;
 using XstReader.Common;
 using XstReader.Common.BTrees;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 
 namespace XstReader
 {
     // Holds information about a single message, extracted from the xst tables
 
-    public partial class XstMessage
+    public partial class XstMessage : XstElement
     {
         private static RtfDecompressor RtfDecompressor = new RtfDecompressor();
 
         public XstFolder ParentFolder { get; private set; }
         public XstAttachment ParentAttachment { get; private set; }
-        private XstFile XstFile => ParentFolder.XstFile;
-        private LTP Ltp => XstFile.Ltp;
-        private NDB Ndb => XstFile.Ndb;
-        internal NID Nid { get; set; }
+        internal protected override XstFile XstFile => ParentFolder.XstFile;
 
-        private XstPropertySet _PropertySet = null;
-        internal XstPropertySet PropertySet => _PropertySet ?? (_PropertySet = new XstPropertySet(LoadProperties));
-        public IEnumerable<XstProperty> Properties => GetProperties();
 
         private IEnumerable<XstRecipient> _Recipients = null;
         public IEnumerable<XstRecipient> Recipients => GetRecipients();
@@ -39,23 +33,23 @@ namespace XstReader
         public bool HasCcDisplayList => Recipients.Cc().Any();
         public bool HasBccDisplayList => Recipients.Bcc().Any();
 
-        public string Subject => PropertySet[PropertyCanonicalName.PidTagSubject]?.Value;
-        public string DisplayName => PropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
-        public string Cc => PropertySet[PropertyCanonicalName.PidTagDisplayCc]?.Value;
-        public string To => PropertySet[PropertyCanonicalName.PidTagDisplayTo]?.Value;
-        public string From => PropertySet[PropertyCanonicalName.PidTagSentRepresentingName]?.Value ??
-                              PropertySet[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value ??
-                              PropertySet[PropertyCanonicalName.PidTagSenderName]?.Value;
+        public string Subject => XstPropertySet[PropertyCanonicalName.PidTagSubject]?.Value;
+        public string DisplayName => XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+        public string Cc => XstPropertySet[PropertyCanonicalName.PidTagDisplayCc]?.Value;
+        public string To => XstPropertySet[PropertyCanonicalName.PidTagDisplayTo]?.Value;
+        public string From => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingName]?.Value ??
+                              XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value ??
+                              XstPropertySet[PropertyCanonicalName.PidTagSenderName]?.Value;
 
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags
         {
-            get => _Flags ?? (MessageFlags?)PropertySet[PropertyCanonicalName.PidTagMessageFlags].Value;
+            get => _Flags ?? (MessageFlags?)XstPropertySet[PropertyCanonicalName.PidTagMessageFlags]?.Value;
             private set => _Flags = value;
         }
-        public DateTime? Submitted => PropertySet[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
-        public DateTime? Received => PropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
-        public DateTime? Modified => PropertySet[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
+        public DateTime? Submitted => XstPropertySet[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
+        public DateTime? Received => XstPropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
+        public DateTime? Modified => XstPropertySet[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
 
         public DateTime? Date => Received ?? Submitted;
 
@@ -66,7 +60,8 @@ namespace XstReader
             get => _BodyLoader;
             set
             {
-                ClearContents();
+                if (_BodyLoader != null)
+                    ClearContents();
                 _BodyLoader = value;
             }
         }
@@ -76,7 +71,7 @@ namespace XstReader
         private BodyType? _NativeBody = null;
         internal BodyType NativeBody
         {
-            get => _NativeBody ?? PropertySet[PropertyCanonicalName.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
+            get => _NativeBody ?? XstPropertySet[PropertyCanonicalName.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
             private set => _NativeBody = value;
         }
         private XstMessageBodyFormat BodyFormat => IsBodyHtml ? XstMessageBodyFormat.Html
@@ -91,7 +86,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return PropertySet[PropertyCanonicalName.PidTagBody]?.Value;
+                return XstPropertySet[PropertyCanonicalName.PidTagBody]?.Value;
             }
         }
         private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
@@ -103,7 +98,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return _BodyHtml ?? PropertySet[PropertyCanonicalName.PidTagHtml]?.Value as string;
+                return _BodyHtml ?? XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as string;
             }
             private set => _BodyHtml = value;
         }
@@ -112,7 +107,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return PropertySet[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
+                return XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
             }
         }
         private bool IsBodyHtml => NativeBody == BodyType.HTML ||
@@ -123,7 +118,7 @@ namespace XstReader
             get
             {
                 if (!_IsBodyLoaded) LoadBody();
-                return PropertySet[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
+                return XstPropertySet[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
             }
         }
         private bool IsBodyRtf => NativeBody == BodyType.RTF ||
@@ -163,17 +158,17 @@ namespace XstReader
         /// <summary>
         /// Initialization for Messages in a Folder
         /// </summary>
+        /// <param name="nid"></param>
         /// <param name="folder"></param>
         /// <returns></returns>
-        internal XstMessage Initialize(XstFolder folder)
+        internal void Initialize(NID nid, XstFolder folder)
         {
+            Nid = nid;
             ParentFolder = folder;
 
             // Read the contents properties
             //BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
-            BodyLoader = () => Ltp.ReadProperties(Nid, PropertySet);
-
-            return this;
+            BodyLoader = () => Ltp.ReadProperties(Nid, XstPropertySet);
         }
 
         public static XstMessage GetAttachedMessage(XstAttachment attachment)
@@ -197,7 +192,7 @@ namespace XstReader
 
                 // Read the basic and contents properties
                 //m.BodyLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertyGetters.MessageAttachmentProperties, m, true);
-                m.BodyLoader = () => attachment.Ltp.ReadProperties(subNodeTreeAttachment, m.Nid, m.PropertySet, true);
+                m.BodyLoader = () => attachment.Ltp.ReadProperties(subNodeTreeAttachment, m.Nid, m.XstPropertySet, true);
 
                 return m;
             }
@@ -206,18 +201,14 @@ namespace XstReader
         }
 
         #region Properties
-        private IEnumerable<XstProperty> LoadProperties()
+        internal void AddProperty(XstProperty property)
+            => XstPropertySet.Add(property);
+
+        private protected override IEnumerable<XstProperty> LoadProperties()
             => (SubNodeTreeParentAttachment != null)
                 ? Ltp.ReadAllProperties(SubNodeTreeParentAttachment, Nid, ContentExclusions, true)
                 : Ltp.ReadAllProperties(Nid, ContentExclusions);
 
-        public IEnumerable<XstProperty> GetProperties()
-            => PropertySet.Values;
-
-        private void ClearProperties()
-        {
-            PropertySet.ClearContents();
-        }
         #endregion Properties
 
         #region Attachments
@@ -343,12 +334,13 @@ namespace XstReader
         }
         #endregion Body
 
-        public void ClearContents()
+        public override void ClearContents()
         {
+            base.ClearContents();
+
             _Flags = null;
             ClearBody();
             ClearAttachments();
-            ClearProperties();
             ClearRecipients();
         }
 

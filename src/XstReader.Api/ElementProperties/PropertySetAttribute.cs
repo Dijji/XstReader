@@ -9,36 +9,34 @@
 // Copyright (c) 2021, iluvadev, and released under Ms-PL License.
 
 using System;
-using System.Collections.Generic;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     /// <summary>
-    /// Attribute to define Alternate Names
+    /// Attribute to specify the PropertySet of an element
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class AlternateNamesAttribute : Attribute
+    public class PropertySetAttribute : Attribute
     {
         /// <summary>
-        /// The Alternate Names
+        /// The PropertySet
         /// </summary>
-        public IEnumerable<string> AlternateNames { get; private set; }
+        public PropertySet? PropertySet { get; private set; } = null;
 
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="names"></param>
-        public AlternateNamesAttribute(params string[] names)
+        public PropertySetAttribute()
         {
-            AlternateNames = names;
         }
 
         /// <summary>
         /// Ctor
         /// </summary>
-        public AlternateNamesAttribute()
+        /// <param name="propertySet"></param>
+        public PropertySetAttribute(PropertySet propertySet)
         {
-            AlternateNames = new List<string>();
+            PropertySet = propertySet;
         }
     }
 }

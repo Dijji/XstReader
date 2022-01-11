@@ -3,14 +3,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using XstReader.ItemProperties;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
+    /// <summary>
+    /// A Property of an pst/ost element
+    /// </summary>
     public class XstProperty
     {
+        /// <summary>
+        /// Canonical Name of the property 
+        /// (from <see href="https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxprops/../ms-oxcfold/c0f31b95-c07f-486c-98d9-535ed9705fbf">
+        /// [MS-OXCFOLD]</see>)
+        /// </summary>
         public PropertyCanonicalName Tag { get; set; }
-        public dynamic Value { get; set; }
+
+        internal Func<dynamic> ValueGetter { get; set; } = null;
+        private dynamic _Value;
+        /// <summary>
+        /// The value of the property for the element
+        /// </summary>
+        public dynamic Value
+        {
+            get => _Value ?? (_Value = ValueGetter?.Invoke());
+            set => _Value = value;
+        }
 
         // Standard properties have a Tag value less than 0x8000,
         // and identify a particular property

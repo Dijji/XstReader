@@ -2,17 +2,16 @@
 
 using System;
 
-namespace XstReader.ItemProperties
+namespace XstReader.ElementProperties
 {
     // Enums and classes used in property handling
     // Enum names are taken from <MS-PST>
 
-    // Values of the PidTagAttachFlags property
-    internal enum AttachFlags : UInt32
+    // Values of the PidTagAttachMethod property
+    internal enum AttachMethod : Int32
     {
-        attInvisibleInHtml = 0x00000001,
-        attRenderedInBody = 0x00000004,
+        afByValue = 0x00000001,
+        afEmbeddedMessage = 0x00000005,
+        afStorage = 0x00000006,
     }
-
-
 }
