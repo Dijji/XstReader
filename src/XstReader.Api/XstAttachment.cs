@@ -54,6 +54,38 @@ namespace XstReader
                         WasRenderedInline) && HasContentId;
             }
         }
+        private XstMessage _AttachedEmailMessage = null;
+        public XstMessage AttachedEmailMessage => GetAttachedEmailMessage();
+        private XstMessage GetAttachedEmailMessage()
+        {
+            if (_AttachedEmailMessage != null)
+                return _AttachedEmailMessage;
+            if (!IsEmail)
+                return null;
+
+            BTree<Node> subNodeTreeMessage = SubNodeTreeProperties;
+
+            if (subNodeTreeMessage == null)
+                // No subNodeTree given: assume we can look it up in the main tree
+                Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
+
+            var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, Nid, PropertyGetters.AttachmentContentProperties, this);
+            if (Content.GetType() == typeof(PtypObjectValue))
+            {
+                _AttachedEmailMessage = new XstMessage(parentFolder: Folder, parentAttachment: this)
+                {
+                    Nid = new NID(((PtypObjectValue)Content).Nid),
+                    SubNodeTreeParentAttachment = subNodeTreeAttachment,
+                };
+
+                // Read the basic and contents properties
+                _AttachedEmailMessage.BodyLoader = () => Ltp.ReadProperties(subNodeTreeAttachment, _AttachedEmailMessage.Nid, _AttachedEmailMessage.XstPropertySet, true);
+            }
+            else
+                throw new XstException("Unexpected data type for attached message");
+
+            return _AttachedEmailMessage;
+        }
 
         private IEnumerable<XstProperty> _Properties = null;
         public IEnumerable<XstProperty> Properties

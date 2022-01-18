@@ -619,7 +619,7 @@ namespace XstReader
 
         private void OpenEmailAttachment(XstAttachment a)
         {
-            XstMessage m = XstMessage.GetAttachedMessage(a);
+            XstMessage m = a.AttachedEmailMessage;
             var mv = new MessageView(m);
             ShowMessage(mv);
             view.PushMessage(mv);

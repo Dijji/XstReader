@@ -15,7 +15,7 @@ namespace XstReader
 
 
         private XstPropertySet _XstPropertySet = null;
-        protected XstPropertySet XstPropertySet => _XstPropertySet ?? (_XstPropertySet = new XstPropertySet(LoadProperties));
+        internal protected XstPropertySet XstPropertySet => _XstPropertySet ?? (_XstPropertySet = new XstPropertySet(LoadProperties));
         public IEnumerable<XstProperty> Properties => GetProperties();
 
         #region Properties

@@ -156,6 +156,24 @@ namespace XstReader
         #endregion Content Exclusions
 
         /// <summary>
+        /// Ctor
+        /// </summary>
+        public XstMessage()
+        {
+        }
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="parentFolder"></param>
+        /// <param name="parentAttachment"></param>
+        internal XstMessage(XstFolder parentFolder, XstAttachment parentAttachment)
+        {
+            ParentFolder = parentFolder;
+            ParentAttachment = parentAttachment;
+        }
+
+        /// <summary>
         /// Initialization for Messages in a Folder
         /// </summary>
         /// <param name="nid"></param>
@@ -169,35 +187,6 @@ namespace XstReader
             // Read the contents properties
             //BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
             BodyLoader = () => Ltp.ReadProperties(Nid, XstPropertySet);
-        }
-
-        public static XstMessage GetAttachedMessage(XstAttachment attachment)
-        {
-            BTree<Node> subNodeTreeMessage = attachment.SubNodeTreeProperties;
-
-            if (subNodeTreeMessage == null)
-                // No subNodeTree given: assume we can look it up in the main tree
-                attachment.Ndb.LookupNodeAndReadItsSubNodeBtree(attachment.Message.Nid, out subNodeTreeMessage);
-
-            var subNodeTreeAttachment = attachment.Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, attachment.Nid, PropertyGetters.AttachmentContentProperties, attachment);
-            if (attachment.Content.GetType() == typeof(PtypObjectValue))
-            {
-                XstMessage m = new XstMessage
-                {
-                    Nid = new NID(((PtypObjectValue)attachment.Content).Nid),
-                    ParentFolder = attachment.Folder,
-                    ParentAttachment = attachment,
-                    SubNodeTreeParentAttachment = subNodeTreeAttachment,
-                };
-
-                // Read the basic and contents properties
-                //m.BodyLoader = () => attachment.Ltp.ReadProperties<XstMessage>(subNodeTreeAttachment, m.Nid, PropertyGetters.MessageAttachmentProperties, m, true);
-                m.BodyLoader = () => attachment.Ltp.ReadProperties(subNodeTreeAttachment, m.Nid, m.XstPropertySet, true);
-
-                return m;
-            }
-            else
-                throw new XstException("Unexpected data type for attached message");
         }
 
         #region Properties
