@@ -2,6 +2,8 @@
 // Tables and implementation approach from libpff under LGPLv3+: https://github.com/libyal/libpff  Copyright (c) 2008-2012, Joachim Metz <joachim.metz@gmail.com>
 
 using System;
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 
 namespace XstReader.Common
 {
@@ -107,5 +109,49 @@ namespace XstReader.Common
                     throw new XstException("Encryption method not known");
             }
         }
+
+        //decrpts mime message bytes with a valid cert in the user cert store
+        // returns the decrypted message as a string
+        public static string DecryptWithCert(byte[] encryptedMessageBytes)
+        {
+            //get cert store and collection of valid certs
+            X509Store store = new X509Store("MY", StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
+            X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
+            X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
+
+            //decrypt bytes with EnvelopedCms
+#if !NETCOREAPP
+            EnvelopedCms ec = new EnvelopedCms();
+            ec.Decode(encryptedMessageBytes);
+            ec.Decrypt(fcollection);
+            byte[] decryptedData = ec.ContentInfo.Content;
+
+            return System.Text.Encoding.ASCII.GetString(decryptedData);
+#else
+            throw new XstException("CMS decoding not supported on this platform");
+#endif
+        }
+
+        //Signed messages are base64 endcoded and broken up with \r\n 
+        //This extracts the base64 content from signed message that has been wrapped in an encrypted message and decodes it
+        // returns the decoded message as a string
+        public static string DecodeSigned(string s)
+        {
+            //parse out base64 encoded content in "signed-data"
+            string base64Message = s.Split(new string[] { "filename=smime.p7m" }, StringSplitOptions.None)[1];
+            string data = base64Message.Replace("\r\n", "");
+
+            // parse out signing data from content
+#if !NETCOREAPP
+            SignedCms sc = new SignedCms();
+            sc.Decode(Convert.FromBase64String(data));
+
+            return System.Text.Encoding.ASCII.GetString(sc.ContentInfo.Content);
+#else
+            throw new XstException("PKCS decoding not supported on this platform");
+#endif
+        }
+
     }
 }

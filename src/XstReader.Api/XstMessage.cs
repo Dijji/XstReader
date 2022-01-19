@@ -345,13 +345,13 @@ namespace XstReader
             }
             else
             {
-                string decryptedMessage = DecryptMessage(messageBytes);
+                string decryptedMessage = Crypto.DecryptWithCert(messageBytes);
                 string cleartextMessage;
 
                 //Message is only signed
                 if (decryptedMessage.Contains("filename=smime.p7m"))
                 {
-                    cleartextMessage = DecodeSignedMessage(decryptedMessage);
+                    cleartextMessage = Crypto.DecodeSigned(decryptedMessage);
                 }
                 // message is only encrypted not signed
                 else
@@ -402,48 +402,6 @@ namespace XstReader
             }
         }
 
-        //decrpts mime message bytes with a valid cert in the user cert store
-        // returns the decrypted message as a string
-        private string DecryptMessage(byte[] encryptedMessageBytes)
-        {
-            //get cert store and collection of valid certs
-            X509Store store = new X509Store("MY", StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
-            X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
-            X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
-
-            //decrypt bytes with EnvelopedCms
-#if !NETCOREAPP
-            EnvelopedCms ec = new EnvelopedCms();
-            ec.Decode(encryptedMessageBytes);
-            ec.Decrypt(fcollection);
-            byte[] decryptedData = ec.ContentInfo.Content;
-
-            return System.Text.Encoding.ASCII.GetString(decryptedData);
-#else
-            throw new XstException("CMS decoding not supported on this platform");
-#endif
-        }
-
-        //Signed messages are base64 endcoded and broken up with \r\n 
-        //This extracts the base64 content from signed message that has been wrapped in an encrypted message and decodes it
-        // returns the decoded message as a string
-        private string DecodeSignedMessage(string s)
-        {
-            //parse out base64 encoded content in "signed-data"
-            string base64Message = s.Split(new string[] { "filename=smime.p7m" }, StringSplitOptions.None)[1];
-            string data = base64Message.Replace("\r\n", "");
-
-            // parse out signing data from content
-#if !NETCOREAPP
-            SignedCms sc = new SignedCms();
-            sc.Decode(Convert.FromBase64String(data));
-
-            return System.Text.Encoding.ASCII.GetString(sc.ContentInfo.Content);
-#else
-            throw new XstException("PKCS decoding not supported on this platform");
-#endif
-        }
 
         //parse out mime headers from a mime section
         //returns a dictionary with the header type as the key and its value as the value
