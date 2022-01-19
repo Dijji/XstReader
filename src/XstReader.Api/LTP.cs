@@ -140,29 +140,34 @@ namespace XstReader
                 return ReadBTHIndex<TCROWIDANSI>(blocks, t.hidRowIndex).Select(r => new NID(r.dwRowID));
         }
 
+        //// This is the full-scale table reader, that reads all of the data in a table
+        //// T is the type of the row object to be populated
+        ////
+        //// First form takes a node ID for a node in the main node tree
+        //public IEnumerable<T> ReadTable<T>(NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null, 
+        //                                   Action<T, XstProperty> storeProp = null) where T : new()
+        //{
+        //    BTree<Node> subNodeTree;
+        //    var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
+
+        //    return ReadTableInternal<T>(subNodeTree, rn.DataBid, g, idGetter, storeProp);
+        //}
+
+
+
         // This is the full-scale table reader, that reads all of the data in a table
         // T is the type of the row object to be populated
         //
         // First form takes a node ID for a node in the main node tree
-        public IEnumerable<T> ReadTable<T>(NID nid, PropertyGetters<T> g, Action<T, UInt32> idGetter = null, Action<T, XstProperty> storeProp = null) where T : new()
+        public IEnumerable<T> ReadTable<T>(NID nid, Action<T, UInt32> idGetter, 
+                                           Action<T, XstProperty> storeProp,
+                                           Action<T> postProcessAction) 
+            where T : new()
         {
             BTree<Node> subNodeTree;
             var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
 
-            return ReadTableInternal<T>(subNodeTree, rn.DataBid, g, idGetter, storeProp);
-        }
-
-
-        // This is the full-scale table reader, that reads all of the data in a table
-        // T is the type of the row object to be populated
-        //
-        // First form takes a node ID for a node in the main node tree
-        public IEnumerable<T> ReadTable<T>(NID nid, Action<T, UInt32> idGetter, Action<T, XstProperty> storeProp) where T : new()
-        {
-            BTree<Node> subNodeTree;
-            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
-
-            return ReadTableInternal<T>(subNodeTree, rn.DataBid, idGetter, storeProp);
+            return ReadTableInternal<T>(subNodeTree, rn.DataBid, idGetter, storeProp, postProcessAction);
         }
 
         // Second form takes a node ID for a node in the supplied sub node tree
@@ -501,7 +506,8 @@ namespace XstReader
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
         private IEnumerable<T> ReadTableInternal<T>(BTree<Node> subNodeTree, UInt64 dataBid, Action<T, UInt32> idGetter,
-                                                    Action<T, XstProperty> storeProp)
+                                                    Action<T, XstProperty> storeProp,
+                                                    Action<T> postProcessAction)
             where T : new()
         {
             var blocks = ReadHeapOnNode(dataBid);
@@ -537,13 +543,13 @@ namespace XstReader
                         Length = buf.Length,
                     }
                 };
-                return ReadTableData<T>(t, blocks, dataBlocks, cols, subNodeTree, indexes, idGetter, storeProp);
+                return ReadTableData<T>(t, blocks, dataBlocks, cols, subNodeTree, indexes, idGetter, storeProp, postProcessAction);
             }
             else if (t.hnidRows.NID.HasValue)
             {
                 // Don't use GetBytesForHNID in this case, as we need to handle multiple blocks
                 var dataBlocks = ReadSubNodeRowDataBlocks(subNodeTree, t.hnidRows.NID);
-                return ReadTableData<T>(t, blocks, dataBlocks, cols, subNodeTree, indexes, idGetter, storeProp);
+                return ReadTableData<T>(t, blocks, dataBlocks, cols, subNodeTree, indexes, idGetter, storeProp, postProcessAction);
             }
             else
                 return Enumerable.Empty<T>();
@@ -619,7 +625,8 @@ namespace XstReader
         // Read the data rows of a table, populating the members of target type T as specified by the supplied property getters, and optionally getting all columns as properties
         private IEnumerable<T> ReadTableData<T>(TCINFO t, List<HNDataBlock> blocks, List<RowDataBlock> dataBlocks, TCOLDESC[] cols,
                                                 BTree<Node> subNodeTree, TCROWIDUnicode[] indexes,
-                                                Action<T, UInt32> idGetter, Action<T, XstProperty> storeProp)
+                                                Action<T, UInt32> idGetter, Action<T, XstProperty> storeProp,
+                                                Action<T> postProcessAction)
             where T : new()
         {
             int rgCEBSize = (int)Math.Ceiling((decimal)t.cCols / 8);
@@ -657,6 +664,7 @@ namespace XstReader
                     foreach (var col in cols.Where(c => (rgCEB[c.iBit / 8] & (0x01 << (7 - (c.iBit % 8)))) != 0))
                         storeProp(row, CreatePropertyObject(col.wPropId, () => ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col)));
                 }
+                postProcessAction?.Invoke(row);
 
                 yield return row;
             }

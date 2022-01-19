@@ -333,8 +333,28 @@ namespace XstReader
             ClearRecipients();
         }
 
+        internal void ProcessSignedOrEncrypted()
+        {
+            //email is signed and/or encrypted and no body was included
+            if (!IsEncryptedOrSigned)
+                return;
+            XstAttachment a = Attachments.FirstOrDefault();
+            if (a == null)
+                return;
+
+            byte[] attachmentBytes = new byte[0];
+
+            //get attachment bytes
+            using (var ms = new MemoryStream())
+            {
+                a.SaveToStream(ms);
+                attachmentBytes = ms.ToArray();
+            }
+            ReadSignedOrEncryptedMessage(attachmentBytes);
+        }
+
         // Take encrypted or signed bytes and parse into message object
-        public void ReadSignedOrEncryptedMessage(byte[] messageBytes)
+        private void ReadSignedOrEncryptedMessage(byte[] messageBytes)
         {
             string messageFromBytes = System.Text.Encoding.ASCII.GetString(messageBytes);
 

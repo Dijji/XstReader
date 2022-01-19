@@ -43,7 +43,7 @@ namespace XstReader
         #region Properties
         private protected override IEnumerable<XstProperty> LoadProperties()
             => Ltp.ReadAllProperties(Nid);
-        
+
         #endregion Properties
 
         #region Folders
@@ -78,7 +78,8 @@ namespace XstReader
                     // For 4K, not all the properties we want are available in the Contents table, so supplement them from the Message itself
                     _Messages = Ltp.ReadTable<XstMessage>(NID.TypedNID(EnidType.CONTENTS_TABLE, Nid),
                                                           (m, id) => m.Initialize(new NID(id), this),
-                                                          (m, p) => m.AddProperty(p));
+                                                          (m, p) => m.AddProperty(p),
+                                                          m => m.ProcessSignedOrEncrypted());
                 else
                     _Messages = new XstMessage[0];
             }
@@ -100,7 +101,7 @@ namespace XstReader
         public override void ClearContents()
         {
             base.ClearContents();
-            
+
             ClearForlders();
             ClearMessages();
         }

@@ -80,22 +80,6 @@ namespace XstReader
             Attachments.Clear();
         }
 
-        public void ReadSignedOrEncryptedMessage()
-        {
-            XstAttachment a = Message.Attachments.First();
-
-            byte[] attachmentBytes = new byte[0];
-
-            //get attachment bytes
-            using (var ms = new MemoryStream())
-            {
-                a.SaveToStream(ms);
-                attachmentBytes = ms.ToArray();
-            }
-
-            Message.ReadSignedOrEncryptedMessage(attachmentBytes);
-        }
-
         public void SortAndSaveAttachments(List<XstAttachment> atts = null)
         {
             // If no attachments are supplied, sort the list we already have

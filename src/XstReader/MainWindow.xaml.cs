@@ -544,19 +544,6 @@ namespace XstReader
 
                 if (mv != null)
                 {
-                    //email is signed and/or encrypted and no body was included
-                    if (mv.IsEncryptedOrSigned)
-                    {
-                        try
-                        {
-                            mv.ReadSignedOrEncryptedMessage();
-                        }
-                        catch
-                        {
-                            ShowStatus("Message Failed to Decrypt");
-                        }
-                    }
-
                     // Populate the view of the attachments
                     mv.SortAndSaveAttachments(mv.Message.Attachments.ToList());
 
