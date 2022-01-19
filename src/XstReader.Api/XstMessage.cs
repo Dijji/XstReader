@@ -138,7 +138,7 @@ namespace XstReader
 
         public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null &&
                                            Attachments.Count() == 1 &&
-                                           Attachments.First().FileName == "smime.p7m";
+                                           Attachments.First().FileNameForSaving == "smime.p7m";
 
         internal BTree<Node> SubNodeTreeProperties = null;
         internal BTree<Node> SubNodeTreeParentAttachment = null;
@@ -190,8 +190,6 @@ namespace XstReader
         }
 
         #region Properties
-        internal void AddProperty(XstProperty property)
-            => XstPropertySet.Add(property);
 
         private protected override IEnumerable<XstProperty> LoadProperties()
             => (SubNodeTreeParentAttachment != null)
@@ -215,17 +213,17 @@ namespace XstReader
                     throw new XstException("Could not find expected Attachment table");
 
                 // Read the attachment table, which is held in the subnode of the message
-                var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, PropertyGetters.AttachmentListProperties, (a, id) => a.Nid = new NID(id)).ToList();
+                var atts = Ltp.ReadTable<XstAttachment>(SubNodeTreeProperties, attachmentsNid, null, (a, id) => a.Nid = new NID(id)).ToList();
                 foreach (var a in atts)
                 {
                     a.Message = this; // For lazy reading of the complete properties: a.Message.Folder.XstFile
 
                     // If the long name wasn't in the attachment table, go look for it in the attachment properties
                     if (a.LongFileName == null)
-                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertyGetters.AttachmentNameProperties, a);
+                        Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, null, a);
 
                     // Read properties relating to HTML images presented as attachments
-                    Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, PropertyGetters.AttachedHtmlImagesProperties, a);
+                    Ltp.ReadProperties<XstAttachment>(SubNodeTreeProperties, a.Nid, null, a);
 
                     // If this is an embedded email, tell the attachment where to look for its properties
                     // This is needed because the email node is not in the main node tree

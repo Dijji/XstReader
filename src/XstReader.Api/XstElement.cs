@@ -21,6 +21,9 @@ namespace XstReader
         #region Properties
         private protected abstract IEnumerable<XstProperty> LoadProperties();
 
+        internal void AddProperty(XstProperty property)
+            => XstPropertySet.Add(property);
+
         public IEnumerable<XstProperty> GetProperties()
             => XstPropertySet.Values;
 

@@ -787,7 +787,7 @@ namespace XstReader
                 return null;
 
             string fileFullName = Path.ChangeExtension(
-                Path.GetTempPath() + Guid.NewGuid().ToString(), Path.GetExtension(a.FileName)); ;
+                Path.GetTempPath() + Guid.NewGuid().ToString(), Path.GetExtension(a.FileNameForSaving)); ;
 
             try
             {

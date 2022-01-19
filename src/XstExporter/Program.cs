@@ -372,7 +372,7 @@ namespace XstExport
                     {
                         if (att.IsFile)
                         {
-                            var attachmentExpectedName = Path.Combine(exportDirectory, att.FileName);
+                            var attachmentExpectedName = Path.Combine(exportDirectory, att.FileNameForSaving);
                             var fi = new FileInfo(attachmentExpectedName);
                             var actionName = string.Empty;
 

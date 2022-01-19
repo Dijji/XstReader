@@ -8,26 +8,32 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
-    public class XstAttachment
+    public class XstAttachment : XstElement
     {
         public XstMessage Message { get; internal set; }
         public XstFolder Folder => Message.ParentFolder;
-        public XstFile XstFile => Folder.XstFile;
-        internal LTP Ltp => XstFile.Ltp;
-        internal NDB Ndb => XstFile.Ndb;
+        protected internal override XstFile XstFile => Message.XstFile;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
-        public string DisplayName { get; set; }
-        public string FileNameW { get; set; }
-        public string LongFileName { get; set; }
-        internal AttachFlags Flags { get; set; }
-        public string MimeTag { get; set; }
-        public string ContentId { get; set; }
-        public bool IsHidden { get; set; }
-        public string FileName => LongFileName ?? FileNameW;
-        public int Size { get; set; }
-        internal NID Nid { get; set; }
-        internal AttachMethod AttachMethod { get; set; }
+        public string DisplayName => XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+        public string FileName => XstPropertySet[PropertyCanonicalName.PidTagAttachFilename]?.Value;
+
+        private string _LongFileName = null;
+        public string LongFileName => _LongFileName ?? XstPropertySet[PropertyCanonicalName.PidTagAttachLongFilename]?.Value;
+        private int? _Size = null;
+        public int Size => _Size ?? (int)(XstPropertySet[PropertyCanonicalName.PidTagAttachSize]?.Value ?? 0);
+
+        private AttachMethod? _AttachMethod = null;
+        internal AttachMethod AttachMethod => _AttachMethod ?? (AttachMethod)(XstPropertySet[PropertyCanonicalName.PidTagAttachMethod]?.Value ?? 0);
+        private AttachFlags? _Flags = null;
+        internal AttachFlags Flags => _Flags ?? (AttachFlags)(XstPropertySet[PropertyCanonicalName.PidTagAttachFlags]?.Value ?? 0);
+        public string MimeTag => XstPropertySet[PropertyCanonicalName.PidTagAttachMimeTag]?.Value;
+        private string _ContentId = null;
+        public string ContentId => _ContentId ?? XstPropertySet[PropertyCanonicalName.PidTagAttachContentId]?.Value;
+        public bool IsHidden => XstPropertySet[PropertyCanonicalName.PidTagAttachmentHidden]?.Value ?? false;
+
+        public string FileNameForSaving => LongFileName ?? FileName;
+
         internal dynamic Content { get; set; }
         public bool IsFile => AttachMethod == AttachMethod.afByValue;
         //public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethod.afEmbeddedMessage; } }
@@ -37,7 +43,7 @@ namespace XstReader
 
         public XstAttachmentType Type => IsFile ? XstAttachmentType.File : IsEmail ? XstAttachmentType.Email : XstAttachmentType.Other;
 
-        public string Description => IsFile ? FileName : DisplayName;
+        public string Description => IsFile ? FileNameForSaving : DisplayName;
 
         public bool Hide => IsHidden || IsInlineAttachment;
         //public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
@@ -87,23 +93,11 @@ namespace XstReader
             return _AttachedEmailMessage;
         }
 
-        private IEnumerable<XstProperty> _Properties = null;
-        public IEnumerable<XstProperty> Properties
+        private protected override IEnumerable<XstProperty> LoadProperties()
         {
-            get
-            {
-                // We read the full set of attachment property values only on demand
-                if (_Properties == null)
-                {
-                    if (!WasLoadedFromMime)
-                        _Properties = ReadProperties();
-                }
-                return _Properties;
-            }
-        }
+            if (WasLoadedFromMime)
+                return null;
 
-        private IEnumerable<XstProperty> ReadProperties()
-        {
             BTree<Node> subNodeTreeMessage = SubNodeTreeProperties;
 
             if (subNodeTreeMessage == null)
@@ -127,9 +121,9 @@ namespace XstReader
 
         public XstAttachment(string fileName, byte[] content)
         {
-            LongFileName = fileName;
-            AttachMethod = AttachMethod.afByValue;
-            Size = content.Length;
+            _LongFileName = fileName;
+            _AttachMethod = AttachMethod.afByValue;
+            _Size = content.Length;
             Content = content;
             WasLoadedFromMime = true;
         }
@@ -137,20 +131,20 @@ namespace XstReader
         public XstAttachment(string fileName, string contentId, Byte[] content)
             : this(fileName, content)
         {
-            ContentId = contentId;
-            Flags = AttachFlags.attRenderedInBody;
+            _ContentId = contentId;
+            _Flags = AttachFlags.attRenderedInBody;
         }
 
         const int MaxPath = 260;
         public void SaveToFolder(string folderpath, DateTime? creationTime)
         {
-            var fullFileName = Path.Combine(folderpath, FileName);
+            var fullFileName = Path.Combine(folderpath, FileNameForSaving);
 
             // If the result is too long, truncate the attachment name as required
             if (fullFileName.Length >= MaxPath)
             {
-                var ext = Path.GetExtension(FileName);
-                var att = Path.GetFileNameWithoutExtension(FileName).Truncate(MaxPath - folderpath.Length - ext.Length - 5) + ext;
+                var ext = Path.GetExtension(FileNameForSaving);
+                var att = Path.GetFileNameWithoutExtension(FileNameForSaving).Truncate(MaxPath - folderpath.Length - ext.Length - 5) + ext;
                 fullFileName = Path.Combine(folderpath, att);
             }
             SaveToFile(fullFileName, creationTime);
