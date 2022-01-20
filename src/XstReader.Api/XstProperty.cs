@@ -72,7 +72,6 @@ namespace XstReader
 
         public bool IsNamed => (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff;
 
-
         public string Id => Tag.Id0x();
         public string CanonicalName => Tag.CanonicalName();
         public string FriendlyName => Tag.FriendlyName();
@@ -93,10 +92,10 @@ namespace XstReader
                     return String.Join(",\r\n", list.Select(v => BitConverter.ToString(v)));
                 else if (Value is DateTime dateTime)
                     return dateTime.ToUniversalTime().ToString("u");
-                else if (Value == null)
-                    return null;
+                //else if (Value == null)
+                //    return null;
                 else
-                    return Value.ToString();
+                    return Value?.ToString();
             }
         }
     }
