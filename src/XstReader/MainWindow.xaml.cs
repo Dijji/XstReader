@@ -569,6 +569,9 @@ namespace XstReader
                     else if (mv.ShowRtf)
                     {
                         //TODO: Rtf support
+                        rtfMessage.SelectAll();
+                        using(var ms = new MemoryStream(mv.Message.Body.Bytes))
+                            rtfMessage.Selection.Load(ms, DataFormats.Rtf);
                         //var body = mv.Message.GetBodyAsFlowDocument();
 
                         //// For testing purposes, can show print header in main visualisation
@@ -580,7 +583,7 @@ namespace XstReader
                     // Could bind text content, but use push so that we can optionally add headers
                     else if (mv.ShowText)
                     {
-                        var body = mv.BodyPlainText;
+                        var body = mv.Body.Text;
 
                         // For testing purposes, can show print header in main visualisation
                         if (view.DisplayPrintHeaders)

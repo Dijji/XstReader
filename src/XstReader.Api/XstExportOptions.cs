@@ -31,7 +31,7 @@ namespace XstReader
 
             UnknownValueText = "<unknown>";
 
-            AttachmentFormatter = (a) => a == null ? "" : $"{a.DisplayName} ({a.Size}Kb)";
+            AttachmentFormatter = (a) => a == null ? "" : $"{a.DisplayName ?? a.FileName} ({a.Size}Kb)";
             AttachmentListFormatter = (al) => String.Join("; ", al.Select(a => Format(a)));
 
             ShowMessageHeader = (m) => true;

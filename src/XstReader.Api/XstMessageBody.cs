@@ -1,11 +1,14 @@
-﻿namespace XstReader
+﻿using System.IO;
+
+namespace XstReader
 {
     public class XstMessageBody
     {
         private XstMessage Message { get; set; }
 
         public XstMessageBodyFormat Format { get; private set; }
-        public string Text { get; private set; }
+
+        public string Text { get; internal set; }
 
         private byte[] _Bytes = null;
         public byte[] Bytes => _Bytes ?? (_Bytes = Message?.Encoding?.GetBytes(Text));

@@ -76,31 +76,8 @@ namespace XstReader
             get => _NativeBody ?? XstPropertySet[PropertyCanonicalName.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
             private set => _NativeBody = value;
         }
-        private XstMessageBodyFormat BodyFormat => IsBodyHtml ? XstMessageBodyFormat.Html
-                                                   : IsBodyRtf ? XstMessageBodyFormat.Rtf
-                                                   : IsBodyPlainText ? XstMessageBodyFormat.PlainText
-                                                   : XstMessageBodyFormat.Unknown;
         private XstMessageBody _Body = null;
-        public XstMessageBody Body => _Body ?? (_Body = new XstMessageBody(this, GetBodyText(), BodyFormat));
-
-        public string BodyPlainText => XstPropertySet[PropertyCanonicalName.PidTagBody]?.Value;
-        private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
-                                       (NativeBody == BodyType.Undefined && BodyPlainText?.Length > 0);
-
-        private string _BodyHtml = null;
-        public string BodyHtml
-        {
-            get => _BodyHtml ?? XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as string;
-            private set => _BodyHtml = value;
-        }
-
-        internal byte[] Html => XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
-        private bool IsBodyHtml => NativeBody == BodyType.HTML ||
-                                  (NativeBody == BodyType.Undefined && (BodyHtml?.Length > 0 || Html?.Length > 0));
-
-        internal byte[] BodyRtfCompressed => XstPropertySet[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
-        private bool IsBodyRtf => NativeBody == BodyType.RTF ||
-                                 (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
+        public XstMessageBody Body => GetBody();
 
         public bool IsRead => (Flags & MessageFlags.mfRead) == MessageFlags.mfRead;
 
@@ -238,9 +215,45 @@ namespace XstReader
         #endregion Recipients
 
         #region Body
-        private string GetBodyText()
+        private string BodyPlainText => XstPropertySet[PropertyCanonicalName.PidTagBody]?.Value;
+        private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
+                                       (NativeBody == BodyType.Undefined && BodyPlainText?.Length > 0);
+
+        private string BodyHtml => XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as string;
+
+        private byte[] Html => XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
+        private bool IsBodyHtml => NativeBody == BodyType.HTML ||
+                                  (NativeBody == BodyType.Undefined && (BodyHtml?.Length > 0 || Html?.Length > 0));
+
+        private byte[] BodyRtfCompressed => XstPropertySet[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
+        private bool IsBodyRtf => NativeBody == BodyType.RTF ||
+                                 (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
+
+
+        public XstMessageBody GetBody()
         {
-            switch (BodyFormat)
+            if(_Body==null)
+            {
+                var format = GetBodyFormat();
+                _Body = new XstMessageBody(this, GetBodyText(format), format);
+            }
+            return _Body;
+        }
+        private XstMessageBodyFormat GetBodyFormat()
+        {
+            if (IsBodyHtml)
+                return XstMessageBodyFormat.Html;
+            if (IsBodyRtf)
+                return XstMessageBodyFormat.Rtf;
+            if (IsBodyPlainText)
+                return XstMessageBodyFormat.PlainText;
+
+            return XstMessageBodyFormat.Unknown;
+        }
+
+        private string GetBodyText(XstMessageBodyFormat format)
+        {
+            switch (format)
             {
                 case XstMessageBodyFormat.Html: return GetBodyHtmlWithImages();
                 case XstMessageBodyFormat.Rtf: return GetBodyRtf();
@@ -281,7 +294,6 @@ namespace XstReader
         {
             SubNodeTreeProperties = null;
             _NativeBody = null;
-            _BodyHtml = null;
             _Body = null;
         }
         #endregion Body
@@ -364,7 +376,7 @@ namespace XstReader
                 //message body
                 if (partHeaders.Keys.Contains("content-type") && partHeaders["content-type"].Trim().Contains("text/html;"))
                 {
-                    BodyHtml = DecodeQuotedPrintable(partHeaders["mimeBody"]);
+                    Body.Text = DecodeQuotedPrintable(partHeaders["mimeBody"]);
                     NativeBody = BodyType.HTML;
                 }
                 //real attachments

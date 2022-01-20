@@ -33,8 +33,7 @@ namespace XstReader
         public DateTime? Modified => Message.LastModificationTime; // When any attachment was last modified
         public DateTime? Date => Received ?? Submitted;
         public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
-        public string BodyPlainText => Message.BodyPlainText;
-        public string BodyHtml => Message.BodyHtml;
+        public XstMessageBody Body => Message.Body;
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
         public IEnumerable<XstRecipient> Recipients => Message.Recipients;
         public IEnumerable<XstProperty> Properties => Message.Properties;
