@@ -1,12 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>XstReader</RootNamespace>
     <Version>0.2.0</Version>
     <AssemblyVersion>0.2.0</AssemblyVersion>
     <FileVersion>0.2.0</FileVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>iluvadev</Authors>
+    <PackageProjectUrl>https://github.com/iluvadev/XstReader</PackageProjectUrl>
+    <Description>An open source library to read and analyze Microsoft Outlook’s .ost and .pst files, written entirely in C#. 
+Project site: https://github.com/iluvadev/XstReader
+
+Based on the great work of Dijji.
+Original project: https://github.com/dijji/XstReader
+</Description>
+    <Copyright>Copyright (c) 2016, Dijji; 2021, iluvadev, and released under Ms-PL License.</Copyright>
+    <RepositoryUrl>https://github.com/iluvadev/XstReader</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>outlook-files, pst-reader, ost-reader</PackageTags>
+    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
