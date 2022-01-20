@@ -17,7 +17,9 @@ namespace XstReader
         /// (from <see href="https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxprops/../ms-oxcfold/c0f31b95-c07f-486c-98d9-535ed9705fbf">
         /// [MS-OXCFOLD]</see>)
         /// </summary>
-        public PropertyCanonicalName Tag { get; set; }
+        public PropertyCanonicalName Tag { get; internal set; }
+
+        public EpropertyType PropertyType { get; internal set; }
 
         internal Func<dynamic> ValueGetter { get; set; } = null;
         private dynamic _Value;

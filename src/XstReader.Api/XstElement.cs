@@ -25,7 +25,7 @@ namespace XstReader
             => XstPropertySet.Add(property);
 
         public IEnumerable<XstProperty> GetProperties()
-            => XstPropertySet.Properties;
+            => XstPropertySet.PropertiesNonBinary;
 
         private protected void ClearProperties()
         {

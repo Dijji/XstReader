@@ -1,25 +1,19 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using XstReader.ElementProperties;
 
 namespace XstReader
 {
     public class XstPropertySet
     {
-        private List<PropertyCanonicalName> Exclusions = new List<PropertyCanonicalName>
-        { 
-            PropertyCanonicalName.PidTagAttachDataBinary,
-            PropertyCanonicalName.PidTagAttachDataObject,
-        };
-
         private Dictionary<PropertyCanonicalName, XstProperty> _DicProperties = null;
         private Dictionary<PropertyCanonicalName, XstProperty> DicProperties
             => _DicProperties ?? (_DicProperties = new Dictionary<PropertyCanonicalName, XstProperty>());
 
         public bool IsLoaded { get; private set; } = false;
 
-        public IEnumerable<XstProperty> AllProperties
+        public IEnumerable<XstProperty> Properties
         {
             get
             {
@@ -27,7 +21,8 @@ namespace XstReader
                 return DicProperties.Values;
             }
         }
-        public IEnumerable<XstProperty> Properties => AllProperties.Where(p => !Exclusions.Contains(p.Tag));
+        public IEnumerable<XstProperty> PropertiesNonBinary => Properties.Where(p => p.PropertyType != EpropertyType.PtypBinary && 
+                                                                                     p.PropertyType != EpropertyType.PtypMultipleBinary);
 
         private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
 
@@ -50,6 +45,13 @@ namespace XstReader
                 return DicProperties[tag];
             return null;
         }
+
+        public IEnumerable<XstProperty> Get(PropertyArea area)
+            => Properties.Where(p => p.Tag.PropertyArea() == area);
+
+        public IEnumerable<XstProperty> Get(PropertySet set)
+            => Properties.Where(p => p.Tag.PropertySet() == set);
+
         private void LoadProperties()
         {
             if (IsLoaded)

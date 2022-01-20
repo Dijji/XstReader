@@ -205,7 +205,7 @@ namespace XstReader
 
             foreach (var prop in props)
             {
-                XstProperty p = CreatePropertyObject(prop.wPropId, () => ReadPropertyValue(subNodeTree, blocks, prop));
+                XstProperty p = CreatePropertyObject(prop, () => ReadPropertyValue(subNodeTree, blocks, prop));
                 propertySet.Add(p);
             }
         }
@@ -227,7 +227,7 @@ namespace XstReader
                 if (excluding != null && excluding.Contains(prop.wPropId))
                     continue;
 
-                XstProperty p = CreatePropertyObject(prop.wPropId, () => ReadPropertyValue(subNodeTree, blocks, prop));
+                XstProperty p = CreatePropertyObject(prop, () => ReadPropertyValue(subNodeTree, blocks, prop));
 
                 yield return p;
             }
@@ -429,8 +429,11 @@ namespace XstReader
             return val;
         }
 
-        private XstProperty CreatePropertyObject(PropertyCanonicalName propId, Func<dynamic> valGetter)
-            => new XstProperty { Tag = propId, ValueGetter = valGetter };
+        private XstProperty CreatePropertyObject(PCBTH prop, Func<dynamic> valGetter)
+            => new XstProperty { Tag = prop.wPropId, PropertyType = prop.wPropType, ValueGetter = valGetter };
+
+        private XstProperty CreatePropertyObject(TCOLDESC col, Func<dynamic> valGetter)
+            => new XstProperty { Tag = col.wPropId, PropertyType = col.wPropType, ValueGetter = valGetter };
 
 
         // Common implementation of table reading takes a data ID for a block in the main block tree
@@ -528,7 +531,7 @@ namespace XstReader
 
                 // Check if the column exists
                 foreach (var col in cols.Where(c => (rgCEB[c.iBit / 8] & (0x01 << (7 - (c.iBit % 8)))) != 0))
-                    row.AddProperty(CreatePropertyObject(col.wPropId, () => ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col)));
+                    row.AddProperty(CreatePropertyObject(col, () => ReadTableColumnValue(subNodeTree, blocks, db, rowOffset, col)));
 
                 postProcessAction?.Invoke(row);
 

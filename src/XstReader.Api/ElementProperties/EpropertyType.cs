@@ -7,7 +7,7 @@ namespace XstReader.ElementProperties
     // Enums and classes used in property handling
     // Enum names are taken from <MS-PST>
 
-    internal enum EpropertyType : UInt16
+    public enum EpropertyType : UInt16
     {
         PtypBinary = 0x0102,
         PtypBoolean = 0x000b,
