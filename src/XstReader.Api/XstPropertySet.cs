@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using XstReader.ElementProperties;
 
@@ -6,13 +7,19 @@ namespace XstReader
 {
     public class XstPropertySet
     {
+        private List<PropertyCanonicalName> Exclusions = new List<PropertyCanonicalName>
+        { 
+            PropertyCanonicalName.PidTagAttachDataBinary,
+            PropertyCanonicalName.PidTagAttachDataObject,
+        };
+
         private Dictionary<PropertyCanonicalName, XstProperty> _DicProperties = null;
         private Dictionary<PropertyCanonicalName, XstProperty> DicProperties
             => _DicProperties ?? (_DicProperties = new Dictionary<PropertyCanonicalName, XstProperty>());
 
         public bool IsLoaded { get; private set; } = false;
 
-        public IEnumerable<XstProperty> Values
+        public IEnumerable<XstProperty> AllProperties
         {
             get
             {
@@ -20,6 +27,8 @@ namespace XstReader
                 return DicProperties.Values;
             }
         }
+        public IEnumerable<XstProperty> Properties => AllProperties.Where(p => !Exclusions.Contains(p.Tag));
+
         private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
 
         internal XstPropertySet(Func<IEnumerable<XstProperty>> propertiesGetter)
