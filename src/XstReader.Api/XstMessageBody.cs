@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace XstReader
+﻿namespace XstReader
 {
     public class XstMessageBody
     {
@@ -12,7 +8,7 @@ namespace XstReader
         public string Text { get; private set; }
 
         private byte[] _Bytes = null;
-        public byte[] Bytes=>_Bytes ?? (_Bytes = Message?.Encoding?.GetBytes(Text));
+        public byte[] Bytes => _Bytes ?? (_Bytes = Message?.Encoding?.GetBytes(Text));
 
         /// <summary>
         /// Ctor

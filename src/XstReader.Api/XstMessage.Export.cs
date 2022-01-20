@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using XstReader.Common;
 using XstReader.ElementProperties;
 
 namespace XstReader
@@ -12,14 +11,15 @@ namespace XstReader
     {
         public XstExportOptions ExportOptions { get; set; } = new XstExportOptions();
 
-        private XstRecipient FromRecipient => Recipients.Filter(RecipientTypes.Originator).FirstOrDefault() ??
-                                              new XstRecipient
-                                              {
-                                                  RecipientType = RecipientTypes.Originator,
-                                                  DisplayName = From,
-                                                  //EmailAddress = ??,
-                                              };
+        private XstRecipient FromRecipient => Recipients.Filter(RecipientType.Originator).FirstOrDefault() ??
+                                              new XstRecipient(From, FromAddress, RecipientType.Originator);
+        private XstRecipient FromRepresentingRecipient
+            => (FromRepresenting ?? FromRepresentingAddress) != null
+               ? new XstRecipient(FromRepresenting, FromRepresentingAddress, RecipientType.Representing)
+               : null;
+
         public string FromFormatted => ExportOptions.Format(FromRecipient);
+        public string FromRepresentingFormatted => ExportOptions.Format(FromRepresentingRecipient);
         public string ToFormatted => ExportOptions.Format(Recipients.To());
         public string CcFormatted => ExportOptions.Format(Recipients.Cc());
         public string BccFormatted => ExportOptions.Format(Recipients.Bcc());
@@ -31,6 +31,7 @@ namespace XstReader
         private string HtmlHeader
             => "<p class=\"MsoNormal\">" +
                     $"<b>From:</b> {FromFormatted.AppendNewLine().TextToHtml()}" +
+                    (IsRepresentingOther ? $"<b>Representing:</b> {FromRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>Sent:</b> {DateFormatted.AppendNewLine().TextToHtml()}" +
                     $"<b>To:</b> {ToFormatted.AppendNewLine().TextToHtml()}" +
                     (HasCcDisplayList ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
@@ -38,7 +39,6 @@ namespace XstReader
                     $"<b>Subject:</b> {Subject.AppendNewLine().TextToHtml()}" +
                     (HasAttachmentsVisibleFiles ? $"<b>Attachments:</b> {AttachmentsVisibleFilesFormatted.AppendNewLine().TextToHtml()}" : "") +
                 "</p><p/><p/>";
-
 
         private string _ExportFileName = null;
         public string ExportFileName => _ExportFileName ?? (_ExportFileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Date, Subject).Truncate(150).ReplaceInvalidFileNameChars(" "));

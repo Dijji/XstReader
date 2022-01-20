@@ -34,7 +34,8 @@ namespace XstReader
 
         public string FileNameForSaving => LongFileName ?? FileName;
 
-        internal dynamic Content { get; set; }
+        private dynamic _Content = null;
+        internal dynamic Content => _Content ?? XstPropertySet[PropertyCanonicalName.PidTagAttachDataBinary]?.Value;
         public bool IsFile => AttachMethod == AttachMethod.afByValue;
         //public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethod.afEmbeddedMessage; } }
         public bool IsEmail => AttachMethod == AttachMethod.afEmbeddedMessage;
@@ -75,7 +76,7 @@ namespace XstReader
                 // No subNodeTree given: assume we can look it up in the main tree
                 Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
 
-            var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, Nid, PropertyGetters.AttachmentContentProperties, this);
+            var subNodeTreeAttachment = Ltp.ReadProperties(subNodeTreeMessage, Nid, this);
             if (Content.GetType() == typeof(PtypObjectValue))
             {
                 _AttachedEmailMessage = new XstMessage(parentFolder: Folder, parentAttachment: this)
@@ -105,13 +106,13 @@ namespace XstReader
                 Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
 
             // Read all non-content properties
-            return Ltp.ReadAllProperties(subNodeTreeMessage, Nid, XstAttachment.attachmentContentExclusions, true);
+            return Ltp.ReadAllProperties(subNodeTreeMessage, Nid, null, true);
         }
 
-        private static readonly HashSet<PropertyCanonicalName> attachmentContentExclusions = new HashSet<PropertyCanonicalName>
-        {
-            PropertyCanonicalName.PidTagAttachDataBinary,
-        };
+        //private static readonly HashSet<PropertyCanonicalName> attachmentContentExclusions = new HashSet<PropertyCanonicalName>
+        //{
+        //    PropertyCanonicalName.PidTagAttachDataBinary,
+        //};
 
 
         public XstAttachment()
@@ -124,7 +125,7 @@ namespace XstReader
             _LongFileName = fileName;
             _AttachMethod = AttachMethod.afByValue;
             _Size = content.Length;
-            Content = content;
+            _Content = content;
             WasLoadedFromMime = true;
         }
 
@@ -133,6 +134,23 @@ namespace XstReader
         {
             _ContentId = contentId;
             _Flags = AttachFlags.attRenderedInBody;
+        }
+
+        internal void Initialize(XstMessage message, bool isAttached = false)
+        {
+            Message = message;
+
+            //// If the long name wasn't in the attachment table, go look for it in the attachment properties
+            //if (!XstPropertySet.Contains(PropertyCanonicalName.PidTagAttachLongFilename))
+            //    Ltp.ReadProperties(message.SubNodeTreeProperties, Nid, this);
+
+            //// Read properties relating to HTML images presented as attachments
+            //Ltp.ReadProperties(message.SubNodeTreeProperties, Nid, this);
+
+            // If this is an embedded email, tell the attachment where to look for its properties
+            // This is needed because the email node is not in the main node tree
+            if (isAttached)
+                SubNodeTreeProperties = message.SubNodeTreeProperties;
         }
 
         const int MaxPath = 260;
@@ -174,7 +192,7 @@ namespace XstReader
                     // No subNodeTree given: assume we can look it up in the main tree
                     Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
 
-                var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, Nid, PropertyGetters.AttachmentContentProperties, this);
+                var subNodeTreeAttachment = Ltp.ReadProperties<XstAttachment>(subNodeTreeMessage, Nid, this);
 
                 if (Content is object)
                 {
