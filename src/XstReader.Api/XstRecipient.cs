@@ -12,14 +12,19 @@ namespace XstReader
         protected internal override XstFile XstFile => Message.XstFile;
 
         private RecipientType? _RecipientType = null;
-        public RecipientType RecipientType => _RecipientType ?? (RecipientType)(XstPropertySet[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
-        private string _DisplayName = null;
-        public string DisplayName => _DisplayName ?? XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+        public RecipientType RecipientType
+        {
+            get => _RecipientType ?? (RecipientType)(XstPropertySet[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
+            set => _RecipientType = value;
+        }
 
         private string _EmailAddress = null;
-        public string EmailAddress => _EmailAddress ?? XstPropertySet[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
-                                                       XstPropertySet[PropertyCanonicalName.PidTagEmailAddress]?.Value;
-
+        public string EmailAddress
+        {
+            get => _EmailAddress ?? XstPropertySet[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
+                                    XstPropertySet[PropertyCanonicalName.PidTagEmailAddress]?.Value;
+            private set => _EmailAddress = value;
+        }
 
         public XstRecipient()
         {
@@ -28,23 +33,17 @@ namespace XstReader
 
         public XstRecipient(string displayName, string emailAddress, RecipientType recipientTypes)
         {
-            _DisplayName = displayName;
-            _EmailAddress = emailAddress;
-            _RecipientType = recipientTypes;
-        }
-
-        internal void Initialize(XstMessage message)
-        {
-            Message = message;
+            DisplayName = displayName;
+            EmailAddress = emailAddress;
+            RecipientType = recipientTypes;
         }
 
         private protected override IEnumerable<XstProperty> LoadProperties()
             => new XstProperty[0];//Ltp.ReadAllProperties(Nid);
 
 
-        internal void Initialize(NID nid, XstMessage message)
+        internal void Initialize(XstMessage message)
         {
-            Nid = nid;
             Message = message;
         }
     }

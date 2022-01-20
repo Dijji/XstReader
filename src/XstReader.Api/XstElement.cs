@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
@@ -17,6 +18,15 @@ namespace XstReader
         private XstPropertySet _XstPropertySet = null;
         internal protected XstPropertySet XstPropertySet => _XstPropertySet ?? (_XstPropertySet = new XstPropertySet(LoadProperties));
         public IEnumerable<XstProperty> Properties => GetProperties();
+
+        private string _DisplayName = null;
+        public string DisplayName
+        {
+            get => _DisplayName??XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+            protected set => _DisplayName = value;
+        }
+        public DateTime? LastModificationTime => XstPropertySet[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
+
 
         #region Properties
         private protected abstract IEnumerable<XstProperty> LoadProperties();

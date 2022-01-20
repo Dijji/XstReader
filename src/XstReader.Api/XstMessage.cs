@@ -32,7 +32,6 @@ namespace XstReader
         public bool HasBccDisplayList => Recipients.Bcc().Any();
 
         public string Subject => XstPropertySet[PropertyCanonicalName.PidTagSubject]?.Value;
-        public string DisplayName => XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
         public string Cc => XstPropertySet[PropertyCanonicalName.PidTagDisplayCc]?.Value;
         public string To => XstPropertySet[PropertyCanonicalName.PidTagDisplayTo]?.Value;
         public string From => XstPropertySet[PropertyCanonicalName.PidTagSenderName]?.Value;
@@ -54,7 +53,6 @@ namespace XstReader
         }
         public DateTime? Submitted => XstPropertySet[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
         public DateTime? Received => XstPropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
-        public DateTime? Modified => XstPropertySet[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
 
         public DateTime? Date => Received ?? Submitted;
 

@@ -15,7 +15,6 @@ namespace XstReader
         protected internal override XstFile XstFile => Message.XstFile;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
-        public string DisplayName => XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
         public string FileName => XstPropertySet[PropertyCanonicalName.PidTagAttachFilename]?.Value;
 
         private string _LongFileName = null;

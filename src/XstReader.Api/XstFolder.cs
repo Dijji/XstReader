@@ -11,7 +11,6 @@ namespace XstReader
     {
         internal protected override XstFile XstFile { get; }
 
-        public string DisplayName => XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
         public uint ContentCount => XstPropertySet[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
         public uint ContentUnreadCount => XstPropertySet[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
 

@@ -30,7 +30,7 @@ namespace XstReader
         public string Subject => Message.Subject ?? Message.DisplayName;
         public DateTime? Received => Message.Received;
         public DateTime? Submitted => Message.Submitted;
-        public DateTime? Modified => Message.Modified; // When any attachment was last modified
+        public DateTime? Modified => Message.LastModificationTime; // When any attachment was last modified
         public DateTime? Date => Received ?? Submitted;
         public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
         public string BodyPlainText => Message.BodyPlainText;
