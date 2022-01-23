@@ -42,8 +42,15 @@ namespace XstReader
         public string FromRepresenting => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingName]?.Value;
         public string FromRepresentingAddress => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingSmtpAddress]?.Value ??
                                                  XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value;
+        public bool IsSentRepresentingOther => From != FromRepresenting || FromAddress != FromRepresentingAddress;
 
-        public bool IsRepresentingOther => From != FromRepresenting || FromAddress != FromRepresentingAddress;
+        public string ReceivedBy => XstPropertySet[PropertyCanonicalName.PidTagReceivedByName]?.Value;
+        public string ReceivedByAddress => XstPropertySet[PropertyCanonicalName.PidTagReceivedBySmtpAddress]?.Value ??
+                                           XstPropertySet[PropertyCanonicalName.PidTagReceivedByEmailAddress]?.Value;
+        public string ReceivedRepresenting => XstPropertySet[PropertyCanonicalName.PidTagReceivedRepresentingName]?.Value;
+        public string ReceivedRepresentingAddress => XstPropertySet[PropertyCanonicalName.PidTagReceivedRepresentingSmtpAddress]?.Value ??
+                                                     XstPropertySet[PropertyCanonicalName.PidTagReceivedRepresentingEmailAddress]?.Value;
+        public bool IsReceivedRepresentingOther => ReceivedBy != ReceivedRepresenting || ReceivedByAddress != ReceivedRepresentingAddress;
 
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags

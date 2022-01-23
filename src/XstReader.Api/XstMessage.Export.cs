@@ -31,7 +31,7 @@ namespace XstReader
         private string HtmlHeader
             => "<p class=\"MsoNormal\">" +
                     $"<b>From:</b> {FromFormatted.AppendNewLine().TextToHtml()}" +
-                    (IsRepresentingOther ? $"<b>Representing:</b> {FromRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (IsSentRepresentingOther ? $"<b>Representing:</b> {FromRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>Sent:</b> {DateFormatted.AppendNewLine().TextToHtml()}" +
                     $"<b>To:</b> {ToFormatted.AppendNewLine().TextToHtml()}" +
                     (HasCcDisplayList ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
