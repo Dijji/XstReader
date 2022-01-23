@@ -15,7 +15,9 @@ namespace XstReader.ElementProperties
         Cc = 0x00000002,
         Bcc = 0x00000003,
 
-        Representing = 0x00000009, //Custom value
+        Receiver = 0x00000010, //Custom value
+        SentRepresenting = 0x00000011, //Custom value
+        ReceivedRepresenting = 0x00000012, //Custom value
     }
 
 }

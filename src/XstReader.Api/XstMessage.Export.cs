@@ -15,16 +15,27 @@ namespace XstReader
                                               new XstRecipient(From, FromAddress, RecipientType.Originator);
         private XstRecipient FromRepresentingRecipient
             => (FromRepresenting ?? FromRepresentingAddress) != null
-               ? new XstRecipient(FromRepresenting, FromRepresentingAddress, RecipientType.Representing)
+               ? new XstRecipient(FromRepresenting, FromRepresentingAddress, RecipientType.SentRepresenting)
+               : null;
+
+        private XstRecipient ReceivedByRecipient => new XstRecipient(ReceivedBy, ReceivedByAddress, RecipientType.Receiver);
+
+        private XstRecipient ReceivedRepresentingRecipient
+            => (ReceivedRepresenting ?? ReceivedRepresentingAddress) != null
+               ? new XstRecipient(ReceivedRepresenting, ReceivedRepresentingAddress, RecipientType.ReceivedRepresenting)
                : null;
 
         public string FromFormatted => ExportOptions.Format(FromRecipient);
         public string FromRepresentingFormatted => ExportOptions.Format(FromRepresentingRecipient);
+        public string ReceivedRepresentingFormatted => ExportOptions.Format(ReceivedRepresentingRecipient);
         public string ToFormatted => ExportOptions.Format(Recipients.To());
         public string CcFormatted => ExportOptions.Format(Recipients.Cc());
         public string BccFormatted => ExportOptions.Format(Recipients.Bcc());
 
+        public string ReceivedByFormatted => ExportOptions.Format(ReceivedByRecipient);
         public string DateFormatted => ExportOptions.Format(Date);
+        public string ReceivedFormatted => ExportOptions.Format(Received);
+        public string SubmittedFormatted => ExportOptions.Format(Submitted);
 
         public string AttachmentsVisibleFilesFormatted => ExportOptions.Format(AttachmentsVisibleFiles);
 
@@ -32,10 +43,13 @@ namespace XstReader
             => "<p class=\"MsoNormal\">" +
                     $"<b>From:</b> {FromFormatted.AppendNewLine().TextToHtml()}" +
                     (IsSentRepresentingOther ? $"<b>Representing:</b> {FromRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
-                    $"<b>Sent:</b> {DateFormatted.AppendNewLine().TextToHtml()}" +
+                    (Submitted != null ? $"<b>Sent:</b> {SubmittedFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>To:</b> {ToFormatted.AppendNewLine().TextToHtml()}" +
                     (HasCcDisplayList ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
                     (HasBccDisplayList ? $"<b>Bcc:</b> {BccFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (Received != null ? $"<b>Received:</b> {ReceivedFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (ReceivedBy != null ? $"<b>Received by:</b> {ReceivedByFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (IsReceivedRepresentingOther ? $"<b>Received representing:</b> {ReceivedRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>Subject:</b> {Subject.AppendNewLine().TextToHtml()}" +
                     (HasAttachmentsVisibleFiles ? $"<b>Attachments:</b> {AttachmentsVisibleFilesFormatted.AppendNewLine().TextToHtml()}" : "") +
                 "</p><p/><p/>";
