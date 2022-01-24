@@ -420,7 +420,7 @@ namespace XstReader
                 string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
 
                 if (fileName != null)
-                    view.CurrentMessage.Message.Properties.SaveToFile(fileName);
+                    view.CurrentMessage.Message.Properties.ItemsNonBinary.SaveToFile(fileName);
             }
         }
 

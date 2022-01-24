@@ -11,8 +11,8 @@ namespace XstReader
     {
         internal protected override XstFile XstFile { get; }
 
-        public uint ContentCount => XstPropertySet[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
-        public uint ContentUnreadCount => XstPropertySet[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
+        public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
+        public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
@@ -34,7 +34,7 @@ namespace XstReader
             XstFile = xstFile;
             Nid = nid;
             ParentFolder = parentFolder;
-            _SubnodeTreeProperties = Ltp.ReadProperties(nid, XstPropertySet);
+            _SubnodeTreeProperties = Ltp.ReadProperties(nid, Properties);
             //_SubnodeTreeProperties = Ltp.ReadProperties<XstFolder>(nid, PropertyGetters.FolderProperties, this);
         }
         #endregion Ctor

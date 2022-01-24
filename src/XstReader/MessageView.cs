@@ -35,8 +35,8 @@ namespace XstReader
         public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
         public XstMessageBody Body => Message.Body;
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
-        public IEnumerable<XstRecipient> Recipients => Message.Recipients;
-        public IEnumerable<XstProperty> Properties => Message.Properties;
+        public IEnumerable<XstRecipient> Recipients => Message.Recipients.Items;
+        public IEnumerable<XstProperty> Properties => Message.Properties.ItemsNonBinary;
         public bool MayHaveInlineAttachment => Message.MayHaveAttachmentsInline;
         public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned;
 

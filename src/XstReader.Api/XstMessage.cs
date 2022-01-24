@@ -24,42 +24,42 @@ namespace XstReader
         internal protected override XstFile XstFile => ParentFolder.XstFile;
 
 
-        private IEnumerable<XstRecipient> _Recipients = null;
-        public IEnumerable<XstRecipient> Recipients => GetRecipients();
+        private XstRecipientSet _Recipients = null;
+        public XstRecipientSet Recipients => _Recipients ?? (_Recipients = new XstRecipientSet(this));
 
-        public bool HasToDisplayList => Recipients.To().Any();
-        public bool HasCcDisplayList => Recipients.Cc().Any();
-        public bool HasBccDisplayList => Recipients.Bcc().Any();
+        public bool HasToDisplayList => Recipients[RecipientType.To].Any();
+        public bool HasCcDisplayList => Recipients[RecipientType.Cc].Any();
+        public bool HasBccDisplayList => Recipients[RecipientType.Bcc].Any();
 
-        public string Subject => XstPropertySet[PropertyCanonicalName.PidTagSubject, false]?.Value;
-        public string Cc => XstPropertySet[PropertyCanonicalName.PidTagDisplayCc, false]?.Value;
-        public string To => XstPropertySet[PropertyCanonicalName.PidTagDisplayTo, false]?.Value;
-        public string From => XstPropertySet[PropertyCanonicalName.PidTagSenderName, false]?.Value;
-        public string FromAddress => XstPropertySet[PropertyCanonicalName.PidTagSenderSmtpAddress]?.Value ??
-                                     XstPropertySet[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
-                                     XstPropertySet[PropertyCanonicalName.PidTagSenderEmailAddress]?.Value ??
-                                     XstPropertySet[PropertyCanonicalName.PidTagEmailAddress]?.Value;
-        public string FromRepresenting => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingName, false]?.Value;
-        public string FromRepresentingAddress => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingSmtpAddress]?.Value ??
-                                                 XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value;
+        public string Subject => Properties[PropertyCanonicalName.PidTagSubject, false]?.Value;
+        public string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc, false]?.Value;
+        public string To => Properties[PropertyCanonicalName.PidTagDisplayTo, false]?.Value;
+        public string From => Properties[PropertyCanonicalName.PidTagSenderName, false]?.Value;
+        public string FromAddress => Properties[PropertyCanonicalName.PidTagSenderSmtpAddress]?.Value ??
+                                     Properties[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
+                                     Properties[PropertyCanonicalName.PidTagSenderEmailAddress]?.Value ??
+                                     Properties[PropertyCanonicalName.PidTagEmailAddress]?.Value;
+        public string FromRepresenting => Properties[PropertyCanonicalName.PidTagSentRepresentingName, false]?.Value;
+        public string FromRepresentingAddress => Properties[PropertyCanonicalName.PidTagSentRepresentingSmtpAddress]?.Value ??
+                                                 Properties[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value;
         public bool IsSentRepresentingOther => From != FromRepresenting || FromAddress != FromRepresentingAddress;
 
-        public string ReceivedBy => XstPropertySet[PropertyCanonicalName.PidTagReceivedByName]?.Value;
-        public string ReceivedByAddress => XstPropertySet[PropertyCanonicalName.PidTagReceivedBySmtpAddress]?.Value ??
-                                           XstPropertySet[PropertyCanonicalName.PidTagReceivedByEmailAddress]?.Value;
-        public string ReceivedRepresenting => XstPropertySet[PropertyCanonicalName.PidTagReceivedRepresentingName]?.Value;
-        public string ReceivedRepresentingAddress => XstPropertySet[PropertyCanonicalName.PidTagReceivedRepresentingSmtpAddress]?.Value ??
-                                                     XstPropertySet[PropertyCanonicalName.PidTagReceivedRepresentingEmailAddress]?.Value;
+        public string ReceivedBy => Properties[PropertyCanonicalName.PidTagReceivedByName]?.Value;
+        public string ReceivedByAddress => Properties[PropertyCanonicalName.PidTagReceivedBySmtpAddress]?.Value ??
+                                           Properties[PropertyCanonicalName.PidTagReceivedByEmailAddress]?.Value;
+        public string ReceivedRepresenting => Properties[PropertyCanonicalName.PidTagReceivedRepresentingName]?.Value;
+        public string ReceivedRepresentingAddress => Properties[PropertyCanonicalName.PidTagReceivedRepresentingSmtpAddress]?.Value ??
+                                                     Properties[PropertyCanonicalName.PidTagReceivedRepresentingEmailAddress]?.Value;
         public bool IsReceivedRepresentingOther => ReceivedBy != ReceivedRepresenting || ReceivedByAddress != ReceivedRepresentingAddress;
 
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags
         {
-            get => _Flags ?? (MessageFlags?)XstPropertySet[PropertyCanonicalName.PidTagMessageFlags, false]?.Value;
+            get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags, false]?.Value;
             private set => _Flags = value;
         }
-        public DateTime? Submitted => XstPropertySet[PropertyCanonicalName.PidTagClientSubmitTime, false]?.Value;
-        public DateTime? Received => XstPropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime, false]?.Value;
+        public DateTime? Submitted => Properties[PropertyCanonicalName.PidTagClientSubmitTime, false]?.Value;
+        public DateTime? Received => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime, false]?.Value;
 
         public DateTime? Date => Received ?? Submitted;
 
@@ -80,7 +80,7 @@ namespace XstReader
         private BodyType? _NativeBody = null;
         internal BodyType NativeBody
         {
-            get => _NativeBody ?? XstPropertySet[PropertyCanonicalName.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
+            get => _NativeBody ?? Properties[PropertyCanonicalName.PidTagNativeBody]?.Value as BodyType? ?? BodyType.Undefined;
             private set => _NativeBody = value;
         }
         private XstMessageBody _Body = null;
@@ -153,7 +153,7 @@ namespace XstReader
 
             // Read the contents properties
             //BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
-            BodyLoader = () => Ltp.ReadProperties(Nid, XstPropertySet);
+            BodyLoader = () => Ltp.ReadProperties(Nid, Properties);
         }
 
         #region Properties
@@ -197,49 +197,34 @@ namespace XstReader
         #endregion Attachments
 
         #region Recipients
-        public IEnumerable<XstRecipient> GetRecipients()
-            => _Recipients ?? (_Recipients = GetRecipientsInternal());
-
-        private IEnumerable<XstRecipient> GetRecipientsInternal()
-        {
-            // Read the recipient table for the message
-            var recipientsNid = new NID(EnidSpecial.NID_RECIPIENT_TABLE);
-            if (!Ltp.IsTablePresent(SubNodeTreeProperties, recipientsNid))
-                return new XstRecipient[0];
-            //    throw new XstException("Could not find expected Recipient table");
-
-            return Ltp.ReadTable<XstRecipient>(SubNodeTreeProperties, recipientsNid,
-                                               (r, id) => r.Nid = new NID(id),
-                                               r => r.Initialize(this));
-            // Sort the properties
-            //.Select(r => { r.Properties.OrderBy(p => p.Tag).ToList(); return r; });
-        }
 
         private void ClearRecipients()
         {
+            if (_Recipients != null)
+                _Recipients.ClearContents();
             _Recipients = null;
         }
         #endregion Recipients
 
         #region Body
-        private string BodyPlainText => XstPropertySet[PropertyCanonicalName.PidTagBody]?.Value;
+        private string BodyPlainText => Properties[PropertyCanonicalName.PidTagBody]?.Value;
         private bool IsBodyPlainText => NativeBody == BodyType.PlainText ||
                                        (NativeBody == BodyType.Undefined && BodyPlainText?.Length > 0);
 
-        private string BodyHtml => XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as string;
+        private string BodyHtml => Properties[PropertyCanonicalName.PidTagHtml]?.Value as string;
 
-        private byte[] Html => XstPropertySet[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
+        private byte[] Html => Properties[PropertyCanonicalName.PidTagHtml]?.Value as byte[];
         private bool IsBodyHtml => NativeBody == BodyType.HTML ||
                                   (NativeBody == BodyType.Undefined && (BodyHtml?.Length > 0 || Html?.Length > 0));
 
-        private byte[] BodyRtfCompressed => XstPropertySet[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
+        private byte[] BodyRtfCompressed => Properties[PropertyCanonicalName.PidTagRtfCompressed]?.Value;
         private bool IsBodyRtf => NativeBody == BodyType.RTF ||
                                  (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
 
 
         public XstMessageBody GetBody()
         {
-            if(_Body==null)
+            if (_Body == null)
             {
                 var format = GetBodyFormat();
                 _Body = new XstMessageBody(this, GetBodyText(format), format);

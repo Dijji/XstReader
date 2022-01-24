@@ -430,10 +430,10 @@ namespace XstReader
         }
 
         private XstProperty CreatePropertyObject(PCBTH prop, Func<dynamic> valGetter)
-            => new XstProperty { Tag = prop.wPropId, PropertyType = prop.wPropType, ValueGetter = valGetter };
+            => new XstProperty(prop.wPropId, prop.wPropType, valGetter);
 
         private XstProperty CreatePropertyObject(TCOLDESC col, Func<dynamic> valGetter)
-            => new XstProperty { Tag = col.wPropId, PropertyType = col.wPropType, ValueGetter = valGetter };
+            => new XstProperty(col.wPropId, col.wPropType, valGetter);
 
 
         // Common implementation of table reading takes a data ID for a block in the main block tree

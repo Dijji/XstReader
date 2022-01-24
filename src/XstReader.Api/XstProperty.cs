@@ -32,6 +32,40 @@ namespace XstReader
             set => _Value = value;
         }
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        public XstProperty()
+        {
+        }
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="propertyType"></param>
+        /// <param name="valueGetter"></param>
+        public XstProperty(PropertyCanonicalName tag, EpropertyType propertyType, Func<dynamic> valueGetter)
+        {
+            Tag = tag;
+            PropertyType = propertyType;
+            ValueGetter = valueGetter;
+        }
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="newTag"></param>
+        /// <param name="original"></param>
+        internal XstProperty CopyToNew(PropertyCanonicalName newTag)
+            => new XstProperty
+            {
+                Tag = newTag,
+                PropertyType = this.PropertyType,
+                ValueGetter = this.ValueGetter,
+                _Value = this._Value,
+            };
+
         // Standard properties have a Tag value less than 0x8000,
         // and identify a particular property
         //
@@ -97,6 +131,11 @@ namespace XstReader
                 else
                     return Value?.ToString();
             }
+        }
+
+        public void ClearContents()
+        {
+            _Value = null;
         }
     }
 }

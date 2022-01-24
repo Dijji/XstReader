@@ -13,7 +13,7 @@ namespace XstReader
 
         public bool IsLoaded { get; private set; } = false;
 
-        public IEnumerable<XstProperty> Properties
+        public IEnumerable<XstProperty> Items
         {
             get
             {
@@ -21,8 +21,8 @@ namespace XstReader
                 return DicProperties.Values;
             }
         }
-        public IEnumerable<XstProperty> PropertiesNonBinary => Properties.Where(p => p.PropertyType != EpropertyType.PtypBinary &&
-                                                                                     p.PropertyType != EpropertyType.PtypMultipleBinary);
+        public IEnumerable<XstProperty> ItemsNonBinary => Items.Where(p => p.PropertyType != EpropertyType.PtypBinary &&
+                                                                           p.PropertyType != EpropertyType.PtypMultipleBinary);
 
         private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
 
@@ -49,10 +49,10 @@ namespace XstReader
         }
 
         public IEnumerable<XstProperty> Get(PropertyArea area)
-            => Properties.Where(p => p.Tag.PropertyArea() == area);
+            => Items.Where(p => p.Tag.PropertyArea() == area);
 
         public IEnumerable<XstProperty> Get(PropertySet set)
-            => Properties.Where(p => p.Tag.PropertySet() == set);
+            => Items.Where(p => p.Tag.PropertySet() == set);
 
         private void LoadProperties()
         {
@@ -85,7 +85,12 @@ namespace XstReader
 
         public void ClearContents()
         {
-            DicProperties.Clear();
+            if (_DicProperties != null)
+            {
+                foreach (var prop in _DicProperties.Values)
+                    prop.ClearContents();
+                _DicProperties.Clear();
+            }
             _DicProperties = null;
             IsLoaded = false;
         }

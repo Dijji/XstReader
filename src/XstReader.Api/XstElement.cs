@@ -15,32 +15,35 @@ namespace XstReader
         internal NID Nid { get; set; } //Where element data is held
 
 
-        private XstPropertySet _XstPropertySet = null;
-        internal protected XstPropertySet XstPropertySet => _XstPropertySet ?? (_XstPropertySet = new XstPropertySet(LoadProperties));
-        public IEnumerable<XstProperty> Properties => GetProperties();
+        private XstPropertySet _Properties = null;
+        public XstPropertySet Properties
+        {
+            get => _Properties ?? (_Properties = new XstPropertySet(LoadProperties));
+            protected set => _Properties = value;
+        }
 
         private string _DisplayName = null;
         public string DisplayName
         {
-            get => _DisplayName??XstPropertySet[PropertyCanonicalName.PidTagDisplayName]?.Value;
+            get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName]?.Value;
             protected set => _DisplayName = value;
         }
-        public DateTime? LastModificationTime => XstPropertySet[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
+        public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
 
 
         #region Properties
         private protected abstract IEnumerable<XstProperty> LoadProperties();
 
         internal void AddProperty(XstProperty property)
-            => XstPropertySet.Add(property);
+            => Properties.Add(property);
 
         public IEnumerable<XstProperty> GetProperties()
-            => XstPropertySet.PropertiesNonBinary;
+            => Properties.ItemsNonBinary;
 
         private protected void ClearProperties()
         {
-            XstPropertySet.ClearContents();
-            _XstPropertySet = null;
+            Properties.ClearContents();
+            _Properties = null;
         }
 
         #endregion Properties

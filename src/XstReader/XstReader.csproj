@@ -135,6 +135,8 @@
     <Compile Include="SearchTextBox\SearchTextBox.cs" />
     <Compile Include="SortAdorner.cs" />
     <Compile Include="View.cs" />
+    <Compile Include="XstFormatOptions.cs" />
+    <Compile Include="XstMessageFormatter.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

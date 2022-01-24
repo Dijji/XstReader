@@ -15,26 +15,26 @@ namespace XstReader
         protected internal override XstFile XstFile => Message.XstFile;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
-        public string FileName => XstPropertySet[PropertyCanonicalName.PidTagAttachFilename]?.Value;
+        public string FileName => Properties[PropertyCanonicalName.PidTagAttachFilename]?.Value;
 
         private string _LongFileName = null;
-        public string LongFileName => _LongFileName ?? XstPropertySet[PropertyCanonicalName.PidTagAttachLongFilename]?.Value;
+        public string LongFileName => _LongFileName ?? Properties[PropertyCanonicalName.PidTagAttachLongFilename]?.Value;
         private int? _Size = null;
-        public int Size => _Size ?? (int)(XstPropertySet[PropertyCanonicalName.PidTagAttachSize]?.Value ?? 0);
+        public int Size => _Size ?? (int)(Properties[PropertyCanonicalName.PidTagAttachSize]?.Value ?? 0);
 
         private AttachMethod? _AttachMethod = null;
-        internal AttachMethod AttachMethod => _AttachMethod ?? (AttachMethod)(XstPropertySet[PropertyCanonicalName.PidTagAttachMethod]?.Value ?? 0);
+        internal AttachMethod AttachMethod => _AttachMethod ?? (AttachMethod)(Properties[PropertyCanonicalName.PidTagAttachMethod]?.Value ?? 0);
         private AttachFlags? _Flags = null;
-        internal AttachFlags Flags => _Flags ?? (AttachFlags)(XstPropertySet[PropertyCanonicalName.PidTagAttachFlags]?.Value ?? 0);
-        public string MimeTag => XstPropertySet[PropertyCanonicalName.PidTagAttachMimeTag]?.Value;
+        internal AttachFlags Flags => _Flags ?? (AttachFlags)(Properties[PropertyCanonicalName.PidTagAttachFlags]?.Value ?? 0);
+        public string MimeTag => Properties[PropertyCanonicalName.PidTagAttachMimeTag]?.Value;
         private string _ContentId = null;
-        public string ContentId => _ContentId ?? XstPropertySet[PropertyCanonicalName.PidTagAttachContentId]?.Value;
-        public bool IsHidden => XstPropertySet[PropertyCanonicalName.PidTagAttachmentHidden]?.Value ?? false;
+        public string ContentId => _ContentId ?? Properties[PropertyCanonicalName.PidTagAttachContentId]?.Value;
+        public bool IsHidden => Properties[PropertyCanonicalName.PidTagAttachmentHidden]?.Value ?? false;
 
         public string FileNameForSaving => LongFileName ?? FileName;
 
         private dynamic _Content = null;
-        internal dynamic Content => _Content ?? XstPropertySet[PropertyCanonicalName.PidTagAttachDataBinary]?.Value;
+        internal dynamic Content => _Content ?? Properties[PropertyCanonicalName.PidTagAttachDataBinary]?.Value;
         public bool IsFile => AttachMethod == AttachMethod.afByValue;
         //public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethod.afEmbeddedMessage; } }
         public bool IsEmail => AttachMethod == AttachMethod.afEmbeddedMessage;
@@ -85,7 +85,7 @@ namespace XstReader
                 };
 
                 // Read the basic and contents properties
-                _AttachedEmailMessage.BodyLoader = () => Ltp.ReadProperties(subNodeTreeAttachment, _AttachedEmailMessage.Nid, _AttachedEmailMessage.XstPropertySet, true);
+                _AttachedEmailMessage.BodyLoader = () => Ltp.ReadProperties(subNodeTreeAttachment, _AttachedEmailMessage.Nid, _AttachedEmailMessage.Properties, true);
             }
             else
                 throw new XstException("Unexpected data type for attached message");

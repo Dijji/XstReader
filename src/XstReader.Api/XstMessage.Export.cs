@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,27 +11,22 @@ namespace XstReader
     public partial class XstMessage
     {
         public XstExportOptions ExportOptions { get; set; } = new XstExportOptions();
+        private XstRecipient OriginatorRecipient => Recipients[RecipientType.Originator].FirstOrDefault();
+        private IEnumerable<XstRecipient> ToRecipients => Recipients[RecipientType.To];
+        private IEnumerable<XstRecipient> CcRecipients => Recipients[RecipientType.Cc];
+        private IEnumerable<XstRecipient> BccRecipients => Recipients[RecipientType.Bcc];
+        private XstRecipient OriginalSentRepresentingRecipient => Recipients[RecipientType.OriginalSentRepresenting].FirstOrDefault();
+        private XstRecipient SentRepresentingRecipient => Recipients[RecipientType.SentRepresenting].FirstOrDefault();
+        private XstRecipient ReceivedRepresentingRecipient => Recipients[RecipientType.ReceivedRepresenting].FirstOrDefault();
+        private XstRecipient SenderRecipient => Recipients[RecipientType.Sender].FirstOrDefault();
+        private XstRecipient ReceivedByRecipient => Recipients[RecipientType.ReceivedBy].FirstOrDefault(); 
 
-        private XstRecipient FromRecipient => Recipients.Filter(RecipientType.Originator).FirstOrDefault() ??
-                                              new XstRecipient(From, FromAddress, RecipientType.Originator);
-        private XstRecipient FromRepresentingRecipient
-            => (FromRepresenting ?? FromRepresentingAddress) != null
-               ? new XstRecipient(FromRepresenting, FromRepresentingAddress, RecipientType.SentRepresenting)
-               : null;
-
-        private XstRecipient ReceivedByRecipient => new XstRecipient(ReceivedBy, ReceivedByAddress, RecipientType.Receiver);
-
-        private XstRecipient ReceivedRepresentingRecipient
-            => (ReceivedRepresenting ?? ReceivedRepresentingAddress) != null
-               ? new XstRecipient(ReceivedRepresenting, ReceivedRepresentingAddress, RecipientType.ReceivedRepresenting)
-               : null;
-
-        public string FromFormatted => ExportOptions.Format(FromRecipient);
-        public string FromRepresentingFormatted => ExportOptions.Format(FromRepresentingRecipient);
+        public string SenderFormatted => ExportOptions.Format(SenderRecipient);
+        public string SentRepresentingFormatted => ExportOptions.Format(SentRepresentingRecipient);
         public string ReceivedRepresentingFormatted => ExportOptions.Format(ReceivedRepresentingRecipient);
-        public string ToFormatted => ExportOptions.Format(Recipients.To());
-        public string CcFormatted => ExportOptions.Format(Recipients.Cc());
-        public string BccFormatted => ExportOptions.Format(Recipients.Bcc());
+        public string ToFormatted => ExportOptions.Format(ToRecipients);
+        public string CcFormatted => ExportOptions.Format(CcRecipients);
+        public string BccFormatted => ExportOptions.Format(BccRecipients);
 
         public string ReceivedByFormatted => ExportOptions.Format(ReceivedByRecipient);
         public string DateFormatted => ExportOptions.Format(Date);
@@ -41,8 +37,8 @@ namespace XstReader
 
         private string HtmlHeader
             => "<p class=\"MsoNormal\">" +
-                    $"<b>From:</b> {FromFormatted.AppendNewLine().TextToHtml()}" +
-                    (IsSentRepresentingOther ? $"<b>Representing:</b> {FromRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    $"<b>From:</b> {SenderFormatted.AppendNewLine().TextToHtml()}" +
+                    (IsSentRepresentingOther ? $"<b>Representing:</b> {SentRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
                     (Submitted != null ? $"<b>Sent:</b> {SubmittedFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>To:</b> {ToFormatted.AppendNewLine().TextToHtml()}" +
                     (HasCcDisplayList ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
@@ -221,7 +217,7 @@ namespace XstReader
             //omit MyName and the line under it for now, as we have no reliable source for it
             //header.AppendFormat("<h3>{0}</h3><hr/><table><tbody>", MyName);
             header.Append("<p class=\"MsoNormal\">");
-            header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", FromFormatted.TextToHtml());
+            header.AppendFormat(row, showEmailType ? "HTML From:" : "From:", SenderFormatted.TextToHtml());
             header.AppendFormat(row, "Sent:", DateFormatted.TextToHtml());
             header.AppendFormat(row, "To:", ToFormatted.TextToHtml());
             if (HasCcDisplayList)
@@ -399,7 +395,7 @@ namespace XstReader
 
         private Encoding GetEncoding()
         {
-            var p = Properties.FirstOrDefault(x => x.PropertySetGuid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
+            var p = Properties.ItemsNonBinary.FirstOrDefault(x => x.PropertySetGuid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
             if (p != null)
             {
 
@@ -408,7 +404,7 @@ namespace XstReader
                     return Encoding.GetEncoding(m.Groups[1].Value);
             }
 
-            p = Properties.FirstOrDefault(x => x.Tag == PropertyCanonicalName.PidTagInternetCodepage);
+            p = Properties[PropertyCanonicalName.PidTagInternetCodepage];
             if (p != null)
             {
                 return Encoding.GetEncoding((int)p.Value);
