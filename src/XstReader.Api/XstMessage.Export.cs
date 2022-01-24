@@ -1,5 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021,2022 iluvadev, and released under Ms-PL License.
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,37 +20,6 @@ namespace XstReader
 {
     public partial class XstMessage
     {
-         private string _ExportFileName = null;
-        public string ExportFileName => _ExportFileName ?? (_ExportFileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Date, Subject).Truncate(150).ReplaceInvalidFileNameChars(" "));
-
-        public string ExportFileExtension => IsBodyHtml ? "html" : IsBodyRtf ? "rtf" : "txt";
-
-        public string GetBodyAsHtmlString(bool embedInlineAttachments = true)
-        {
-            string body = GetBodyAsHtmlStringBase();
-
-            if (embedInlineAttachments && MayHaveAttachmentsInline)
-                body = EmbedAttachments(body);  // Returns null if this is not appropriate
-
-            return body;
-        }
-        private string GetBodyAsHtmlStringBase()
-        {
-            if (BodyHtml != null)
-                return BodyHtml; // This will be plain ASCII
-            else if (Html != null)
-            {
-                if (Encoding != null)
-                {
-                    return EscapeUnicodeCharacters(new String(Encoding.GetChars(Html)));
-                }
-            }
-            else if (BodyPlainText != null) // Not really expecting this as a source of HTML
-                return EscapeUnicodeCharacters(BodyPlainText);
-
-            return null;
-        }
-
         private string EmbedAttachments(string body)
         {
             if (body == null)

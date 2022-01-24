@@ -1,4 +1,13 @@
-﻿// Copyright (c) 2016,2019, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021 iluvadev, and released under Ms-PL License.
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +20,8 @@ namespace XstReader
     {
         internal protected override XstFile XstFile { get; }
 
-        public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
-        public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
+        public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount, false]?.Value ?? (uint)0;
+        public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount, false]?.Value ?? (uint)0;
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
@@ -56,7 +65,7 @@ namespace XstReader
 
             return _Folders;
         }
-        private void ClearForlders()
+        private void ClearFolders()
         {
             if (_Folders != null)
             {
@@ -99,8 +108,7 @@ namespace XstReader
         public override void ClearContents()
         {
             base.ClearContents();
-
-            ClearForlders();
+            ClearFolders();
             ClearMessages();
         }
     }

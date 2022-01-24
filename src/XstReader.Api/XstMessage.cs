@@ -1,4 +1,13 @@
-﻿// Copyright (c) 2016,2019, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021,2022 iluvadev, and released under Ms-PL License.
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
 using System.Collections.Generic;
@@ -27,30 +36,28 @@ namespace XstReader
         private XstRecipientSet _Recipients = null;
         public XstRecipientSet Recipients => _Recipients ?? (_Recipients = new XstRecipientSet(this));
 
-        public bool HasToDisplayList => Recipients[RecipientType.To].Any();
-        public bool HasCcDisplayList => Recipients[RecipientType.Cc].Any();
-        public bool HasBccDisplayList => Recipients[RecipientType.Bcc].Any();
-
         public string Subject => Properties[PropertyCanonicalName.PidTagSubject, false]?.Value;
         public string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc, false]?.Value;
         public string To => Properties[PropertyCanonicalName.PidTagDisplayTo, false]?.Value;
         public string From => Properties[PropertyCanonicalName.PidTagSenderName, false]?.Value;
-        public string FromAddress => Properties[PropertyCanonicalName.PidTagSenderSmtpAddress]?.Value ??
-                                     Properties[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
-                                     Properties[PropertyCanonicalName.PidTagSenderEmailAddress]?.Value ??
-                                     Properties[PropertyCanonicalName.PidTagEmailAddress]?.Value;
-        public string FromRepresenting => Properties[PropertyCanonicalName.PidTagSentRepresentingName, false]?.Value;
-        public string FromRepresentingAddress => Properties[PropertyCanonicalName.PidTagSentRepresentingSmtpAddress]?.Value ??
-                                                 Properties[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value;
-        public bool IsSentRepresentingOther => From != FromRepresenting || FromAddress != FromRepresentingAddress;
-
-        public string ReceivedBy => Properties[PropertyCanonicalName.PidTagReceivedByName]?.Value;
-        public string ReceivedByAddress => Properties[PropertyCanonicalName.PidTagReceivedBySmtpAddress]?.Value ??
-                                           Properties[PropertyCanonicalName.PidTagReceivedByEmailAddress]?.Value;
-        public string ReceivedRepresenting => Properties[PropertyCanonicalName.PidTagReceivedRepresentingName]?.Value;
-        public string ReceivedRepresentingAddress => Properties[PropertyCanonicalName.PidTagReceivedRepresentingSmtpAddress]?.Value ??
-                                                     Properties[PropertyCanonicalName.PidTagReceivedRepresentingEmailAddress]?.Value;
-        public bool IsReceivedRepresentingOther => ReceivedBy != ReceivedRepresenting || ReceivedByAddress != ReceivedRepresentingAddress;
+        public bool IsSentRepresentingOther
+        {
+            get
+            {
+                var sender = Recipients[RecipientType.Sender].FirstOrDefault();
+                var sentRepresenting = Recipients[RecipientType.SentRepresenting].FirstOrDefault();
+                return (sender?.DisplayName != sentRepresenting?.DisplayName || sender?.Address != sentRepresenting?.Address);
+            }
+        }
+        public bool IsReceivedRepresentingOther
+        {
+            get
+            {
+                var receiver = Recipients[RecipientType.ReceivedBy].FirstOrDefault();
+                var receivedRepresenting = Recipients[RecipientType.ReceivedRepresenting].FirstOrDefault();
+                return (receiver?.DisplayName != receivedRepresenting?.DisplayName || receiver?.Address != receivedRepresenting?.Address);
+            }
+        }
 
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags
@@ -58,10 +65,10 @@ namespace XstReader
             get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags, false]?.Value;
             private set => _Flags = value;
         }
-        public DateTime? Submitted => Properties[PropertyCanonicalName.PidTagClientSubmitTime, false]?.Value;
-        public DateTime? Received => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime, false]?.Value;
+        public DateTime? SubmittedTime => Properties[PropertyCanonicalName.PidTagClientSubmitTime, false]?.Value;
+        public DateTime? ReceivedTime => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime, false]?.Value;
 
-        public DateTime? Date => Received ?? Submitted;
+        public DateTime? Date => ReceivedTime ?? SubmittedTime;
 
         private Func<BTree<Node>> _BodyLoader = null;
         internal Func<BTree<Node>> BodyLoader
@@ -192,6 +199,10 @@ namespace XstReader
         }
         private void ClearAttachments()
         {
+            if (_Attachments != null)
+                foreach (var attachment in _Attachments)
+                    attachment.ClearContents();
+
             _Attachments = null;
         }
         #endregion Attachments

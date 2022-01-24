@@ -1,4 +1,12 @@
-// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
 
 using SearchTextBox;
 using System;
@@ -222,7 +230,7 @@ namespace XstReader
             }
             else
             {
-                string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName, view.CurrentMessage.ExportFileExtension);
+                string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName, view.CurrentMessage.MessageFormatter.ExportFileExtension);
                 if (fullFileName != null)
                 {
                     try
@@ -331,7 +339,7 @@ namespace XstReader
                                 ShowStatus($"Exporting {mv.ExportFileName}");
                             }));
                             // Ensure that we have the message contents
-                            var fullFileName = $"{Path.Combine(folderName, fileName)}.{mv.Message.ExportFileExtension}";
+                            var fullFileName = $"{Path.Combine(folderName, fileName)}.{mv.MessageFormatter.ExportFileExtension}";
                             mv.MessageFormatter.SaveMessage(fullFileName);
                             good++;
                         }
@@ -550,7 +558,7 @@ namespace XstReader
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (mv.ShowHtml)
                     {
-                        string body = mv.Message.GetBodyAsHtmlString(true);
+                        string body = mv.Message.Body.Text;
 
                         if (body != null)
                         {

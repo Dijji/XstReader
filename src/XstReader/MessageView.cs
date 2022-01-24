@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2016,2019,2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2016,2019,2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
 using System.Collections.Generic;
@@ -31,8 +39,8 @@ namespace XstReader
         public string Cc => Message.Cc;
         public string FromTo => Message.ParentFolder.DisplayName.StartsWith("Sent") ? To : From;
         public string Subject => Message.Subject ?? Message.DisplayName;
-        public DateTime? Received => Message.Received;
-        public DateTime? Submitted => Message.Submitted;
+        public DateTime? Received => Message.ReceivedTime;
+        public DateTime? Submitted => Message.SubmittedTime;
         public DateTime? Modified => Message.LastModificationTime; // When any attachment was last modified
         public DateTime? Date => Received ?? Submitted;
         public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
@@ -54,8 +62,7 @@ namespace XstReader
 
         public string CcDisplayList => XstFormatter.Format(Message.Recipients[RecipientType.Cc]);
         public string BccDisplayList => XstFormatter.Format(Message.Recipients[RecipientType.Bcc]);
-        public string ExportFileName => Message.ExportFileName;
-        public string ExportFileExtension => Message.ExportFileExtension;
+        public string ExportFileName => MessageFormatter.ExportFileName;
 
         public bool IsSelected
         {

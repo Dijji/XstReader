@@ -1,5 +1,16 @@
-﻿using System;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2022, iluvadev, and released under Ms-PL License.
+
+using System;
 using System.IO;
+using System.Linq;
 #if !NETCOREAPP
 using System.Windows;
 using System.Windows.Documents;
@@ -50,9 +61,9 @@ namespace XstReader
 
             AddRtfTableRow(table1, "Sent:", String.Format("{0:dd MMMM yyyy HH:mm}", Message.Date));
             AddRtfTableRow(table1, "To:", ToFormatted);
-            if (Message.HasCcDisplayList)
+            if (CcRecipients.Any())
                 AddRtfTableRow(table1, "Cc:", CcFormatted);
-            if (Message.HasBccDisplayList)
+            if (BccRecipients.Any())
                 AddRtfTableRow(table1, "Bcc:", BccFormatted);
             AddRtfTableRow(table1, "Subject:", Message.Subject);
             if (Message.HasAttachmentsFiles)

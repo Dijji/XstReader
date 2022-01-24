@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
 using System.Collections.Generic;
@@ -167,33 +175,7 @@ namespace XstReader
 
         #region Private methods
 
-        //// Common implementation of property reading takes a data ID for a block in the main block tree
-        //private void ReadPropertiesInternal<T>(BTree<Node> subNodeTree, 
-        //                                       UInt64 dataBid, 
-        //                                       T target)
-        //    where T : XstElement
-        //{
-        //    var blocks = ReadHeapOnNode(dataBid);
-        //    var h = blocks.First();
-        //    if (h.bClientSig != EbType.bTypePC)
-        //        throw new XstException("Was expecting a PC");
-
-        //    // Read the index of properties
-        //    //var props = ReadBTHIndex<PCBTH>(blocks, h.hidUserRoot).ToArray();
-        //    //if (g != null)
-        //    //{
-        //    //    foreach (var prop in props)
-        //    //    {
-        //    //        if (!g.ContainsKey(prop.wPropId))
-        //    //            continue;
-
-        //    //        dynamic val = ReadPropertyValue(subNodeTree, blocks, prop);
-        //    //        g[prop.wPropId](target, val);
-        //    //    }
-        //    //}
-        //}
-
-        private void ReadPropertiesInternal(BTree<Node> subNodeTree, UInt64 dataBid, XstPropertySet propertySet)
+         private void ReadPropertiesInternal(BTree<Node> subNodeTree, UInt64 dataBid, XstPropertySet propertySet)
         {
             var blocks = ReadHeapOnNode(dataBid);
             var h = blocks.First();

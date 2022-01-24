@@ -1,4 +1,14 @@
-﻿using System;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
+using System;
 using System.Collections.Generic;
 using XstReader.ElementProperties;
 
@@ -25,10 +35,10 @@ namespace XstReader
         private string _DisplayName = null;
         public string DisplayName
         {
-            get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName]?.Value;
+            get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName, false]?.Value;
             protected set => _DisplayName = value;
         }
-        public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
+        public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime, false]?.Value;
 
 
         #region Properties

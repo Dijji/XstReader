@@ -1,4 +1,13 @@
-﻿// Copyright (c) 2016,2019, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021,2022 iluvadev, and released under Ms-PL License.
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
 using System.Collections.Generic;
@@ -12,36 +21,21 @@ namespace XstReader
         public XstMessage Message { get; internal set; }
         protected internal override XstFile XstFile => Message.XstFile;
 
-        private RecipientType? _RecipientType = null;
-        public RecipientType RecipientType
-        {
-            get => _RecipientType ?? (RecipientType)(Properties[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
-            set => _RecipientType = value;
-        }
+        public RecipientType RecipientType 
+            => (RecipientType)(Properties[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
 
-        private string _EmailAddress = null;
-        public string EmailAddress
-        {
-            get => _EmailAddress ?? Properties[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
-                                    Properties[PropertyCanonicalName.PidTagEmailAddress]?.Value;
-            private set => _EmailAddress = value;
-        }
+        public string Address
+            => Properties[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
+               Properties[PropertyCanonicalName.PidTagEmailAddress]?.Value;
 
         public XstRecipient()
         {
-
         }
+
         public XstRecipient(XstMessage message, Func<IEnumerable<XstProperty>> propertiesGetter)
         {
             Message = message;
             Properties = new XstPropertySet(propertiesGetter);
-        }
-
-        public XstRecipient(string displayName, string emailAddress, RecipientType recipientTypes)
-        {
-            DisplayName = displayName;
-            EmailAddress = emailAddress;
-            RecipientType = recipientTypes;
         }
 
         private protected override IEnumerable<XstProperty> LoadProperties()

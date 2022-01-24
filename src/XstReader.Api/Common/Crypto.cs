@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 // Tables and implementation approach from libpff under LGPLv3+: https://github.com/libyal/libpff  Copyright (c) 2008-2012, Joachim Metz <joachim.metz@gmail.com>
 
 using System;

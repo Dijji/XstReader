@@ -1,4 +1,14 @@
-﻿using System.Collections.Generic;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021,2022 iluvadev, and released under Ms-PL License.
+
+using System.Collections.Generic;
 using System.Linq;
 using XstReader.ElementProperties;
 
@@ -14,6 +24,16 @@ namespace XstReader
 
         public IEnumerable<XstRecipient> this[RecipientType recipientType]
             => Items.Where(r => r.RecipientType == recipientType);
+
+        public XstRecipient Originator => this[RecipientType.Originator].FirstOrDefault();
+        public IEnumerable<XstRecipient> To => this[RecipientType.To];
+        public IEnumerable<XstRecipient> Cc => this[RecipientType.Cc];
+        public IEnumerable<XstRecipient> Bcc => this[RecipientType.Bcc];
+        public XstRecipient OriginalSentRepresenting => this[RecipientType.OriginalSentRepresenting].FirstOrDefault();
+        public XstRecipient SentRepresenting => this[RecipientType.SentRepresenting].FirstOrDefault();
+        public XstRecipient ReceivedRepresenting => this[RecipientType.ReceivedRepresenting].FirstOrDefault();
+        public XstRecipient Sender => this[RecipientType.Sender].FirstOrDefault();
+        public XstRecipient ReceivedBy => this[RecipientType.ReceivedBy].FirstOrDefault();
 
         /// <summary>
         /// Ctor

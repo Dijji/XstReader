@@ -6,7 +6,7 @@
 // Issues: https://github.com/iluvadev/XstReader/issues
 // License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
 //
-// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+// Copyright (c) 2022, iluvadev, and released under Ms-PL License.
 
 
 // This file was generated automatically on 2022-01-10 10:28 +01:00 from the documentation at https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxprops/

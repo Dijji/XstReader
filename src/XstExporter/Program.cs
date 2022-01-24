@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using NDesk.Options;
 using System;
@@ -328,7 +336,8 @@ namespace XstExporter
                 try
                 {
                     current = m;
-                    string fileName = m.ExportFileName;
+                    var formatter = new XstMessageFormatter(m);
+                    string fileName = formatter.ExportFileName;
                     for (int i = 1; ; i++)
                     {
                         if (!usedNames.Contains(fileName))
@@ -337,12 +346,11 @@ namespace XstExporter
                             break;
                         }
                         else
-                            fileName = $"{m.ExportFileName} ({i})";
+                            fileName = $"{formatter.ExportFileName} ({i})";
                     }
 
-                    Console.WriteLine($"Exporting {m.ExportFileName}");
-                    var formatter = new XstMessageFormatter(m);
-                    formatter.SaveMessage(Path.Combine(exportDirectory, $"{fileName}.{m.ExportFileExtension}"));
+                    Console.WriteLine($"Exporting {formatter.ExportFileName}");
+                    formatter.SaveMessage(Path.Combine(exportDirectory, $"{fileName}.{formatter.ExportFileExtension}"));
                     good++;
                 }
                 catch (System.Exception ex)
@@ -379,7 +387,7 @@ namespace XstExporter
 
                             if (!fi.Exists)
                                 actionName = "Create";
-                            else if (fi.CreationTime < message.Received)
+                            else if (fi.CreationTime < message.ReceivedTime)
                                 actionName = "CreateNewer";
                             else
                                 actionName = "Skip";
@@ -389,7 +397,7 @@ namespace XstExporter
                             {
                                 case "Create":
                                 case "CreateNewer":
-                                    att.SaveToFile(attachmentExpectedName, message.Received);
+                                    att.SaveToFile(attachmentExpectedName, message.ReceivedTime);
                                     break;
                                 default:
                                     break;

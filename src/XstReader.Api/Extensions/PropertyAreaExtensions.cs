@@ -6,7 +6,7 @@
 // Issues: https://github.com/iluvadev/XstReader/issues
 // License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
 //
-// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+// Copyright (c) 2022, iluvadev, and released under Ms-PL License.
 
 using XstReader.ElementProperties;
 

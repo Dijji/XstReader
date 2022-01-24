@@ -1,4 +1,14 @@
-﻿using System;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2022, iluvadev, and released under Ms-PL License.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,6 +37,14 @@ namespace XstReader
             Message = message;
         }
 
+        public string ExportFileExtension
+            => Message?.Body.Format == XstMessageBodyFormat.Html ? "html" 
+               : Message?.Body.Format == XstMessageBodyFormat.Rtf ? "rtf" 
+               : "txt";
+
+        private string _ExportFileName = null;
+        public string ExportFileName => _ExportFileName ?? (_ExportFileName = String.Format("{0:yyyy-MM-dd HHmm} {1}", Message?.Date, Message?.Subject).Truncate(150).ReplaceInvalidFileNameChars(" "));
+
         private XstRecipient OriginatorRecipient => Message.Recipients[RecipientType.Originator].FirstOrDefault();
         private IEnumerable<XstRecipient> ToRecipients => Message.Recipients[RecipientType.To];
         private IEnumerable<XstRecipient> CcRecipients => Message.Recipients[RecipientType.Cc];
@@ -46,8 +64,8 @@ namespace XstReader
 
         public string ReceivedByFormatted => XstFormatter.Format(ReceivedByRecipient);
         public string DateFormatted => XstFormatter.Format(Message.Date);
-        public string ReceivedFormatted => XstFormatter.Format(Message.Received);
-        public string SubmittedFormatted => XstFormatter.Format(Message.Submitted);
+        public string ReceivedFormatted => XstFormatter.Format(Message.ReceivedTime);
+        public string SubmittedFormatted => XstFormatter.Format(Message.SubmittedTime);
 
         public string AttachmentsVisibleFilesFormatted => XstFormatter.Format(Message.AttachmentsVisibleFiles);
 
@@ -55,12 +73,12 @@ namespace XstReader
             => "<p class=\"MsoNormal\">" +
                     $"<b>From:</b> {SenderFormatted.AppendNewLine().TextToHtml()}" +
                     (Message.IsSentRepresentingOther ? $"<b>Representing:</b> {SentRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
-                    (Message.Submitted != null ? $"<b>Sent:</b> {SubmittedFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (Message.SubmittedTime != null ? $"<b>Sent:</b> {SubmittedFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>To:</b> {ToFormatted.AppendNewLine().TextToHtml()}" +
-                    (Message.HasCcDisplayList ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
-                    (Message.HasBccDisplayList ? $"<b>Bcc:</b> {BccFormatted.AppendNewLine().TextToHtml()}" : "") +
-                    (Message.Received != null ? $"<b>Received:</b> {ReceivedFormatted.AppendNewLine().TextToHtml()}" : "") +
-                    (Message.ReceivedBy != null ? $"<b>Received by:</b> {ReceivedByFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (CcRecipients.Any() ? $"<b>Cc:</b> {CcFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (BccRecipients.Any() ? $"<b>Bcc:</b> {BccFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (Message.ReceivedTime != null ? $"<b>Received:</b> {ReceivedFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (ReceivedByRecipient != null ? $"<b>Received by:</b> {ReceivedByFormatted.AppendNewLine().TextToHtml()}" : "") +
                     (Message.IsReceivedRepresentingOther ? $"<b>Received representing:</b> {ReceivedRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>Subject:</b> {Message.Subject.AppendNewLine().TextToHtml()}" +
                     (Message.HasAttachmentsVisibleFiles ? $"<b>Attachments:</b> {AttachmentsVisibleFilesFormatted.AppendNewLine().TextToHtml()}" : "") +
@@ -68,12 +86,12 @@ namespace XstReader
         private string TxtHeader
             => $"From: {SenderFormatted.AppendNewLine()}" +
                 (Message.IsSentRepresentingOther ? $"Representing: {SentRepresentingFormatted.AppendNewLine()}" : "") +
-                (Message.Submitted != null ? $"Sent: {SubmittedFormatted.AppendNewLine()}" : "") +
+                (Message.SubmittedTime != null ? $"Sent: {SubmittedFormatted.AppendNewLine()}" : "") +
                 $"To: {ToFormatted.AppendNewLine()}" +
-                (Message.HasCcDisplayList ? $"Cc: {CcFormatted.AppendNewLine()}" : "") +
-                (Message.HasBccDisplayList ? $"Bcc: {BccFormatted.AppendNewLine()}" : "") +
-                (Message.Received != null ? $"Received: {ReceivedFormatted.AppendNewLine()}" : "") +
-                (Message.ReceivedBy != null ? $"Received by: {ReceivedByFormatted.AppendNewLine()}" : "") +
+                (CcRecipients.Any() ? $"Cc: {CcFormatted.AppendNewLine()}" : "") +
+                (BccRecipients.Any() ? $"Bcc: {BccFormatted.AppendNewLine()}" : "") +
+                (Message.ReceivedTime != null ? $"Received: {ReceivedFormatted.AppendNewLine()}" : "") +
+                (ReceivedByRecipient != null ? $"Received by: {ReceivedByFormatted.AppendNewLine()}" : "") +
                 (Message.IsReceivedRepresentingOther ? $"Received representing: {ReceivedRepresentingFormatted.AppendNewLine()}" : "") +
                 $"Subject: {Message.Subject.AppendNewLine()}" +
                 (Message.HasAttachmentsVisibleFiles ? $"Attachments: {AttachmentsVisibleFilesFormatted.AppendNewLine()}" : "")
@@ -117,7 +135,7 @@ namespace XstReader
         {
             if (Message.Body.Format == XstMessageBodyFormat.Html)
             {
-                string body = Message.GetBodyAsHtmlString();
+                string body = Message.Body.Text;
 
                 if (body != null)
                 {

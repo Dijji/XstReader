@@ -1,4 +1,13 @@
-﻿// Copyright (c) 2016,2019, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021,2022 iluvadev, and released under Ms-PL License.
+// Copyright (c) 2016,2019, Dijji, and released under Ms-PL.  This can be found in the root of this distribution.
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +35,6 @@ namespace XstReader
         internal AttachMethod AttachMethod => _AttachMethod ?? (AttachMethod)(Properties[PropertyCanonicalName.PidTagAttachMethod]?.Value ?? 0);
         private AttachFlags? _Flags = null;
         internal AttachFlags Flags => _Flags ?? (AttachFlags)(Properties[PropertyCanonicalName.PidTagAttachFlags]?.Value ?? 0);
-        public string MimeTag => Properties[PropertyCanonicalName.PidTagAttachMimeTag]?.Value;
         private string _ContentId = null;
         public string ContentId => _ContentId ?? Properties[PropertyCanonicalName.PidTagAttachContentId]?.Value;
         public bool IsHidden => Properties[PropertyCanonicalName.PidTagAttachmentHidden]?.Value ?? false;
@@ -41,9 +49,10 @@ namespace XstReader
         public bool WasRenderedInline { get; set; } = false;
         public bool WasLoadedFromMime { get; set; } = false;
 
-        public XstAttachmentType Type => IsFile ? XstAttachmentType.File : IsEmail ? XstAttachmentType.Email : XstAttachmentType.Other;
-
-        public string Description => IsFile ? FileNameForSaving : DisplayName;
+        public XstAttachmentType Type 
+            => IsFile ? XstAttachmentType.File 
+               : IsEmail ? XstAttachmentType.Email 
+               : XstAttachmentType.Other;
 
         public bool Hide => IsHidden || IsInlineAttachment;
         //public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
