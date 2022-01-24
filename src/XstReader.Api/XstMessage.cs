@@ -31,15 +31,15 @@ namespace XstReader
         public bool HasCcDisplayList => Recipients.Cc().Any();
         public bool HasBccDisplayList => Recipients.Bcc().Any();
 
-        public string Subject => XstPropertySet[PropertyCanonicalName.PidTagSubject]?.Value;
-        public string Cc => XstPropertySet[PropertyCanonicalName.PidTagDisplayCc]?.Value;
-        public string To => XstPropertySet[PropertyCanonicalName.PidTagDisplayTo]?.Value;
-        public string From => XstPropertySet[PropertyCanonicalName.PidTagSenderName]?.Value;
+        public string Subject => XstPropertySet[PropertyCanonicalName.PidTagSubject, false]?.Value;
+        public string Cc => XstPropertySet[PropertyCanonicalName.PidTagDisplayCc, false]?.Value;
+        public string To => XstPropertySet[PropertyCanonicalName.PidTagDisplayTo, false]?.Value;
+        public string From => XstPropertySet[PropertyCanonicalName.PidTagSenderName, false]?.Value;
         public string FromAddress => XstPropertySet[PropertyCanonicalName.PidTagSenderSmtpAddress]?.Value ??
                                      XstPropertySet[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
                                      XstPropertySet[PropertyCanonicalName.PidTagSenderEmailAddress]?.Value ??
                                      XstPropertySet[PropertyCanonicalName.PidTagEmailAddress]?.Value;
-        public string FromRepresenting => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingName]?.Value;
+        public string FromRepresenting => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingName, false]?.Value;
         public string FromRepresentingAddress => XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingSmtpAddress]?.Value ??
                                                  XstPropertySet[PropertyCanonicalName.PidTagSentRepresentingEmailAddress]?.Value;
         public bool IsSentRepresentingOther => From != FromRepresenting || FromAddress != FromRepresentingAddress;
@@ -55,11 +55,11 @@ namespace XstReader
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags
         {
-            get => _Flags ?? (MessageFlags?)XstPropertySet[PropertyCanonicalName.PidTagMessageFlags]?.Value;
+            get => _Flags ?? (MessageFlags?)XstPropertySet[PropertyCanonicalName.PidTagMessageFlags, false]?.Value;
             private set => _Flags = value;
         }
-        public DateTime? Submitted => XstPropertySet[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
-        public DateTime? Received => XstPropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
+        public DateTime? Submitted => XstPropertySet[PropertyCanonicalName.PidTagClientSubmitTime, false]?.Value;
+        public DateTime? Received => XstPropertySet[PropertyCanonicalName.PidTagMessageDeliveryTime, false]?.Value;
 
         public DateTime? Date => Received ?? Submitted;
 

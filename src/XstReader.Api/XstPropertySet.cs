@@ -21,7 +21,7 @@ namespace XstReader
                 return DicProperties.Values;
             }
         }
-        public IEnumerable<XstProperty> PropertiesNonBinary => Properties.Where(p => p.PropertyType != EpropertyType.PtypBinary && 
+        public IEnumerable<XstProperty> PropertiesNonBinary => Properties.Where(p => p.PropertyType != EpropertyType.PtypBinary &&
                                                                                      p.PropertyType != EpropertyType.PtypMultipleBinary);
 
         private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
@@ -31,15 +31,17 @@ namespace XstReader
             PropertiesGetter = propertiesGetter;
         }
 
-        public XstProperty this[UInt16 tag] => Get(tag);
-        public XstProperty this[PropertyCanonicalName tag] => Get(tag);
+        public XstProperty this[UInt16 tag, bool loadAllIfNotLoaded = true] 
+            => Get(tag, loadAllIfNotLoaded);
+        public XstProperty this[PropertyCanonicalName tag, bool loadAllIfNotLoaded = true] 
+            => Get(tag, loadAllIfNotLoaded);
 
-        public XstProperty Get(UInt16 tag)
-            => Get((PropertyCanonicalName)tag);
+        public XstProperty Get(UInt16 tag, bool loadAllIfNotLoaded = true)
+            => Get((PropertyCanonicalName)tag, loadAllIfNotLoaded);
 
-        public XstProperty Get(PropertyCanonicalName tag)
+        public XstProperty Get(PropertyCanonicalName tag, bool loadAllIfNotLoaded = true)
         {
-            if (!IsLoaded && !Contains(tag))
+            if (!Contains(tag) && !IsLoaded && loadAllIfNotLoaded)
                 LoadProperties();
             if (DicProperties.ContainsKey(tag))
                 return DicProperties[tag];
