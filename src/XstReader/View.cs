@@ -33,9 +33,6 @@ namespace XstReader
                 }
             }
         }
-        public bool DisplayPrintHeaders { get; set; } = true;//false;
-        public bool DisplayEmailType { get; set; } = false;
-        public bool DisplayHeaderFields => !DisplayPrintHeaders;
         public bool IsBusy
         {
             get => isBusy;

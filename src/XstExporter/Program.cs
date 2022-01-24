@@ -5,9 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using XstReader;
 
-namespace XstExport
+namespace XstExporter
 {
     class Program
     {
@@ -340,8 +341,8 @@ namespace XstExport
                     }
 
                     Console.WriteLine($"Exporting {m.ExportFileName}");
-
-                    m.SaveToFile(Path.Combine(exportDirectory, $"{fileName}.{m.ExportFileExtension}"));
+                    var formatter = new XstMessageFormatter(m);
+                    formatter.SaveMessage(Path.Combine(exportDirectory, $"{fileName}.{m.ExportFileExtension}"));
                     good++;
                 }
                 catch (System.Exception ex)
@@ -382,7 +383,7 @@ namespace XstExport
                                 actionName = "CreateNewer";
                             else
                                 actionName = "Skip";
-                            
+
                             Console.WriteLine($"{actionName} : {attachmentExpectedName}");
                             switch (actionName)
                             {

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace XstReader
 {
-    internal static class StringExtensions
+    public static class StringExtensions
     {
         public static string AppendNewLine(this string text)
             => text + Environment.NewLine;

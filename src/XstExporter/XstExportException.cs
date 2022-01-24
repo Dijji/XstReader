@@ -2,7 +2,7 @@
 
 using System;
 
-namespace XstExport
+namespace XstExporter
 {
     enum WindowsErrorCodes
     {

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
@@ -20,8 +21,10 @@ namespace XstReader
             if (message == null)
                 throw new XstException("MessageView requires a Message object");
             Message = message;
+            MessageFormatter = new XstMessageFormatter(Message);
         }
 
+        internal XstMessageFormatter MessageFormatter { get; private set; }
         public XstMessage Message { get; private set; }
         public string From => Message.From;
         public string To => Message.To;
@@ -49,13 +52,8 @@ namespace XstReader
         public bool ShowHtml => Message.Body.Format == XstMessageBodyFormat.Html;
         public bool ShowRtf => Message.Body.Format == XstMessageBodyFormat.Rtf;
 
-        public bool HasToDisplayList => ToDisplayList.Length > 0;
-        public string ToDisplayList => Message.ToFormatted;
-        public bool HasCcDisplayList => CcDisplayList.Length > 0;
-        public string CcDisplayList => Message.CcFormatted;
-        public bool HasBccDisplayList => BccDisplayList.Length > 0;
-        public string BccDisplayList => Message.BccFormatted;
-        public string FileAttachmentDisplayList => Message.AttachmentsVisibleFilesFormatted;
+        public string CcDisplayList => XstFormatter.Format(Message.Recipients[RecipientType.Cc]);
+        public string BccDisplayList => XstFormatter.Format(Message.Recipients[RecipientType.Bcc]);
         public string ExportFileName => Message.ExportFileName;
         public string ExportFileExtension => Message.ExportFileExtension;
 

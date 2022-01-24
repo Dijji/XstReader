@@ -227,7 +227,7 @@ namespace XstReader
                 {
                     try
                     {
-                        view.CurrentMessage.Message.SaveToFile(fullFileName);
+                        view.CurrentMessage.MessageFormatter.SaveMessage(fullFileName);
                     }
                     catch (System.Exception ex)
                     {
@@ -332,7 +332,7 @@ namespace XstReader
                             }));
                             // Ensure that we have the message contents
                             var fullFileName = $"{Path.Combine(folderName, fileName)}.{mv.Message.ExportFileExtension}";
-                            mv.Message.SaveToFile(fullFileName);
+                            mv.MessageFormatter.SaveMessage(fullFileName);
                             good++;
                         }
                         catch (System.Exception ex)
@@ -554,9 +554,7 @@ namespace XstReader
 
                         if (body != null)
                         {
-                            // For testing purposes, can show print header in main visualisation
-                            if (view.DisplayPrintHeaders)
-                                body = mv.Message.EmbedHtmlPrintHeader(body);
+                            body = mv.MessageFormatter.EmbedHtmlHeader(body);
 
                             wbMessage.NavigateToString(body);
                             if (mv.MayHaveInlineAttachment)
@@ -570,24 +568,19 @@ namespace XstReader
                     {
                         //TODO: Rtf support
                         rtfMessage.SelectAll();
-                        using(var ms = new MemoryStream(mv.Message.Body.Bytes))
+                        using (var ms = new MemoryStream(mv.Message.Body.Bytes))
                             rtfMessage.Selection.Load(ms, DataFormats.Rtf);
-                        //var body = mv.Message.GetBodyAsFlowDocument();
+                        var body = mv.MessageFormatter.GetBodyAsFlowDocument();
 
-                        //// For testing purposes, can show print header in main visualisation
-                        //if (view.DisplayPrintHeaders)
-                        //    mv.Message.EmbedRtfPrintHeader(body, view.DisplayEmailType);
+                        mv.MessageFormatter.EmbedRtfHeader(body);
 
-                        //rtfMessage.Document = body;
+                        rtfMessage.Document = body;
                     }
                     // Could bind text content, but use push so that we can optionally add headers
                     else if (mv.ShowText)
                     {
                         var body = mv.Body.Text;
-
-                        // For testing purposes, can show print header in main visualisation
-                        if (view.DisplayPrintHeaders)
-                            body = mv.Message.EmbedTextPrintHeader(body, true, view.DisplayEmailType);
+                        body = mv.MessageFormatter.EmbedTextHeader(body);
 
                         txtMessage.Text = body;
                         scrollTextMessage.ScrollToHome();

@@ -128,15 +128,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Extensions.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions.cs" />
+    <Compile Include="Extensions\ObservableCollectionExtensions.cs" />
     <Compile Include="FolderView.cs" />
     <Compile Include="MessageView.cs" />
     <Compile Include="SearchTextBox\ListBoxEx.cs" />
     <Compile Include="SearchTextBox\SearchTextBox.cs" />
     <Compile Include="SortAdorner.cs" />
     <Compile Include="View.cs" />
-    <Compile Include="XstFormatOptions.cs" />
+    <Compile Include="XstFormatter.cs" />
     <Compile Include="XstMessageFormatter.cs" />
+    <Compile Include="XstMessageFormatter.rtf.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

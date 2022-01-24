@@ -9,6 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\XstReader\XstFormatter.cs" Link="XstFormatter.cs" />
+    <Compile Include="..\XstReader\XstMessageFormatter.cs" Link="XstMessageFormatter.cs" />
+    <Compile Include="..\XstReader\XstMessageFormatter.rtf.cs" Link="XstMessageFormatter.rtf.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\XstReader.Api\XstReader.Api.csproj" />
   </ItemGroup>
 
