@@ -1,7 +1,7 @@
 There are 3 projects here to view Microsoft Outlook's .ost and .pst files, all of them written entirely in C#, with no dependency on any Microsoft Office components.
 
 # Dijji
-This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader), who died at the end of May 2021.
+This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader). [Dijji](https://github.com/Dijji) died at the end of May 2021.
 
 As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
 > If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
