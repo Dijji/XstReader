@@ -1,5 +1,18 @@
-# Xst Reader
-Xst Reader is an open source viewer for Microsoft Outlook’s .ost and .pst files, written entirely in C#, requiring only .Net Framework 4, and with no dependency on any Microsoft Office components.
+There are 3 projects here to view Microsoft Outlook's .ost and .pst files, all of them written entirely in C#, with no dependency on any Microsoft Office components.
+
+# Dijji
+This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader), who died at the end of May 2021.
+
+As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
+> If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
+
+# Projects  
+* [XstReader](#xstreader): An application to view Microsoft Outlook's .ost and .pst files (Windows)
+* [XstExport](#xstexport): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
+* [XstReader.Api](#xstreader-api): A library to read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
+
+# XstReader
+Xst Reader is an open source viewer for Microsoft Outlook’s .ost and .pst files, written entirely in C#, requiring only .Net Framework 4.6.1, and with no dependency on any Microsoft Office components.
 
 It presents as a simple, classic, three pane mail viewer:
 
