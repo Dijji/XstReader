@@ -36,10 +36,10 @@ namespace XstReader
         private XstRecipientSet _Recipients = null;
         public XstRecipientSet Recipients => _Recipients ?? (_Recipients = new XstRecipientSet(this));
 
-        public string Subject => Properties[PropertyCanonicalName.PidTagSubject, false]?.Value;
-        public string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc, false]?.Value;
-        public string To => Properties[PropertyCanonicalName.PidTagDisplayTo, false]?.Value;
-        public string From => Properties[PropertyCanonicalName.PidTagSenderName, false]?.Value;
+        public string Subject => Properties[PropertyCanonicalName.PidTagSubject]?.Value;
+        public string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc]?.Value;
+        public string To => Properties[PropertyCanonicalName.PidTagDisplayTo]?.Value;
+        public string From => Properties[PropertyCanonicalName.PidTagSenderName]?.Value;
         public bool IsSentRepresentingOther
         {
             get
@@ -62,11 +62,11 @@ namespace XstReader
         private MessageFlags? _Flags = null;
         public MessageFlags? Flags
         {
-            get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags, false]?.Value;
+            get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags]?.Value;
             private set => _Flags = value;
         }
-        public DateTime? SubmittedTime => Properties[PropertyCanonicalName.PidTagClientSubmitTime, false]?.Value;
-        public DateTime? ReceivedTime => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime, false]?.Value;
+        public DateTime? SubmittedTime => Properties[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
+        public DateTime? ReceivedTime => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
 
         public DateTime? Date => ReceivedTime ?? SubmittedTime;
 
@@ -197,25 +197,8 @@ namespace XstReader
                                                 (a, id) => a.Nid = new NID(id),
                                                 a => a.Initialize(this, IsAttached));
         }
-        private void ClearAttachments()
-        {
-            if (_Attachments != null)
-                foreach (var attachment in _Attachments)
-                    attachment.ClearContents();
-
-            _Attachments = null;
-        }
         #endregion Attachments
 
-        #region Recipients
-
-        private void ClearRecipients()
-        {
-            if (_Recipients != null)
-                _Recipients.ClearContents();
-            _Recipients = null;
-        }
-        #endregion Recipients
 
         #region Body
         private string BodyPlainText => Properties[PropertyCanonicalName.PidTagBody]?.Value;
@@ -292,18 +275,30 @@ namespace XstReader
 
             return rtfText;
         }
+        #endregion Body
 
+        private void ClearAttachments()
+        {
+            //if (_Attachments != null)
+            //    foreach (var attachment in _Attachments)
+            //        attachment.ClearContents();
+            _Attachments = null;
+        }
+        private void ClearRecipients()
+        {
+            if (_Recipients != null)
+                _Recipients.ClearContents();
+            _Recipients = null;
+        }
         private void ClearBody()
         {
             SubNodeTreeProperties = null;
             _NativeBody = null;
             _Body = null;
         }
-        #endregion Body
-
-        public override void ClearContents()
+        internal override void ClearContentsInternal()
         {
-            base.ClearContents();
+            base.ClearContentsInternal();
 
             _Flags = null;
             ClearBody();

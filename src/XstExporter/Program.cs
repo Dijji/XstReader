@@ -331,12 +331,13 @@ namespace XstExporter
             // use a numeric suffix to distinguish them
             HashSet<string> usedNames = new HashSet<string>();
 
+            var formatter = new XstMessageFormatter();
             foreach (XstMessage m in folder.Messages)
             {
                 try
                 {
                     current = m;
-                    var formatter = new XstMessageFormatter(m);
+                    formatter.Message = m;
                     string fileName = formatter.ExportFileName;
                     for (int i = 1; ; i++)
                     {

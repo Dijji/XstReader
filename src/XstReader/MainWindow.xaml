@@ -207,7 +207,7 @@
                             <GridViewColumn Width="400" Header="Email"  >
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Path=EmailAddress}" />
+                                        <TextBlock Text="{Binding Path=Address}" />
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
@@ -285,21 +285,21 @@
                         <GridViewColumn Width="75" Header="Type"  >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Type}"  FontWeight="{Binding Path=Weight}" />
+                                    <TextBlock Text="{Binding Path=Type}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Width="300" Header="Attachment" >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Description}"  FontWeight="{Binding Path=Weight}" />
+                                    <TextBlock Text="{Binding Path=Description}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Width="50" Header="Size"  >
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Path=Size}"  FontWeight="{Binding Path=Weight}" />
+                                    <TextBlock Text="{Binding Path=Size}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

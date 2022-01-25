@@ -158,8 +158,8 @@ namespace XstReader
 
         public void ClearContents()
         {
-            if (_Items != null)
-                _Items.ForEach(r => r.ClearContents());
+            //if (_Items != null)
+            //    _Items.ForEach(r => r.ClearContentsInternal());
 
             _Items = null;
         }

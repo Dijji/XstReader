@@ -60,8 +60,13 @@ namespace XstReader
         public bool ShowHtml => Message.Body.Format == XstMessageBodyFormat.Html;
         public bool ShowRtf => Message.Body.Format == XstMessageBodyFormat.Rtf;
 
-        public string CcDisplayList => XstFormatter.Format(Message.Recipients[RecipientType.Cc]);
-        public string BccDisplayList => XstFormatter.Format(Message.Recipients[RecipientType.Bcc]);
+        public bool HasToDisplayList => Message.Recipients.To.Any();
+        public string ToDisplayList => XstFormatter.Format(Message.Recipients.To);
+        public bool HasCcDisplayList => Message.Recipients.Cc.Any();
+        public string CcDisplayList => XstFormatter.Format(Message.Recipients.Cc);
+        public bool HasBccDisplayList => Message.Recipients.Bcc.Any();
+        public string BccDisplayList => XstFormatter.Format(Message.Recipients.Bcc);
+
         public string ExportFileName => MessageFormatter.ExportFileName;
 
         public bool IsSelected

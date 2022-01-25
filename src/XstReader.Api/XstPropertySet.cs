@@ -41,17 +41,17 @@ namespace XstReader
             PropertiesGetter = propertiesGetter;
         }
 
-        public XstProperty this[UInt16 tag, bool loadAllIfNotLoaded = true] 
-            => Get(tag, loadAllIfNotLoaded);
-        public XstProperty this[PropertyCanonicalName tag, bool loadAllIfNotLoaded = true] 
-            => Get(tag, loadAllIfNotLoaded);
+        public XstProperty this[UInt16 tag] 
+            => Get(tag);
+        public XstProperty this[PropertyCanonicalName tag] 
+            => Get(tag);
 
-        public XstProperty Get(UInt16 tag, bool loadAllIfNotLoaded = true)
-            => Get((PropertyCanonicalName)tag, loadAllIfNotLoaded);
+        public XstProperty Get(UInt16 tag)
+            => Get((PropertyCanonicalName)tag);
 
-        public XstProperty Get(PropertyCanonicalName tag, bool loadAllIfNotLoaded = true)
+        public XstProperty Get(PropertyCanonicalName tag)
         {
-            if (!Contains(tag) && !IsLoaded && loadAllIfNotLoaded)
+            if (!Contains(tag) && !IsLoaded)
                 LoadProperties();
             if (DicProperties.ContainsKey(tag))
                 return DicProperties[tag];

@@ -20,8 +20,8 @@ namespace XstReader
     {
         internal protected override XstFile XstFile { get; }
 
-        public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount, false]?.Value ?? (uint)0;
-        public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount, false]?.Value ?? (uint)0;
+        public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
+        public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
 
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
@@ -65,15 +65,6 @@ namespace XstReader
 
             return _Folders;
         }
-        private void ClearFolders()
-        {
-            if (_Folders != null)
-            {
-                foreach (var folder in _Folders)
-                    folder.ClearContents();
-                _Folders = null;
-            }
-        }
         #endregion Folders
 
         #region Messages
@@ -93,21 +84,25 @@ namespace XstReader
             return _Messages;
         }
 
+        #endregion Messages
+
+        private void ClearFolders()
+        {
+            if (_Folders != null)
+                foreach (var folder in _Folders)
+                    folder.ClearContentsInternal();
+            _Folders = null;
+        }
         private void ClearMessages()
         {
             if (_Messages != null)
-            {
                 foreach (var message in _Messages)
-                    message.ClearContents();
-                _Messages = null;
-            }
+                    message.ClearContentsInternal();
+            _Messages = null;
         }
-
-        #endregion Messages
-
-        public override void ClearContents()
+        internal override void ClearContentsInternal()
         {
-            base.ClearContents();
+            base.ClearContentsInternal();
             ClearFolders();
             ClearMessages();
         }

@@ -25,6 +25,7 @@ namespace XstReader
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
         public string FileName => Properties[PropertyCanonicalName.PidTagAttachFilename]?.Value;
+        public string Description => DisplayName ?? FileName;
 
         private string _LongFileName = null;
         public string LongFileName => _LongFileName ?? Properties[PropertyCanonicalName.PidTagAttachLongFilename]?.Value;
@@ -221,6 +222,24 @@ namespace XstReader
                     }
                 }
             }
+        }
+
+        private void ClearAttachedEmailMessage()
+        {
+            //if (_AttachedEmailMessage != null)
+            //    _AttachedEmailMessage.ClearContentsInternal();
+            _AttachedEmailMessage = null;
+        }
+        private void ClearAttachmentContent()
+        {
+            _Content = null;
+        }
+
+        internal override void ClearContentsInternal()
+        {
+            base.ClearContentsInternal();
+            ClearAttachedEmailMessage();
+            ClearAttachmentContent();
         }
     }
 

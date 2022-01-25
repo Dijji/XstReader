@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using XstReader.ElementProperties;
 
 namespace XstReader
@@ -35,10 +36,10 @@ namespace XstReader
         private string _DisplayName = null;
         public string DisplayName
         {
-            get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName, false]?.Value;
+            get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName]?.Value;
             protected set => _DisplayName = value;
         }
-        public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime, false]?.Value;
+        public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
 
 
         #region Properties
@@ -50,18 +51,23 @@ namespace XstReader
         public IEnumerable<XstProperty> GetProperties()
             => Properties.ItemsNonBinary;
 
+        #endregion Properties
+
         private protected void ClearProperties()
         {
             Properties.ClearContents();
             _Properties = null;
         }
 
-        #endregion Properties
-
         /// <summary>
         /// Clear all Contents
         /// </summary>
-        public virtual void ClearContents()
+        public void ClearContents()
+        {
+            new Thread(()=> { ClearContentsInternal(); GC.Collect(); }).Start();
+        }
+
+        internal virtual void ClearContentsInternal()
         {
             ClearProperties();
         }
