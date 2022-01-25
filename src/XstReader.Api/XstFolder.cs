@@ -34,6 +34,8 @@ namespace XstReader
         private IEnumerable<XstMessage> _Messages = null;
         public IEnumerable<XstMessage> Messages => GetMessages();
 
+        public IEnumerable<XstMessage> UnreadMessages => Messages.Where(m => !m.IsRead);
+
         private BTree<Node> _SubnodeTreeProperties = null;
 
 

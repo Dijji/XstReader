@@ -6,6 +6,7 @@
     <Version>2.0.1</Version>
     <AssemblyVersion>2.0.1</AssemblyVersion>
     <FileVersion>2.0.1</FileVersion>
+    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

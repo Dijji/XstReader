@@ -114,7 +114,7 @@ namespace XstReader
             internal set => _Name = value;
         }
 
-        public bool IsNamed => (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff;
+        internal bool IsNamed => (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff;
 
         public string Id => Tag.Id0x();
         public string CanonicalName => Tag.CanonicalName();
