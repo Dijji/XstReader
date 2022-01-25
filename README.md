@@ -1,15 +1,15 @@
-There are 3 projects here to view Microsoft Outlook's .ost and .pst files, all of them written entirely in C#, with no dependency on any Microsoft Office components.
+This repository includes 3 projects to read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files. All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
+## Projects  
+* [XstReader](#xstreader): An application to view Microsoft Outlook's .ost and .pst files (Windows)
+* [XstExporter](#xstexporter): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
+* [XstReader.Api](#xstreader-api): A library to read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
 
-# Dijji
-This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader). [Dijji](https://github.com/Dijji) died at the end of May 2021.
+# Original code
+This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader). And [Dijji](https://github.com/Dijji) died at the end of May 2021 :(
 
 As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
 > If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
 
-# Projects  
-* [XstReader](#xstreader): An application to view Microsoft Outlook's .ost and .pst files (Windows)
-* [XstExport](#xstexport): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
-* [XstReader.Api](#xstreader-api): A library to read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
 
 # **[This Readme is pending review]**
 
@@ -26,7 +26,7 @@ It requires only .Net Framework 4, which is installed by default on Windows 8.1 
 
 Xst Reader is based on Microsoft’s documentation of the Outlook file formats in [MS-PST], first published in 2010 as part of the anti-trust settlement with the DOJ and the EU: <https://msdn.microsoft.com/en-us/library/ff385210(v=office.12).aspx>
 
-## XstExport
+## XstExporter
 
 A command line tool for exporting emails, attachments or properties from an Outlook file.
 
@@ -38,7 +38,7 @@ In addition to XstExport, XstPortableExport is also provided, which is a portabl
 
 Both versions support the following options:
 
-   XstExport.exe {-e|-p|-a|-h} [-f=`<Outlook folder>`] [-o] [-s] [-t=`<target directory>`] `<Outlook file name>`
+   XstExporter.exe {-e|-p|-a|-h} [-f=`<Outlook folder>`] [-o] [-s] [-t=`<target directory>`] `<Outlook file name>`
 
 Where:
 
