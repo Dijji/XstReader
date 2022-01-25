@@ -1,4 +1,4 @@
-This repository includes 3 projects for read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files. All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
+This repository includes 3 projects for read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files (also those protected by unknown password). All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
 ## Projects  
 * [XstReader](#xstreader): An application for view Microsoft Outlook's .ost and .pst files (Windows)
 * [XstExporter](#xstexporter): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
