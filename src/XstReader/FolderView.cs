@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
 
 using System;
 using System.Collections.ObjectModel;
@@ -7,26 +15,23 @@ namespace XstReader
 {
     public class FolderView
     {
-        public Folder Folder { get; private set; }
-        public string Name { get { return Folder.Name; } }
-        public uint ContentCount { get { return Folder.ContentCount; } }
-        public string Description { get { return String.Format("{0} ({1})", Name, ContentCount); } }
+        public XstFolder Folder { get; private set; }
+        public string Name => Folder.DisplayName;
+        public uint ContentCount => Folder.ContentCount;
+        public string Description => $"{Name} ({ContentCount})";
         public ObservableCollection<FolderView> FolderViews { get; private set; } = new ObservableCollection<FolderView>();
         public ObservableCollection<MessageView> MessageViews { get; private set; } = new ObservableCollection<MessageView>();
 
-        public FolderView(Folder folder)
+        public FolderView(XstFolder folder)
         {
-            if (folder == null)
-                throw new XstException("FolderView requires a Folder object");
-
-            Folder = folder;
+            Folder = folder ?? throw new XstException("FolderView requires a Folder object");
 
             // Recursively add views for any subfolders
-            foreach (Folder f in folder.Folders)
+            foreach (XstFolder f in folder.Folders)
                 FolderViews.Add(new FolderView(f));
         }
 
-        public void AddMessage(Message m)
+        public void AddMessage(XstMessage m)
         {
             MessageViews.Add(new MessageView(m));
         }

@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,26 +31,62 @@ namespace XstReader
         public ObservableCollection<FolderView> RootFolderViews { get; private set; } = new ObservableCollection<FolderView>();
         public FolderView SelectedFolder
         {
-            get { return selectedFolder; }
-            set { selectedFolder = value; OnPropertyChanged(nameof(SelectedFolder), nameof(CanExportFolder)); }
+            get => selectedFolder;
+            set
+            {
+                if (selectedFolder != value)
+                {
+                    selectedFolder = value;
+                    OnPropertyChanged(nameof(SelectedFolder), nameof(CanExportFolder));
+                }
+            }
         }
-        public bool DisplayPrintHeaders { get; set; } = false;
-        public bool DisplayEmailType { get; set; } = false;
-        public bool DisplayHeaderFields { get { return !DisplayPrintHeaders; } }
-        public bool IsBusy { get { return isBusy; } set { isBusy = value; OnPropertyChanged(nameof(IsBusy), nameof(IsNotBusy), nameof(CanExportFolder)); } }
-        public bool IsNotBusy { get { return !isBusy; } }
-        public ObservableCollection<Property> CurrentProperties { get; private set; } = new ObservableCollection<Property>();
-        public bool IsMessagePresent { get { return (CurrentMessage != null); } }
-        public bool CanSaveEmail { get { return ShowContent && CurrentMessage != null; } }
-        public bool CanPopMessage { get { return (stackMessage.Count > 0); } }
-        public bool CanExportFolder { get { return !IsBusy && SelectedFolder != null; } }
-        public bool CanExportProperties { get { return IsMessagePresent && ShowProperties; } }
-        public bool IsAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasAttachment); } }
-        public bool IsFileAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasFileAttachment); } }
-        public bool IsFileAttachmentSelected { get { return fileAttachmentSelected; } set { fileAttachmentSelected = value; OnPropertyChanged(nameof(IsFileAttachmentSelected)); } }
-        public bool IsEmailAttachmentPresent { get { return (ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment); } }
-        public bool IsEmailAttachmentSelected { get { return emailAttachmentSelected; } set { emailAttachmentSelected = value; OnPropertyChanged(nameof(IsEmailAttachmentSelected)); } }
-
+        public bool IsBusy
+        {
+            get => isBusy;
+            set
+            {
+                if (isBusy != value)
+                {
+                    isBusy = value;
+                    OnPropertyChanged(nameof(IsBusy), nameof(IsNotBusy), nameof(CanExportFolder));
+                }
+            }
+        }
+        public bool IsNotBusy => !isBusy;
+        public ObservableCollection<XstProperty> CurrentProperties { get; private set; } = new ObservableCollection<XstProperty>();
+        public bool IsMessagePresent => (CurrentMessage != null);
+        public bool CanSaveEmail => ShowContent && CurrentMessage != null;
+        public bool CanPopMessage => stackMessage.Count > 0;
+        public bool CanExportFolder => !IsBusy && SelectedFolder != null;
+        public bool CanExportProperties => IsMessagePresent && ShowProperties;
+        public bool IsAttachmentPresent => ShowContent && CurrentMessage != null && CurrentMessage.HasAttachment;
+        public bool IsFileAttachmentPresent => ShowContent && CurrentMessage != null && CurrentMessage.HasFileAttachment;
+        public bool IsFileAttachmentSelected
+        {
+            get => fileAttachmentSelected;
+            set
+            {
+                if (fileAttachmentSelected != value)
+                {
+                    fileAttachmentSelected = value;
+                    OnPropertyChanged(nameof(IsFileAttachmentSelected));
+                }
+            }
+        }
+        public bool IsEmailAttachmentPresent => ShowContent && CurrentMessage != null && CurrentMessage.HasEmailAttachment;
+        public bool IsEmailAttachmentSelected
+        {
+            get => emailAttachmentSelected;
+            set
+            {
+                if (emailAttachmentSelected != value)
+                {
+                    emailAttachmentSelected = value;
+                    OnPropertyChanged(nameof(IsEmailAttachmentSelected));
+                }
+            }
+        }
         public MessageView CurrentMessage
         {
             get { return currentMessage; }
@@ -67,7 +111,7 @@ namespace XstReader
             {
                 showContent = value;
                 OnPropertyChanged(
-                    nameof(ShowContent), 
+                    nameof(ShowContent),
                     nameof(ShowProperties),
                     nameof(CanSaveEmail),
                     nameof(CanExportProperties),
@@ -80,7 +124,7 @@ namespace XstReader
             }
         }
 
-        public void UpdateFolderViews(Folder rootFolder)
+        public void UpdateFolderViews(XstFolder rootFolder)
         {
             RootFolderViews.Clear();
             foreach (var f in rootFolder.Folders)
@@ -89,16 +133,26 @@ namespace XstReader
             }
         }
 
-        public void SelectedRecipientChanged(Recipient recipient)
+        public void SelectedRecipientChanged(XstRecipient recipient)
         {
             if (recipient != null)
             {
-                CurrentProperties.PopulateWith(recipient.Properties);
+                CurrentProperties.PopulateWith(recipient.Properties.ItemsNonBinary);
                 OnPropertyChanged(nameof(CurrentProperties));
             }
         }
 
-        public void SelectedAttachmentsChanged(IEnumerable<Attachment> selection)
+        public void SelectedFolderChanged(XstFolder folder)
+        {
+            if(folder != null)
+            {
+                CurrentProperties.PopulateWith(folder.Properties.ItemsNonBinary);
+                OnPropertyChanged(nameof(CurrentProperties));
+            }
+        }
+
+
+        public void SelectedAttachmentsChanged(IEnumerable<XstAttachment> selection)
         {
             IsFileAttachmentSelected = selection.FirstOrDefault(a => a.IsFile) != null;
             IsEmailAttachmentSelected = selection.FirstOrDefault(a => a.IsEmail) != null;
@@ -106,7 +160,7 @@ namespace XstReader
             var firstAttachment = selection.FirstOrDefault(a => (a.IsFile || a.IsEmail));
             if (firstAttachment != null)
             {
-                CurrentProperties.PopulateWith(firstAttachment.Properties);
+                CurrentProperties.PopulateWith(firstAttachment.Properties.ItemsNonBinary);
                 OnPropertyChanged(nameof(CurrentProperties));
             }
         }
@@ -132,7 +186,9 @@ namespace XstReader
 
         public void Clear()
         {
+            SelectedFolder?.Folder?.ClearContents();
             SelectedFolder = null;
+            CurrentMessage?.Message?.ClearContents();
             CurrentMessage = null;
             RootFolderViews.Clear();
             stackMessage.Clear();

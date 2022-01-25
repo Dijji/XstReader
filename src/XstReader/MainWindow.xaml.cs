@@ -1,4 +1,12 @@
-// Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
 
 using SearchTextBox;
 using System;
@@ -65,25 +73,10 @@ namespace XstReader
                 try
                 {
                     xstFile = new XstFile(fileName);
-                    var root = xstFile.ReadFolderTree();
-
-                    //
-                    // I refactorized this part: 
-                    //
-                    // iterator with view.RootFolderViews.Add -> moved to view.UpdateFolderViews(root)
-                    //
+                    var root = xstFile.RootFolder;
 
                     // We may be called on a background thread, so we need to dispatch this to the UI thread
                     Application.Current.Dispatcher.Invoke(new Action(() => view.UpdateFolderViews(root)));
-
-                    //foreach (var f in root.Folders)
-                    //{
-                    //    // We may be called on a background thread, so we need to dispatch this to the UI thread
-                    //    Application.Current.Dispatcher.Invoke(new Action(() =>
-                    //    {
-                    //        view.RootFolderViews.Add(new FolderView(f));
-                    //    }));
-                    //}
                 }
                 catch (System.Exception ex)
                 {
@@ -125,6 +118,9 @@ namespace XstReader
         {
             try
             {
+                //Clear contents of prev selected folder
+                view.SelectedFolder?.Folder?.ClearContents();
+
                 FolderView fv = (FolderView)e.NewValue;
                 view.SelectedFolder = fv;
 
@@ -141,7 +137,7 @@ namespace XstReader
                     {
                         try
                         {
-                            xstFile.ReadMessages(fv.Folder);
+                            fv.Folder.GetMessages();
                             // We may be called on a background thread, so we need to dispatch this to the UI thread
                             Application.Current.Dispatcher.Invoke(new Action(() => fv.UpdateMessageViews()));
                         }
@@ -157,6 +153,7 @@ namespace XstReader
                         {
                             ShowStatus(null);
                             Mouse.OverrideCursor = null;
+                            view.SelectedFolderChanged(fv.Folder);
                         }));
                     });
 
@@ -180,7 +177,7 @@ namespace XstReader
             {
                 try
                 {
-                    xstFile.ReadMessageDetails(mv.Message);
+                    //mv.Message.ReadMessageDetails();
                     ShowMessage(mv);
                 }
                 catch (System.Exception ex)
@@ -205,7 +202,7 @@ namespace XstReader
         {
             try
             {
-                view.SelectedRecipientChanged((Recipient)listRecipients.SelectedItem);
+                view.SelectedRecipientChanged((XstRecipient)listRecipients.SelectedItem);
             }
             catch (System.Exception ex)
             {
@@ -217,7 +214,7 @@ namespace XstReader
         {
             try
             {
-                view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<Attachment>());
+                view.SelectedAttachmentsChanged(listAttachments.SelectedItems.Cast<XstAttachment>());
             }
             catch (System.Exception ex)
             {
@@ -233,15 +230,12 @@ namespace XstReader
             }
             else
             {
-                string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName,
-                                            view.CurrentMessage.ExportFileExtension);
-
+                string fullFileName = GetEmailExportFileName(view.CurrentMessage.ExportFileName, view.CurrentMessage.MessageFormatter.ExportFileExtension);
                 if (fullFileName != null)
                 {
                     try
                     {
-                        view.CurrentMessage.Message.ExportToFile(fullFileName, xstFile);
-                        xstFile.SaveVisibleAttachmentsToAssociatedFolder(fullFileName, view.CurrentMessage.Message);
+                        view.CurrentMessage.MessageFormatter.SaveMessage(fullFileName);
                     }
                     catch (System.Exception ex)
                     {
@@ -338,25 +332,21 @@ namespace XstReader
                                     break;
                                 }
                                 else
-                                    fileName = String.Format("{0} ({1})", mv.ExportFileName, i);
+                                    fileName = $"{mv.ExportFileName} ({i})";
                             }
                             Application.Current.Dispatcher.Invoke(new Action(() =>
                             {
-                                ShowStatus("Exporting " + mv.ExportFileName);
+                                ShowStatus($"Exporting {mv.ExportFileName}");
                             }));
                             // Ensure that we have the message contents
-                            xstFile.ReadMessageDetails(mv.Message);
-                            var fullFileName = String.Format(@"{0}\{1}.{2}",
-                                        folderName, fileName, mv.Message.ExportFileExtension);
-                            mv.Message.ExportToFile(fullFileName, xstFile);
-                            xstFile.SaveVisibleAttachmentsToAssociatedFolder(fullFileName, mv.Message);
+                            var fullFileName = $"{Path.Combine(folderName, fileName)}.{mv.MessageFormatter.ExportFileExtension}";
+                            mv.MessageFormatter.SaveMessage(fullFileName);
                             good++;
                         }
                         catch (System.Exception ex)
                         {
-                            var result = MessageBox.Show(String.Format("Error '{0}' exporting email '{1}'",
-                                ex.Message, current.Subject), "Error exporting emails",
-                                MessageBoxButton.OKCancel);
+                            var result = MessageBox.Show($"Error '{ex.Message}' exporting email '{current.Subject}'",
+                                                         "Error exporting emails", MessageBoxButton.OKCancel);
                             bad++;
                             if (result == MessageBoxResult.Cancel)
                                 break;
@@ -371,8 +361,7 @@ namespace XstReader
                     {
                         ShowStatus(null);
                         Mouse.OverrideCursor = null;
-                        txtStatus.Text = String.Format("Completed with {0} successes and {1} failures",
-                            task.Result.Item1, task.Result.Item2);
+                        txtStatus.Text = $"Completed with {task.Result.Item1} successes and {task.Result.Item2} failures";
                     }));
                 });
             }
@@ -392,7 +381,7 @@ namespace XstReader
                 {
                     try
                     {
-                        xstFile.ExportMessageProperties(messages.Select(v => v.Message), fileName);
+                        messages.Select(v => v.Message).SavePropertiesToFile(fileName);
                     }
                     catch (System.Exception ex)
                     {
@@ -411,7 +400,7 @@ namespace XstReader
             }
         }
 
-        private void SaveAttachments(IEnumerable<Attachment> attachments)
+        private void SaveAttachments(IEnumerable<XstAttachment> attachments)
         {
             string folderName = GetAttachmentsSaveFolderName();
 
@@ -419,12 +408,11 @@ namespace XstReader
             {
                 try
                 {
-                    xstFile.SaveAttachmentsToFolder(folderName, view.CurrentMessage.Date, attachments);
+                    attachments.SaveToFolder(folderName, view.CurrentMessage.Date);
                 }
                 catch (System.Exception ex)
                 {
-                    MessageBox.Show(String.Format("Error '{0}' saving attachments to '{1}'",
-                        ex.Message, view.CurrentMessage.Subject), "Error saving attachments");
+                    MessageBox.Show($"Error '{ex.Message}' saving attachments to '{view.CurrentMessage.Subject}'", "Error saving attachments");
                 }
             }
         }
@@ -440,7 +428,7 @@ namespace XstReader
                 string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
 
                 if (fileName != null)
-                    xstFile.ExportMessageProperties(new Message[1] { view.CurrentMessage.Message }, fileName);
+                    view.CurrentMessage.Message.Properties.ItemsNonBinary.SaveToFile(fileName);
             }
         }
 
@@ -516,7 +504,7 @@ namespace XstReader
                 if (!found)
                     searchTextBox.IndicateSearchFailed(args.SearchEventType);
             }
-            catch 
+            catch
             {
                 // Unclear what we can do here, as we were invoked by an event from the search text box control
             }
@@ -564,34 +552,17 @@ namespace XstReader
 
                 if (mv != null)
                 {
-                    //email is signed and/or encrypted and no body was included
-                    if (mv.IsEncryptedOrSigned)
-                    {
-                        try
-                        {
-                            mv.ReadSignedOrEncryptedMessage(xstFile);
-                        }
-                        catch
-                        {
-                            ShowStatus("Message Failed to Decrypt");
-                        }
-                    }
-
                     // Populate the view of the attachments
-                    mv.SortAndSaveAttachments(mv.Message.Attachments);
+                    mv.SortAndSaveAttachments(mv.Message.Attachments.ToList());
 
                     // Can't bind HTML content, so push it into the control, if the message is HTML
                     if (mv.ShowHtml)
                     {
-                        string body = mv.Message.GetBodyAsHtmlString();
-                        if (mv.MayHaveInlineAttachment)
-                            body = mv.Message.EmbedAttachments(body, xstFile);  // Returns null if this is not appropriate
+                        string body = mv.Message.Body.Text;
 
                         if (body != null)
                         {
-                            // For testing purposes, can show print header in main visualisation
-                            if (view.DisplayPrintHeaders)
-                                body = mv.Message.EmbedHtmlPrintHeader(body, view.DisplayEmailType);
+                            body = mv.MessageFormatter.EmbedHtmlHeader(body);
 
                             wbMessage.NavigateToString(body);
                             if (mv.MayHaveInlineAttachment)
@@ -603,22 +574,21 @@ namespace XstReader
                     // Can't bind RTF content, so push it into the control, if the message is RTF
                     else if (mv.ShowRtf)
                     {
-                        var body = mv.Message.GetBodyAsFlowDocument();
+                        //TODO: Rtf support
+                        rtfMessage.SelectAll();
+                        using (var ms = new MemoryStream(mv.Message.Body.Bytes))
+                            rtfMessage.Selection.Load(ms, DataFormats.Rtf);
+                        var body = mv.MessageFormatter.GetBodyAsFlowDocument();
 
-                        // For testing purposes, can show print header in main visualisation
-                        if (view.DisplayPrintHeaders)
-                            mv.Message.EmbedRtfPrintHeader(body, view.DisplayEmailType);
+                        mv.MessageFormatter.EmbedRtfHeader(body);
 
                         rtfMessage.Document = body;
                     }
                     // Could bind text content, but use push so that we can optionally add headers
                     else if (mv.ShowText)
                     {
-                        var body = mv.Body;
-
-                        // For testing purposes, can show print header in main visualisation
-                        if (view.DisplayPrintHeaders)
-                            body = mv.Message.EmbedTextPrintHeader(body, true, view.DisplayEmailType);
+                        var body = mv.Body.Text;
+                        body = mv.MessageFormatter.EmbedTextHeader(body);
 
                         txtMessage.Text = body;
                         scrollTextMessage.ScrollToHome();
@@ -638,9 +608,9 @@ namespace XstReader
             }
         }
 
-        private void OpenEmailAttachment(Attachment a)
+        private void OpenEmailAttachment(XstAttachment a)
         {
-            Message m = xstFile.OpenAttachedMessage(a);
+            XstMessage m = a.AttachedEmailMessage;
             var mv = new MessageView(m);
             ShowMessage(mv);
             view.PushMessage(mv);
@@ -651,11 +621,12 @@ namespace XstReader
         private string GetXstFileName()
         {
             // Ask for a .ost or .pst file to open
-            System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
-
-            dialog.Filter = "xst files (*.ost;*.pst)|*.ost;*.pst|All files (*.*)|*.*";
-            dialog.FilterIndex = 1;
-            dialog.InitialDirectory = Properties.Settings.Default.LastFolder;
+            System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog
+            {
+                Filter = "xst files (*.ost;*.pst)|*.ost;*.pst|All files (*.*)|*.*",
+                FilterIndex = 1,
+                InitialDirectory = Properties.Settings.Default.LastFolder
+            };
             if (dialog.InitialDirectory == "")
                 dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.RestoreDirectory = true;
@@ -673,11 +644,12 @@ namespace XstReader
         private string GetAttachmentsSaveFolderName()
         {
             // Find out where to save the attachments
-            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
-
-            dialog.Description = "Choose folder for saving attachments";
-            dialog.RootFolder = Environment.SpecialFolder.MyComputer;
-            dialog.SelectedPath = Properties.Settings.Default.LastAttachmentFolder;
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Choose folder for saving attachments",
+                RootFolder = Environment.SpecialFolder.MyComputer,
+                SelectedPath = Properties.Settings.Default.LastAttachmentFolder
+            };
             if (dialog.SelectedPath == "")
                 dialog.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.ShowNewFolderButton = true;
@@ -694,10 +666,11 @@ namespace XstReader
 
         private string GetSaveAttachmentFileName(string defaultFileName)
         {
-            var dialog = new System.Windows.Forms.SaveFileDialog();
-
-            dialog.Title = "Specify file to save to";
-            dialog.InitialDirectory = Properties.Settings.Default.LastAttachmentFolder;
+            var dialog = new System.Windows.Forms.SaveFileDialog
+            {
+                Title = "Specify file to save to",
+                InitialDirectory = Properties.Settings.Default.LastAttachmentFolder
+            };
             if (dialog.InitialDirectory == "")
                 dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.Filter = "All Files (*.*)|*.*";
@@ -716,11 +689,12 @@ namespace XstReader
         private string GetEmailsExportFolderName()
         {
             // Find out where to export the emails
-            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
-
-            dialog.Description = "Choose folder to export emails into";
-            dialog.RootFolder = Environment.SpecialFolder.MyComputer;
-            dialog.SelectedPath = Properties.Settings.Default.LastExportFolder;
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Choose folder to export emails into",
+                RootFolder = Environment.SpecialFolder.MyComputer,
+                SelectedPath = Properties.Settings.Default.LastExportFolder
+            };
             if (dialog.SelectedPath == "")
                 dialog.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.ShowNewFolderButton = true;
@@ -737,10 +711,11 @@ namespace XstReader
 
         private string GetEmailExportFileName(string defaultFileName, string extension)
         {
-            var dialog = new System.Windows.Forms.SaveFileDialog();
-
-            dialog.Title = "Specify file to save to";
-            dialog.InitialDirectory = Properties.Settings.Default.LastExportFolder;
+            var dialog = new System.Windows.Forms.SaveFileDialog
+            {
+                Title = "Specify file to save to",
+                InitialDirectory = Properties.Settings.Default.LastExportFolder
+            };
             if (dialog.InitialDirectory == "")
                 dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.Filter = String.Format("{0} Files (*.{0})|*.{0}|All Files (*.*)|*.*", extension);
@@ -758,10 +733,11 @@ namespace XstReader
 
         private string GetPropertiesExportFileName(string defaultName)
         {
-            var dialog = new System.Windows.Forms.SaveFileDialog();
-
-            dialog.Title = "Specify properties export file";
-            dialog.InitialDirectory = Properties.Settings.Default.LastExportFolder;
+            var dialog = new System.Windows.Forms.SaveFileDialog
+            {
+                Title = "Specify properties export file",
+                InitialDirectory = Properties.Settings.Default.LastExportFolder
+            };
             if (dialog.InitialDirectory == "")
                 dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             dialog.Filter = "csv files (*.csv)|*.csv";
@@ -809,17 +785,17 @@ namespace XstReader
             Properties.Settings.Default.Save();
         }
 
-        private string SaveAttachmentToTemporaryFile(Attachment a)
+        private string SaveAttachmentToTemporaryFile(XstAttachment a)
         {
             if (a == null)
                 return null;
 
             string fileFullName = Path.ChangeExtension(
-                Path.GetTempPath() + Guid.NewGuid().ToString(), Path.GetExtension(a.FileName)); ;
+                Path.GetTempPath() + Guid.NewGuid().ToString(), Path.GetExtension(a.FileNameForSaving)); ;
 
             try
             {
-                xstFile.SaveAttachment(fileFullName, null, listAttachments.SelectedItem as Attachment);
+                (listAttachments.SelectedItem as XstAttachment)?.SaveToFile(fileFullName, null);
                 tempFileNames.Add(fileFullName);
                 return fileFullName;
             }
@@ -832,7 +808,7 @@ namespace XstReader
 
         private void attachmentEmailCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             e.CanExecute = a != null && a.IsEmail;
         }
 
@@ -844,19 +820,19 @@ namespace XstReader
 
         private void attachmentCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             e.CanExecute = a != null;
         }
 
         private void attachmentFileCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             e.CanExecute = a != null && a.IsFile;
         }
 
         private void openAttachment_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
 
             if (a.IsFile)
             {
@@ -874,7 +850,7 @@ namespace XstReader
 
         private void openAttachmentWith_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var a = listAttachments.SelectedItem as Attachment;
+            var a = listAttachments.SelectedItem as XstAttachment;
             string fileFullname = SaveAttachmentToTemporaryFile(a);
             if (fileFullname == null)
                 return;
@@ -882,10 +858,12 @@ namespace XstReader
             if (Environment.OSVersion.Version.Major > 5)
             {
                 IntPtr hwndParent = Process.GetCurrentProcess().MainWindowHandle;
-                tagOPENASINFO oOAI = new tagOPENASINFO();
-                oOAI.cszFile = fileFullname;
-                oOAI.cszClass = String.Empty;
-                oOAI.oaifInFlags = tagOPEN_AS_INFO_FLAGS.OAIF_ALLOW_REGISTRATION | tagOPEN_AS_INFO_FLAGS.OAIF_EXEC;
+                tagOPENASINFO oOAI = new tagOPENASINFO
+                {
+                    cszFile = fileFullname,
+                    cszClass = String.Empty,
+                    oaifInFlags = tagOPEN_AS_INFO_FLAGS.OAIF_ALLOW_REGISTRATION | tagOPEN_AS_INFO_FLAGS.OAIF_EXEC
+                };
                 SHOpenWithDialog(hwndParent, ref oOAI);
             }
             else
@@ -899,18 +877,18 @@ namespace XstReader
         {
             if (listAttachments.SelectedItems.Count > 1)
             {
-                SaveAttachments(listAttachments.SelectedItems.Cast<Attachment>());
+                SaveAttachments(listAttachments.SelectedItems.Cast<XstAttachment>());
             }
             else
             {
-                var a = listAttachments.SelectedItem as Attachment;
+                var a = listAttachments.SelectedItem as XstAttachment;
                 var fullFileName = GetSaveAttachmentFileName(a.LongFileName);
 
                 if (fullFileName != null)
                 {
                     try
                     {
-                        xstFile.SaveAttachment(fullFileName, view.CurrentMessage.Date, a);
+                        a.SaveToFile(fullFileName, view.CurrentMessage.Date);
                     }
                     catch (System.Exception ex)
                     {

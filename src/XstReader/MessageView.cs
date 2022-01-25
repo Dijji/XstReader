@@ -1,4 +1,12 @@
-﻿// Copyright (c) 2016,2019,2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2016,2019,2020, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
@@ -15,56 +24,54 @@ namespace XstReader
     {
         private bool isSelected = false;
 
-        public MessageView(Message message)
+        public MessageView(XstMessage message)
         {
             if (message == null)
                 throw new XstException("MessageView requires a Message object");
             Message = message;
+            MessageFormatter = new XstMessageFormatter(Message);
         }
 
-        public Message Message { get; private set; }
-        public string From { get { return Message.From; } }
-        public string To { get { return Message.To; } }
-        public string Cc { get { return Message.Cc; } }
-        public string FromTo { get { return Message.Folder.Name.StartsWith("Sent") ? To : From; } }
-        public string Subject { get { return Message.Subject; } }
-        public DateTime? Received { get { return Message.Received; } }
-        public DateTime? Submitted { get { return Message.Submitted; } }
-        public DateTime? Modified { get { return Message.Modified; } }  // When any attachment was last modified
-        public DateTime? Date { get { return Received ?? Submitted; } }
-        public string DisplayDate { get { return Date != null ? ((DateTime)Date).ToString("g") : "<unknown>"; } }
-        public string Body { get { return Message.Body; } }
-        public string BodyHtml { get { return Message.BodyHtml; } }
-        public byte[] Html { get { return Message.Html; } }
-        public byte[] RtfCompressed { get { return Message.RtfCompressed; } }
-        public ObservableCollection<Attachment> Attachments { get; private set; } = new ObservableCollection<Attachment>();
-        public List<Recipient> Recipients { get { return Message.Recipients; } }
-        public List<Property> Properties { get { return Message.Properties; } }
-        public bool MayHaveInlineAttachment { get { return Message.MayHaveInlineAttachment; } }
-        public bool IsEncryptedOrSigned { get { return Message.IsEncryptedOrSigned; } }
+        internal XstMessageFormatter MessageFormatter { get; private set; }
+        public XstMessage Message { get; private set; }
+        public string From => Message.From;
+        public string To => Message.To;
+        public string Cc => Message.Cc;
+        public string FromTo => Message.ParentFolder.DisplayName.StartsWith("Sent") ? To : From;
+        public string Subject => Message.Subject ?? Message.DisplayName;
+        public DateTime? Received => Message.ReceivedTime;
+        public DateTime? Submitted => Message.SubmittedTime;
+        public DateTime? Modified => Message.LastModificationTime; // When any attachment was last modified
+        public DateTime? Date => Received ?? Submitted;
+        public string DisplayDate => Date != null ? ((DateTime)Date).ToString("g") : "<unknown>";
+        public XstMessageBody Body => Message.Body;
+        public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
+        public IEnumerable<XstRecipient> Recipients => Message.Recipients.Items;
+        public IEnumerable<XstProperty> Properties => Message.Properties.ItemsNonBinary;
+        public bool MayHaveInlineAttachment => Message.MayHaveAttachmentsInline;
+        public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned;
 
         // The following properties are used in XAML bindings to control the UI
-        public bool HasAttachment { get { return Message.HasAttachment; } }
-        public bool HasFileAttachment { get { return Message.HasFileAttachment; } }
-        public bool HasVisibleFileAttachment { get { return Message.HasVisibleFileAttachment; } }
-        public bool HasEmailAttachment { get { return (Attachments.FirstOrDefault(a => a.IsEmail) != null); } }
-        public bool ShowText { get { return Message.IsBodyText; } }
-        public bool ShowHtml { get { return Message.IsBodyHtml; } }
-        public bool ShowRtf { get { return Message.IsBodyRtf; } }
-        
-        public bool HasToDisplayList { get { return ToDisplayList.Length > 0; } }
-        public string ToDisplayList { get { return Message.ToDisplayList; } }
-        public bool HasCcDisplayList { get { return CcDisplayList.Length > 0; } }
-        public string CcDisplayList { get { return Message.CcDisplayList; } }
-        public bool HasBccDisplayList { get { return BccDisplayList.Length > 0; } }
-        public string BccDisplayList { get { return Message.BccDisplayList; } }
-        public string FileAttachmentDisplayList { get { return Message.FileAttachmentDisplayList; } }
-        public string ExportFileName { get { return Message.ExportFileName; } }
-        public string ExportFileExtension { get { return Message.ExportFileExtension; } }
+        public bool HasAttachment => Message.HasAttachments;
+        public bool HasFileAttachment => Message.HasAttachmentsFiles;
+        public bool HasVisibleFileAttachment => Message.HasAttachmentsVisibleFiles;
+        public bool HasEmailAttachment => Attachments.Any(a => a.IsEmail);
+        public bool ShowText => Message.Body.Format == XstMessageBodyFormat.PlainText;
+        public bool ShowHtml => Message.Body.Format == XstMessageBodyFormat.Html;
+        public bool ShowRtf => Message.Body.Format == XstMessageBodyFormat.Rtf;
+
+        public bool HasToDisplayList => Message.Recipients.To.Any();
+        public string ToDisplayList => XstFormatter.Format(Message.Recipients.To);
+        public bool HasCcDisplayList => Message.Recipients.Cc.Any();
+        public string CcDisplayList => XstFormatter.Format(Message.Recipients.Cc);
+        public bool HasBccDisplayList => Message.Recipients.Bcc.Any();
+        public string BccDisplayList => XstFormatter.Format(Message.Recipients.Bcc);
+
+        public string ExportFileName => MessageFormatter.ExportFileName;
 
         public bool IsSelected
         {
-            get { return isSelected; }
+            get => isSelected;
             set
             {
                 if (value != isSelected)
@@ -82,23 +89,11 @@ namespace XstReader
             Attachments.Clear();
         }
 
-        public void ReadSignedOrEncryptedMessage(XstFile xstFile)
-        {
-            Attachment a = Message.Attachments[0];
-
-            //get attachment bytes
-            var ms = new MemoryStream();
-            xstFile.SaveAttachment(ms, a);
-            byte[] attachmentBytes = ms.ToArray();
-
-            Message.ReadSignedOrEncryptedMessage(attachmentBytes);
-        }
-
-        public void SortAndSaveAttachments(List<Attachment> atts = null)
+        public void SortAndSaveAttachments(List<XstAttachment> atts = null)
         {
             // If no attachments are supplied, sort the list we already have
             if (atts == null)
-                atts = new List<Attachment>(Attachments);
+                atts = new List<XstAttachment>(Attachments);
 
             atts.Sort((a, b) =>
             {
@@ -121,10 +116,7 @@ namespace XstReader
 
         private void OnPropertyChanged(String info)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(info));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
 
     }
