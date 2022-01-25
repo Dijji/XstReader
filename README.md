@@ -5,7 +5,9 @@ This repository includes 3 projects for read, view and export folders, messages,
 * [XstReader.Api](#xstreader-api): A library for read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
 
 # Original code
-This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader)... [Dijji](https://github.com/Dijji) died at the end of May 2021 :(
+This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader)... [Dijji](https://github.com/Dijji) died at the end of May 2021
+
+All the code here is the product of his wisdom or is inspired by his work.
 
 As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
 > If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
