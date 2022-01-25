@@ -11,6 +11,8 @@ As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
 * [XstExport](#xstexport): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
 * [XstReader.Api](#xstreader-api): A library to read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
 
+# **[This Readme is pending review]**
+
 # XstReader
 Xst Reader is an open source viewer for Microsoft Outlook’s .ost and .pst files, written entirely in C#, requiring only .Net Framework 4.6.1, and with no dependency on any Microsoft Office components.
 
