@@ -1,8 +1,8 @@
-This repository includes 3 projects for read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files (also those protected by unknown password). All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
+This repository includes 3 projects to read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files (also those protected by unknown password). All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
 ## Projects  
-* [XstReader](#xstreader): An application for view Microsoft Outlook's .ost and .pst files (Windows)
+* [XstReader](#xstreader): An application to view Microsoft Outlook's .ost and .pst files (Windows)
 * [XstExporter](#xstexporter): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
-* [XstReader.Api](#xstreader-api): A library for read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
+* [XstReader.Api](#xstreader-api): A library to read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
 
 # Original code
 This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader)... [Dijji](https://github.com/Dijji) died at the end of May 2021
@@ -22,7 +22,7 @@ It presents as a simple, classic, three pane mail viewer:
 
 ![](screenshot5.png)
 
-Xst Reader goes beyond Outlook in that it will allow you to open .ost files, which are the caches created by Outlook to hold a local copy of a mailbox. Wanting to read an .ost file as the original motivation for this project: now it also as the ability to export the header and body of an email in its native format (plain text, HTML, or rich text), and inspect and export all the properties of an email.
+XstReader goes beyond Outlook in that it will allow you to open .ost files, which are the caches created by Outlook to hold a local copy of a mailbox. Wanting to read an .ost file as the original motivation for this project: now it also as the ability to export the header and body of an email in its native format (plain text, HTML, or rich text), and inspect and export all the properties of an email.
 
 It requires only .Net Framework 4, which is installed by default on Windows 8.1 and later, but will need to be installed on Windows 7 and earlier systems before Xst Reader can be run.  .Net Framework 4 can be downloaded from <https://www.microsoft.com/en-us/download/details.aspx?id=17851>
 
@@ -90,6 +90,14 @@ To install a binary:
 3.	Run XstReader.exe, and create shortcuts to it as required.
 
 ## Notes for developers
+There is no more XstReader.Base!
+
+Now there is a nuget package: XstReader.Api. Every .Net developer can use it to build their own projects
+
+This new library is designed to be used in any kind of project, and it is very different from the old XstReader.Base
+
+---- 
+### [Obsolete]
 * The provided Visual Studio solution includes a XstReader.Base project, which contains all the basic common functionality for reading Outlook files used by XstReader and XstExport. The project builds a DLL, which you can use to add the same capability to your own projects. XstReader and XstExport do not themselves use the DLL, instead, they simply include the code from the XstReader.Base directory, in order to create executables with minimum dependencies.
 * The XstPortableExport project builds a portable version of XstExport based on .Net Core 2.1. However, in order to remain portable, two areas of functionality have to be #ifdef'd out in order not to create a framework dependency and so tie the program to Windows. These are support for RTF body formats, and support for MIME decryption.
 ## Release History
