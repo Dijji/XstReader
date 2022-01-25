@@ -12,15 +12,30 @@ using System.IO;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Class representing the Body of a Message
+    /// </summary>
     public class XstMessageBody
     {
+        /// <summary>
+        /// The Content Message
+        /// </summary>
         private XstMessage Message { get; set; }
 
+        /// <summary>
+        /// The Format of the Body
+        /// </summary>
         public XstMessageBodyFormat Format { get; private set; }
 
+        /// <summary>
+        /// The Text of the Body, in the Format defined in the instance
+        /// </summary>
         public string Text { get; internal set; }
 
         private byte[] _Bytes = null;
+        /// <summary>
+        /// Array of Bytes of the Body, in the Format defined in the instance
+        /// </summary>
         public byte[] Bytes => _Bytes ?? (_Bytes = Message?.Encoding?.GetBytes(Text));
 
         /// <summary>

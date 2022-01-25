@@ -18,7 +18,7 @@ using XstReader.ElementProperties;
 namespace XstReader
 {
     /// <summary>
-    /// A Property of an pst/ost element
+    /// A Property of a pst/ost element
     /// </summary>
     public class XstProperty
     {
@@ -29,6 +29,9 @@ namespace XstReader
         /// </summary>
         public PropertyCanonicalName Tag { get; internal set; }
 
+        /// <summary>
+        /// The Type of the Property
+        /// </summary>
         public EpropertyType PropertyType { get; internal set; }
 
         internal Func<dynamic> ValueGetter { get; set; } = null;
@@ -85,7 +88,9 @@ namespace XstReader
         // which can be a string or a 32-bit value
 
         private string _PropertySetGuid = null;
-        // String representation of hex GUID
+        /// <summary>
+        /// String representation of hex GUID of its PropertySet
+        /// </summary>
         public string PropertySetGuid
         {
             get => _PropertySetGuid ?? Tag.PropertySet()?.Guid()?.ToString();
@@ -93,7 +98,9 @@ namespace XstReader
         }
 
         private string _PropertySetName = null;
-        // Equivalent name, where known e.g. PSETID_Common
+        /// <summary>
+        /// The name of its PropertySet, e.g. PSETID_Common 
+        /// </summary>
         public string PropertySetName
         {
             get => _PropertySetName ?? Tag.PropertySet()?.ToString();
@@ -101,7 +108,9 @@ namespace XstReader
         }
 
         private string _Name = null;
-        // String name of property, when we know it
+        /// <summary>
+        /// The Name of the Property, when we know it
+        /// </summary>
         public string Name
         {
             get
@@ -115,13 +124,30 @@ namespace XstReader
         }
 
         internal bool IsNamed => (UInt16)Tag >= 0x8000 && (UInt16)Tag <= 0x8fff;
-
+        /// <summary>
+        /// The string Id of the Property
+        /// </summary>
         public string Id => Tag.Id0x();
+        /// <summary>
+        /// The Canonical Name of the Property, when we know it 
+        /// </summary>
         public string CanonicalName => Tag.CanonicalName();
+        /// <summary>
+        /// The "Frienly Name" of the Property, when we know it
+        /// </summary>
         public string FriendlyName => Tag.FriendlyName();
+        /// <summary>
+        /// The Area of the Property, when we know it
+        /// </summary>
         public string Area => Tag.PropertyArea()?.FriendlyName();
+        /// <summary>
+        /// The Description of the Property, when we know it
+        /// </summary>
         public string Description => Tag.Description();
 
+        /// <summary>
+        /// The String representation of the Value's Property
+        /// </summary>
         public string DisplayValue
         {
             get
@@ -143,6 +169,9 @@ namespace XstReader
             }
         }
 
+        /// <summary>
+        /// Clear all contents and memory used
+        /// </summary>
         public void ClearContents()
         {
             _Value = null;

@@ -12,11 +12,10 @@ using System;
 
 namespace XstReader.ElementProperties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-    // See: https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxcmsg/a0c52fe2-3014-43a7-942d-f43f6f91c366
-
-    // Values of the PidTagMessageFlags property
+    /// <summary>
+    /// Values of the PidTagMessageFlags property
+    /// Enum names are taken from <MS-PST> <see cref="https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxcmsg/a0c52fe2-3014-43a7-942d-f43f6f91c366"/>
+    /// </summary>
     [Flags]
     public enum MessageFlags : Int32
     {

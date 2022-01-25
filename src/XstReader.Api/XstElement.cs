@@ -16,10 +16,13 @@ using XstReader.ElementProperties;
 namespace XstReader
 {
     /// <summary>
-    /// A pst/ost element 
+    /// Base class for an element inside a pst or ost file
     /// </summary>
     public abstract class XstElement
     {
+        /// <summary>
+        /// The Container File
+        /// </summary>
         internal protected abstract XstFile XstFile { get; }
         private protected LTP Ltp => XstFile.Ltp;
         private protected NDB Ndb => XstFile.Ndb;
@@ -27,6 +30,9 @@ namespace XstReader
 
 
         private XstPropertySet _Properties = null;
+        /// <summary>
+        /// The Properties of the Element
+        /// </summary>
         public XstPropertySet Properties
         {
             get => _Properties ?? (_Properties = new XstPropertySet(LoadProperties));
@@ -34,11 +40,17 @@ namespace XstReader
         }
 
         private string _DisplayName = null;
+        /// <summary>
+        /// The Name of the Element
+        /// </summary>
         public string DisplayName
         {
             get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName]?.Value;
             protected set => _DisplayName = value;
         }
+        /// <summary>
+        /// The last modification time of the Element
+        /// </summary>
         public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
 
 
@@ -48,6 +60,10 @@ namespace XstReader
         internal void AddProperty(XstProperty property)
             => Properties.Add(property);
 
+        /// <summary>
+        /// Returns all the Properties of the Element
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<XstProperty> GetProperties()
             => Properties.ItemsNonBinary;
 

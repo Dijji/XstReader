@@ -14,25 +14,67 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
+    /// <summary>
+    /// A set of Recipients of a Message in a pst/ost File
+    /// </summary>
     public class XstRecipientSet
     {
+        /// <summary>
+        /// The Message of the Recipients
+        /// </summary>
         public XstMessage Message { get; private set; }
         private LTP Ltp => Message.XstFile.Ltp;
 
         private List<XstRecipient> _Items = null;
+
+        /// <summary>
+        /// The Recipients of the Message
+        /// </summary>
         public IEnumerable<XstRecipient> Items => GetRecipients();
 
+        /// <summary>
+        /// Gets the Recipients of specified type in the Message
+        /// </summary>
+        /// <param name="recipientType"></param>
+        /// <returns></returns>
         public IEnumerable<XstRecipient> this[RecipientType recipientType]
             => Items.Where(r => r.RecipientType == recipientType);
 
+        /// <summary>
+        /// The Recipient of type "Originator" of the Message
+        /// </summary>
         public XstRecipient Originator => this[RecipientType.Originator].FirstOrDefault();
+        /// <summary>
+        /// The Recipients of type "To" of the Message
+        /// </summary>
         public IEnumerable<XstRecipient> To => this[RecipientType.To];
+        /// <summary>
+        /// The Recipients of type "Cc" of the Message
+        /// </summary>
         public IEnumerable<XstRecipient> Cc => this[RecipientType.Cc];
+        /// <summary>
+        /// The Recipients of type "Bcc" of the Message
+        /// </summary>
         public IEnumerable<XstRecipient> Bcc => this[RecipientType.Bcc];
+        /// <summary>
+        /// The Recipient of type "OriginalSentRepresenting" of the Message
+        /// </summary>
         public XstRecipient OriginalSentRepresenting => this[RecipientType.OriginalSentRepresenting].FirstOrDefault();
+        /// <summary>
+        /// The Recipient of type "SentRepresenting" of the Message
+        /// </summary>
         public XstRecipient SentRepresenting => this[RecipientType.SentRepresenting].FirstOrDefault();
+        /// <summary>
+        /// The Recipient of type "ReceivedRepresenting" of the Message
+        /// </summary>
         public XstRecipient ReceivedRepresenting => this[RecipientType.ReceivedRepresenting].FirstOrDefault();
+        /// <summary>
+        /// The Recipient of type "Sender" of the Message
+        /// </summary>
         public XstRecipient Sender => this[RecipientType.Sender].FirstOrDefault();
+        /// <summary>
+        /// The Recipient of type "ReceivedBy" of the Message
+        /// </summary>
         public XstRecipient ReceivedBy => this[RecipientType.ReceivedBy].FirstOrDefault();
 
         /// <summary>
@@ -44,7 +86,10 @@ namespace XstReader
             Message = message;
         }
 
-
+        /// <summary>
+        /// Gets the Recipients of the Message
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<XstRecipient> GetRecipients()
         {
             if (_Items == null)
@@ -156,6 +201,9 @@ namespace XstReader
             //.Select(r => { r.Properties.OrderBy(p => p.Tag).ToList(); return r; });
         }
 
+        /// <summary>
+        /// Clear contents and memory
+        /// </summary>
         public void ClearContents()
         {
             //if (_Items != null)

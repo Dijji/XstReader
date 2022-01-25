@@ -12,10 +12,10 @@ using System;
 
 namespace XstReader.ElementProperties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-
-    // Values of the PidTagNativeBody property
+    /// <summary>
+    /// Values of the PidTagNativeBody property 
+    /// Enum names are taken from <MS-PST>
+    /// </summary>
     internal enum BodyType : Int32
     {
         Undefined = 0x00000000,

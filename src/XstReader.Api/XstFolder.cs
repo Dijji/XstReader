@@ -16,24 +16,52 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Class for a Folder stored inside an .ost or .pst file
+    /// </summary>
     public class XstFolder : XstElement
     {
+        /// <summary>
+        /// The Container File
+        /// </summary>
         internal protected override XstFile XstFile { get; }
 
+        /// <summary>
+        /// Number of messages inside the Folder
+        /// </summary>
         public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
+
+        /// <summary>
+        /// Number of unread messages inside the Folder
+        /// </summary>
         public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
 
+        /// <summary>
+        /// The Parent Folder of this Folder
+        /// </summary>
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
+
+        /// <summary>
+        /// The Folders contained inside this Folder
+        /// </summary>
         public IEnumerable<XstFolder> Folders => GetFolders();
         public bool HasSubFolders => Folders.Any();
 
         private string _Path = null;
+        /// <summary>
+        /// The Path of this Folder
+        /// </summary>
         public string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.DisplayName) ? DisplayName : $"{ParentFolder.Path}\\{DisplayName}");
 
         private IEnumerable<XstMessage> _Messages = null;
+        /// <summary>
+        /// The Messages contained in the Folder
+        /// </summary>
         public IEnumerable<XstMessage> Messages => GetMessages();
-
+        /// <summary>
+        /// The unread Messages contained in the Folder
+        /// </summary>
         public IEnumerable<XstMessage> UnreadMessages => Messages.Where(m => !m.IsRead);
 
         private BTree<Node> _SubnodeTreeProperties = null;
@@ -57,6 +85,10 @@ namespace XstReader
         #endregion Properties
 
         #region Folders
+        /// <summary>
+        /// Returns all the Folders contained inside this Folder
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<XstFolder> GetFolders()
         {
             if (_Folders == null)
@@ -70,6 +102,10 @@ namespace XstReader
         #endregion Folders
 
         #region Messages
+        /// <summary>
+        /// Returns all the Messages contained inside this Folder
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<XstMessage> GetMessages()
         {
             if (_Messages == null)

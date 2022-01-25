@@ -18,11 +18,24 @@ using System.Text.RegularExpressions;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Extionsions for String
+    /// </summary>
     public static class StringExtensions
     {
+        /// <summary>
+        /// Appends new line to string, returning the new string
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         public static string AppendNewLine(this string text)
             => text + Environment.NewLine;
 
+        /// <summary>
+        /// Convert the string as a valid html text
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
         public static string TextToHtml(this string text)
         {
             var replacements = new Dictionary<string, string>
@@ -40,6 +53,13 @@ namespace XstReader
                 text = text.Replace(rep.Key, rep.Value);
             return text;
         }
+
+        /// <summary>
+        /// Truncates the string
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="maxLength"></param>
+        /// <returns></returns>
         public static string Truncate(this string value, int maxLength)
         {
             if (string.IsNullOrEmpty(value)) return value;
@@ -47,6 +67,12 @@ namespace XstReader
         }
 
         static Regex removeInvalidChars = null;
+        /// <summary>
+        /// Returns a string with invalid chars for File name replaced with specified string
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="with"></param>
+        /// <returns></returns>
         public static string ReplaceInvalidFileNameChars(this string value, string with = "")
         {
             if (removeInvalidChars == null)

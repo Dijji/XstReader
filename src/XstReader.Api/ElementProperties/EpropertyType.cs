@@ -12,9 +12,10 @@ using System;
 
 namespace XstReader.ElementProperties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-
+    /// <summary>
+    /// Type of a Property
+    /// Enum names are taken from <MS-PST>
+    /// </summary>
     public enum EpropertyType : UInt16
     {
         PtypBinary = 0x0102,

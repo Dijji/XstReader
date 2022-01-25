@@ -16,22 +16,45 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
+    /// <summary>
+    /// A Recipient of a Message in a pst/ost File
+    /// </summary>
     public class XstRecipient : XstElement
     {
+        /// <summary>
+        /// The Message of the Recipient
+        /// </summary>
         public XstMessage Message { get; internal set; }
+        /// <summary>
+        /// The File
+        /// </summary>
         protected internal override XstFile XstFile => Message.XstFile;
 
+        /// <summary>
+        /// The Type of the Recipient in the Message
+        /// </summary>
         public RecipientType RecipientType 
             => (RecipientType)(Properties[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
 
+        /// <summary>
+        /// The Address of the Recipient (SmtpAddress or EmailAddress)
+        /// </summary>
         public string Address
             => Properties[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
                Properties[PropertyCanonicalName.PidTagEmailAddress]?.Value;
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
         public XstRecipient()
         {
         }
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="propertiesGetter"></param>
         public XstRecipient(XstMessage message, Func<IEnumerable<XstProperty>> propertiesGetter)
         {
             Message = message;

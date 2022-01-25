@@ -101,7 +101,7 @@ namespace XstReader
         }
 
         /// <summary>
-        /// Disposes memoy used by the object
+        /// Disposes memory used by the object
         /// </summary>
         public void Dispose()
         {

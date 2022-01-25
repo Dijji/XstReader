@@ -12,10 +12,10 @@ using System;
 
 namespace XstReader.ElementProperties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-
-    // Values of the PidTagAttachMethod property
+    /// <summary>
+    /// Values of the PidTagAttachMethod property
+    /// Enum names are taken from <MS-PST> 
+    /// </summary>
     internal enum AttachMethod : Int32
     {
         afByValue = 0x00000001,

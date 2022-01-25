@@ -12,10 +12,10 @@ using System;
 
 namespace XstReader.ElementProperties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-
-    // Values of the PidTagAttachFlags property
+    /// <summary>
+    /// Values of the PidTagAttachFlags property
+    /// Enum names are taken from <MS-PST>
+    /// </summary>
     internal enum AttachFlags : UInt32
     {
         attInvisibleInHtml = 0x00000001,

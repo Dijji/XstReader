@@ -14,10 +14,24 @@ using System.Text;
 
 namespace XstReader
 {
+    /// <summary>
+    /// The types of an Attachment
+    /// </summary>
     public enum XstAttachmentType
     {
+        /// <summary>
+        /// The Attachment is a File
+        /// </summary>
         File,
+
+        /// <summary>
+        /// The Attachment is an Email
+        /// </summary>
         Email,
+
+        /// <summary>
+        /// The Attachemnt is Other thing (unknown)
+        /// </summary>
         Other
     }
 }

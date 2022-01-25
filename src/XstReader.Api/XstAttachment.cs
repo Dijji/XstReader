@@ -17,19 +17,44 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Attachment of a Message
+    /// </summary>
     public class XstAttachment : XstElement
     {
+        /// <summary>
+        /// The container Message
+        /// </summary>
         public XstMessage Message { get; internal set; }
+        /// <summary>
+        /// Th Container Folder
+        /// </summary>
         public XstFolder Folder => Message.ParentFolder;
+        /// <summary>
+        /// The Container File
+        /// </summary>
         protected internal override XstFile XstFile => Message.XstFile;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
+
+        /// <summary>
+        /// The FileName of the Attachment
+        /// </summary>
         public string FileName => Properties[PropertyCanonicalName.PidTagAttachFilename]?.Value;
+        /// <summary>
+        /// The Description of the Attachment (DisplayName or FileName)
+        /// </summary>
         public string Description => DisplayName ?? FileName;
 
         private string _LongFileName = null;
+        /// <summary>
+        /// The LongFileName of the Attachment
+        /// </summary>
         public string LongFileName => _LongFileName ?? Properties[PropertyCanonicalName.PidTagAttachLongFilename]?.Value;
         private int? _Size = null;
+        /// <summary>
+        /// The Size (in bytes) of the Attachement file
+        /// </summary>
         public int Size => _Size ?? (int)(Properties[PropertyCanonicalName.PidTagAttachSize]?.Value ?? 0);
 
         private AttachMethod? _AttachMethod = null;
@@ -37,29 +62,63 @@ namespace XstReader
         private AttachFlags? _Flags = null;
         internal AttachFlags Flags => _Flags ?? (AttachFlags)(Properties[PropertyCanonicalName.PidTagAttachFlags]?.Value ?? 0);
         private string _ContentId = null;
+        /// <summary>
+        /// The ContentId of the Attachment
+        /// </summary>
         public string ContentId => _ContentId ?? Properties[PropertyCanonicalName.PidTagAttachContentId]?.Value;
+        /// <summary>
+        /// Indicates if the Attachment is Hidden
+        /// </summary>
         public bool IsHidden => Properties[PropertyCanonicalName.PidTagAttachmentHidden]?.Value ?? false;
-
+        /// <summary>
+        /// The FileName used for Savig to disc
+        /// </summary>
         public string FileNameForSaving => LongFileName ?? FileName;
 
         private dynamic _Content = null;
         internal dynamic Content => _Content ?? Properties[PropertyCanonicalName.PidTagAttachDataBinary]?.Value;
+        /// <summary>
+        /// Indicates if the Attachement is a File
+        /// </summary>
         public bool IsFile => AttachMethod == AttachMethod.afByValue;
-        //public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethod.afEmbeddedMessage; } }
+        /// <summary>
+        /// Indicates if the Attachment is an Email
+        /// </summary>
         public bool IsEmail => AttachMethod == AttachMethod.afEmbeddedMessage;
+        //public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethod.afEmbeddedMessage; } }
+
+        /// <summary>
+        /// Indicates if the Attachment was rendered inside the body
+        /// </summary>
         public bool WasRenderedInline { get; set; } = false;
+        /// <summary>
+        /// Indicates if the Attachment was loaded from Mime
+        /// </summary>
         public bool WasLoadedFromMime { get; set; } = false;
 
+        /// <summary>
+        /// Indicates the Type of tha Attachment
+        /// </summary>
         public XstAttachmentType Type 
             => IsFile ? XstAttachmentType.File 
                : IsEmail ? XstAttachmentType.Email 
                : XstAttachmentType.Other;
 
+        /// <summary>
+        /// Indicates if the Attachment should be Hidden (Is Hidden or rendered in the body) 
+        /// </summary>
         public bool Hide => IsHidden || IsInlineAttachment;
         //public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
+
+        /// <summary>
+        /// Indicates if the Attachment has ContentId
+        /// </summary>
         public bool HasContentId => ContentId != null && ContentId.Length > 0;
 
         // To do: case where ContentLocation property is used instead of ContentId
+        /// <summary>
+        /// Indicates if the Attachment is an Inline Attachement
+        /// </summary>
         public bool IsInlineAttachment
         {
             get
@@ -71,6 +130,9 @@ namespace XstReader
             }
         }
         private XstMessage _AttachedEmailMessage = null;
+        /// <summary>
+        /// If the Attachment is an email, contains the Message
+        /// </summary>
         public XstMessage AttachedEmailMessage => GetAttachedEmailMessage();
         private XstMessage GetAttachedEmailMessage()
         {
@@ -123,12 +185,19 @@ namespace XstReader
         //    PropertyCanonicalName.PidTagAttachDataBinary,
         //};
 
-
+        /// <summary>
+        /// Ctor
+        /// </summary>
         public XstAttachment()
         {
 
         }
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="content"></param>
         public XstAttachment(string fileName, byte[] content)
         {
             _LongFileName = fileName;
@@ -138,6 +207,12 @@ namespace XstReader
             WasLoadedFromMime = true;
         }
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="contentId"></param>
+        /// <param name="content"></param>
         public XstAttachment(string fileName, string contentId, Byte[] content)
             : this(fileName, content)
         {
@@ -163,6 +238,11 @@ namespace XstReader
         }
 
         const int MaxPath = 260;
+        /// <summary>
+        /// Save the Attachement to a folder
+        /// </summary>
+        /// <param name="folderpath"></param>
+        /// <param name="creationTime"></param>
         public void SaveToFolder(string folderpath, DateTime? creationTime)
         {
             var fullFileName = Path.Combine(folderpath, FileNameForSaving);
@@ -176,7 +256,11 @@ namespace XstReader
             }
             SaveToFile(fullFileName, creationTime);
         }
-
+        /// <summary>
+        /// Save the attachment to a file
+        /// </summary>
+        /// <param name="fullFileName"></param>
+        /// <param name="creationTime"></param>
         public void SaveToFile(string fullFileName, DateTime? creationTime)
         {
             using (var afs = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
@@ -186,7 +270,10 @@ namespace XstReader
             if (creationTime != null)
                 File.SetCreationTime(fullFileName, (DateTime)creationTime);
         }
-
+        /// <summary>
+        /// Save the Attachment to a Stream
+        /// </summary>
+        /// <param name="s"></param>
         public void SaveToStream(Stream s)
         {
             if (WasLoadedFromMime)

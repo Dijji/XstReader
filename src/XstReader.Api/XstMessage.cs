@@ -22,24 +22,55 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
-    // Holds information about a single message, extracted from the xst tables
-
+    /// <summary>
+    /// Class for a Message stored inside an ost/pst file
+    /// Holds information about a single message, extracted from the xst tables
+    /// </summary>
     public partial class XstMessage : XstElement
     {
         private static RtfDecompressor RtfDecompressor = new RtfDecompressor();
 
+        /// <summary>
+        /// The Folder of this Message
+        /// </summary>
         public XstFolder ParentFolder { get; private set; }
+        /// <summary>
+        /// If is an Attached Message, contains the Attachement
+        /// </summary>
         public XstAttachment ParentAttachment { get; private set; }
+        /// <summary>
+        /// The Container File
+        /// </summary>
         internal protected override XstFile XstFile => ParentFolder.XstFile;
 
 
         private XstRecipientSet _Recipients = null;
+        /// <summary>
+        /// The Recipients involved in the Message
+        /// </summary>
         public XstRecipientSet Recipients => _Recipients ?? (_Recipients = new XstRecipientSet(this));
 
+        /// <summary>
+        /// The Subject of the Message
+        /// </summary>
         public string Subject => Properties[PropertyCanonicalName.PidTagSubject]?.Value;
+        
+        /// <summary>
+        /// The Cc Summary of the Message
+        /// </summary>
         public string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc]?.Value;
+        /// <summary>
+        /// The To Summary of the Message
+        /// </summary>
         public string To => Properties[PropertyCanonicalName.PidTagDisplayTo]?.Value;
+        /// <summary>
+        /// The From Summary of the Message
+        /// </summary>
         public string From => Properties[PropertyCanonicalName.PidTagSenderName]?.Value;
+
+        /// <summary>
+        /// Indicates if the Message is sent in representation of other 
+        /// </summary>
         public bool IsSentRepresentingOther
         {
             get
@@ -49,6 +80,9 @@ namespace XstReader
                 return (sender?.DisplayName != sentRepresenting?.DisplayName || sender?.Address != sentRepresenting?.Address);
             }
         }
+        /// <summary>
+        /// Indicates if the Messages was received representing other
+        /// </summary>
         public bool IsReceivedRepresentingOther
         {
             get
@@ -60,14 +94,25 @@ namespace XstReader
         }
 
         private MessageFlags? _Flags = null;
+        /// <summary>
+        /// The Flags of the Message
+        /// </summary>
         public MessageFlags? Flags
         {
             get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags]?.Value;
             private set => _Flags = value;
         }
+        /// <summary>
+        /// DateTime when Message was submitted
+        /// </summary>
         public DateTime? SubmittedTime => Properties[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
+        /// <summary>
+        /// DateTime when Message was received
+        /// </summary>
         public DateTime? ReceivedTime => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
-
+        /// <summary>
+        /// DateTime of the Message (Received or Submitted)
+        /// </summary>
         public DateTime? Date => ReceivedTime ?? SubmittedTime;
 
         private Func<BTree<Node>> _BodyLoader = null;
@@ -83,6 +128,9 @@ namespace XstReader
         }
 
         private Encoding _Encoding = null;
+        /// <summary>
+        /// The Message Encoding
+        /// </summary>
         public Encoding Encoding => _Encoding ?? (_Encoding = GetEncoding());
         private BodyType? _NativeBody = null;
         internal BodyType NativeBody
@@ -91,17 +139,43 @@ namespace XstReader
             private set => _NativeBody = value;
         }
         private XstMessageBody _Body = null;
+        /// <summary>
+        /// The Body of the Message
+        /// </summary>
         public XstMessageBody Body => GetBody();
-
+        /// <summary>
+        /// Indicates if the Message was been read
+        /// </summary>
         public bool IsRead => (Flags & MessageFlags.mfRead) == MessageFlags.mfRead;
 
         private IEnumerable<XstAttachment> _Attachments = null;
+        /// <summary>
+        /// The Attachments of the Message
+        /// </summary>
         public IEnumerable<XstAttachment> Attachments => GetAttachments();
+        /// <summary>
+        /// The Files Attached to the Message
+        /// </summary>
         public IEnumerable<XstAttachment> AttachmentsFiles => Attachments.Where(a => a.IsFile);
+        /// <summary>
+        /// The Visible Files Attached to the Message
+        /// </summary>
         public IEnumerable<XstAttachment> AttachmentsVisibleFiles => AttachmentsFiles.Where(a => !a.Hide);
+        /// <summary>
+        /// Indicates if the Message has Attachments
+        /// </summary>
         public bool HasAttachments => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
+        /// <summary>
+        /// Indicates if the Message may have Attachments inline, incrusted in the body
+        /// </summary>
         public bool MayHaveAttachmentsInline => Attachments.Any(a => a.HasContentId);
+        /// <summary>
+        /// Indicates if the Message has any File attached
+        /// </summary>
         public bool HasAttachmentsFiles => AttachmentsFiles.Any();
+        /// <summary>
+        /// Indicates if the Message has any Visible File attached
+        /// </summary>
         public bool HasAttachmentsVisibleFiles => HasAttachments && AttachmentsVisibleFiles.Any();
 
 

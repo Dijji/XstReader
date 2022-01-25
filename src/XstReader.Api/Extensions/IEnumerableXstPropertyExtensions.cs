@@ -17,6 +17,9 @@ using XstReader.ElementProperties;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Extensions for IEnumerable<XstProperty>
+    /// </summary>
     public static class IEnumerableXstPropertyExtensions
     {
         private struct LineProp
@@ -25,9 +28,19 @@ namespace XstReader
             public XstProperty p;
         }
 
+        /// <summary>
+        /// Saves the collection of Properties to specified file
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <param name="fileName"></param>
         public static void SaveToFile(this IEnumerable<XstProperty> properties, string fileName)
             => (new IEnumerable<XstProperty>[1] { properties }).SaveToFile(fileName);
 
+        /// <summary>
+        /// Saves to file the collection of collections of Properties to specified file
+        /// </summary>
+        /// <param name="lineProperties"></param>
+        /// <param name="fileName"></param>
         public static void SaveToFile(this IEnumerable<IEnumerable<XstProperty>> lineProperties, string fileName)
         {
             // We build a dictionary of queues of line,Property pairs where each queue represents

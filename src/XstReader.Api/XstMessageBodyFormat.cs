@@ -15,11 +15,29 @@ using System.Text;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Available formats for the Body of a Message
+    /// </summary>
     public enum XstMessageBodyFormat
     {
+        /// <summary>
+        /// Unknown format
+        /// </summary>
         Unknown,
+
+        /// <summary>
+        /// Plain Text, txt
+        /// </summary>
         PlainText,
+
+        /// <summary>
+        /// Html
+        /// </summary>
         Html,
+
+        /// <summary>
+        /// Rich Text, Rtf
+        /// </summary>
         Rtf,
     }
 }

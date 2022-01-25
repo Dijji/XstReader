@@ -13,22 +13,61 @@ using System;
 
 namespace XstReader.ElementProperties
 {
-    // Enums and classes used in property handling
-    // Enum names are taken from <MS-PST>
-
-    // Values of the PidTagRecipientType property
+    /// <summary>
+    /// Message Recipient Types
+    /// Values of the PidTagRecipientType property
+    /// Enum names are taken from <MS-PST>
+    /// </summary>
     public enum RecipientType : Int32
     {
+        /// <summary>
+        /// Recipient Originator
+        /// </summary>
         Originator = 0x00000000,
+
+        /// <summary>
+        /// Recipient in To
+        /// </summary>
         To = 0x00000001,
+
+        /// <summary>
+        /// Recipient in Cc
+        /// </summary>
         Cc = 0x00000002,
+
+        /// <summary>
+        /// Recipient in Bcc
+        /// </summary>
         Bcc = 0x00000003,
 
+        /// <summary>
+        /// Original Recipient who "Sent Representing"
+        /// This is a Custom Type (not defined in <MS-PST>, but present in Message Properties
+        /// </summary>
         OriginalSentRepresenting = 0x00000011, //Custom value
+
+        /// <summary>
+        /// Recipient who "Sent Representing"
+        /// This is a Custom Type (not defined in <MS-PST>, but present in Message Properties
+        /// </summary>
         SentRepresenting = 0x00000012, //Custom value
+
+        /// <summary>
+        /// Recipient who "Receive Representing"
+        /// This is a Custom Type (not defined in <MS-PST>, but present in Message Properties
+        /// </summary>
         ReceivedRepresenting = 0x00000013, //Custom value
 
+        /// <summary>
+        /// Recipient Sender of the Message
+        /// This is a Custom Type (not defined in <MS-PST>, but present in Message Properties
+        /// </summary>
         Sender = 0x00000014, //Custom value
+
+        /// <summary>
+        /// Recipient who receive the Message
+        /// This is a Custom Type (not defined in <MS-PST>, but present in Message Properties
+        /// </summary>
         ReceivedBy = 0x00000015, //Custom value
     }
 

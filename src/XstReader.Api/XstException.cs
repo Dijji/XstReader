@@ -15,6 +15,9 @@ using System.Text;
 
 namespace XstReader
 {
+    /// <summary>
+    /// The Exception Class used in the Library
+    /// </summary>
     public class XstException : Exception
     {
         /// <summary>

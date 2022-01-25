@@ -16,7 +16,6 @@ namespace XstReader.ElementProperties
     /// Attribute to specify the FriendlyName of an element
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-
     public class FriendlyNameAttribute : Attribute
     {
         /// <summary>

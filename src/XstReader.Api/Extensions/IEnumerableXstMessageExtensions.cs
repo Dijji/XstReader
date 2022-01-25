@@ -13,8 +13,16 @@ using System.Linq;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Extensions for IEnumerable<XstMessage>
+    /// </summary>
     public static class IEnumerableXstMessageExtensions
     {
+        /// <summary>
+        /// Save all the properties in a collection of Messages in the specified file
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="fileName"></param>
         public static void SavePropertiesToFile(this IEnumerable<XstMessage> messages, string fileName)
             => messages.Select(m => m.Properties.ItemsNonBinary).SaveToFile(fileName);
     }

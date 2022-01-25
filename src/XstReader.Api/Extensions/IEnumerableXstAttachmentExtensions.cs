@@ -14,8 +14,17 @@ using System.Text;
 
 namespace XstReader
 {
+    /// <summary>
+    /// Extensions for IEnumerable<XstAttachment>
+    /// </summary>
     public static class IEnumerableXstAttachmentExtensions
     {
+        /// <summary>
+        /// Save a collection of Attachments to the specified folder
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <param name="fullFolderName"></param>
+        /// <param name="creationTime"></param>
         public static void SaveToFolder(this IEnumerable<XstAttachment> attachments, string fullFolderName, DateTime? creationTime)
         {
             foreach (var attachment in attachments)
