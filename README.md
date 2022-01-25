@@ -1,8 +1,8 @@
-This repository includes 3 projects to read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files. All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
+This repository includes 3 projects for read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files. All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
 ## Projects  
-* [XstReader](#xstreader): An application to view Microsoft Outlook's .ost and .pst files (Windows)
+* [XstReader](#xstreader): An application for view Microsoft Outlook's .ost and .pst files (Windows)
 * [XstExporter](#xstexporter): A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file (cross-platform)
-* [XstReader.Api](#xstreader-api): A library to read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
+* [XstReader.Api](#xstreader-api): A library for read all content of Microsoft Outlook's .ost and .pst files (cross-platform)
 
 # Original code
 This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader). And [Dijji](https://github.com/Dijji) died at the end of May 2021 :(
