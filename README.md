@@ -53,6 +53,7 @@ To install a binary:
 
 
 ## More information
+* [Readme](./README.md)
 * [XstReader](./XstReader.md)
 * [XstExporter](./XstExporter.md)
 * [XstReader.Api](./XstReader.Api.md)
@@ -61,6 +62,3 @@ To install a binary:
 
 ## License
 Distributed under the MS-PL license. See [license](license.md) for more information.
-
-
-
