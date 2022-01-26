@@ -31,7 +31,7 @@ A Command Line tool for exporting emails, attachments or properties from an Micr
 
 More information in [XstExporter.md](./XstExporter.md)
 
-### [XstReader.Api.md](./XstReader.Api.md)
+### [XstReader.Api](./XstReader.Api.md)
 A library to read all content of Microsoft Outlook's .ost and .pst files. Is built with .Net Standard 2.0 (cross-platform)
 
 
