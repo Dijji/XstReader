@@ -39,7 +39,7 @@ A library to read all content of Microsoft Outlook's .ost and .pst files:
 * Versatile library, easy to use
 * Provide all funcionality of **XstReader** and **XstExporter**
 * Is built with .Net Standard 2.0 (cross-platform)
-* Available on Nuget: [Nuget project page](https://www.nuget.org/packages/iluvadev.ConsoleProgressBar/)
+* Available on Nuget: [Nuget project page](https://www.nuget.org/packages/XstReader.Api/)
 
 [![Nuget](https://img.shields.io/nuget/v/XstReader.Api?style=plastic)](https://www.nuget.org/packages/XstReader.Api/)
 
