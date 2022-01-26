@@ -19,37 +19,44 @@ An application to view Microsoft Outlook's .ost and .pst files:
 * With no dependency on any Microsoft Office component
 * You can inspect all the properties of Folders, Emails, Attachments and Recipients
 * You can export email properties and email body in its native format (plain text, Html or rich text)
-* Only requires .Net Framework 4.6.1 (Windows)
+* Only requires .Net Framework 4.6.1 (for Windows)
 
 More information in [XstReader.md](./XstReader.md)
 
 ### [XstExporter](./XstExporter.md)
 ![XstExporter ScreenShot](https://raw.githubusercontent.com/iluvadev/XstReader/master/docs/img/XstExporter-Screenshot01_small.png)
 
-A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file. 
-* There is a Portable version based on .Net Core 2.1 (cross-platform)
+A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file:
+* With the ability to export from a subtree of Outlook folders
+* Can export attachments only, without the body of the email.
+* Is built over .Net Framework 4.6.1 (for Windows)
+* There is a *Portable* version based on .Net Core 2.1 (cross-platform)
 
 More information in [XstExporter.md](./XstExporter.md)
 
 ### [XstReader.Api](./XstReader.Api.md)
-A library to read all content of Microsoft Outlook's .ost and .pst files. Is built with .Net Standard 2.0 (cross-platform)
+A library to read all content of Microsoft Outlook's .ost and .pst files:
+* Versatile library, easy to use
+* Provide all funcionality of **XstReader** and **XstExporter**
+* Is built with .Net Standard 2.0 (cross-platform)
 
+More information in [XstReader.Api](./XstReader.Api.md)
 
 ## Installation
-
 To install a binary:
-1.	Choose a release, then download the XstReader.zip file attached to it.
-2.	Extract the contents of the zip file to a programs folder.
-3.	Run XstReader.exe, and create shortcuts to it as required.
+1. Choose a release, then download the XstReader-[release].zip file attached to it.
+2. Extract the contents of the zip file to a programs folder.
+3. Run XstReader.exe, and create shortcuts to it as required.
 
 
 ## More information
-
+* [XstReader](./XstReader.md)
+* [XstExporter](./XstExporter.md)
+* [XstReader.Api](./XstReader.Api.md)
 * [Release Notes](./ReleaseNotes.md)
 * [License](./license.md)
 
 ## License
-
 Distributed under the MS-PL license. See [license](license.md) for more information.
 
 
