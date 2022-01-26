@@ -1,6 +1,15 @@
-This repository includes [3 projects](#projects) to read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files (also those protected by unknown password). All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
+This repository includes 3 projects ([XstReader](#xstreader), [XstExporter](#xstexporter) and [XstReader.Api](#xstreader.api)) to read, view and export folders, messages, attachments, recipients and properties from Microsoft Outlook's .ost and .pst files (also those protected by unknown password). All these projects are written entirely in C#, with no dependency on any Microsoft Office components.
 
 XstReader (and subprojects) is based on Microsoft’s documentation of the Outlook file formats in [MS-PST], first published in 2010 as part of the anti-trust settlement with the DOJ and the EU: <https://msdn.microsoft.com/en-us/library/ff385210(v=office.12).aspx>
+
+## Original code
+This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader)... [Dijji](https://github.com/Dijji) died at the end of May 2021
+
+All the code here is the product of his wisdom or is inspired by his work.
+
+As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
+> If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
+
 # Projects  
 ### XstReader
 ![XstReader ScreenShot](https://raw.githubusercontent.com/iluvadev/XstReader/master/docs/img/Home_screenshot0.9_small.jpg)
@@ -24,15 +33,6 @@ More information in [XstExporter.md](./XstExporter.md)
 
 ### XstReader.Api
 A library to read all content of Microsoft Outlook's .ost and .pst files. Is built with .Net Standard 2.0 (cross-platform)
-
-
-# Original code
-This repo is a fork and evolution of [Dijji/XstReader](https://github.com/Dijji/XstReader)... [Dijji](https://github.com/Dijji) died at the end of May 2021
-
-All the code here is the product of his wisdom or is inspired by his work.
-
-As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
-> If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
 
 
 # **[This Readme is pending review]**
