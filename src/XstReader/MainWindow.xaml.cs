@@ -576,8 +576,9 @@ namespace XstReader
                     {
                         //TODO: Rtf support
                         rtfMessage.SelectAll();
-                        using (var ms = new MemoryStream(mv.Message.Body.Bytes))
-                            rtfMessage.Selection.Load(ms, DataFormats.Rtf);
+                        if (mv.Message.Body.Bytes != null)
+                            using (var ms = new MemoryStream(mv.Message.Body.Bytes))
+                                rtfMessage.Selection.Load(ms, DataFormats.Rtf);
                         var body = mv.MessageFormatter.GetBodyAsFlowDocument();
 
                         mv.MessageFormatter.EmbedRtfHeader(body);

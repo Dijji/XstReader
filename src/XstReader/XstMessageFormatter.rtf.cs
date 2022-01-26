@@ -26,13 +26,13 @@ namespace XstReader
         {
 
             FlowDocument doc = new FlowDocument();
-
-            using (var ms = new MemoryStream(Message.Body.Bytes))
-            {
-                ms.Position = 0;
-                TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
-                selection.Load(ms, DataFormats.Rtf);
-            }
+            if (Message.Body.Bytes != null)
+                using (var ms = new MemoryStream(Message.Body.Bytes))
+                {
+                    ms.Position = 0;
+                    TextRange selection = new TextRange(doc.ContentStart, doc.ContentEnd);
+                    selection.Load(ms, DataFormats.Rtf);
+                }
 
             // For debug, a way to look at the document
             //var infoString = System.Windows.Markup.XamlWriter.Save(doc);
