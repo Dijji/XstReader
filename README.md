@@ -11,7 +11,7 @@ As his daughter [@seeemilyplay](https://github.com/seeemilyplay) said:
 > If you have the spare money, and feel you would like to pay your respects in some way, then please donate to the MS Society (or the equivalent in your home country) https://www.mssociety.org.uk/
 
 # Projects  
-### XstReader
+### [XstReader](./XstReader.md)
 ![XstReader ScreenShot](https://raw.githubusercontent.com/iluvadev/XstReader/master/docs/img/Home_screenshot0.9_small.jpg)
 
 An application to view Microsoft Outlook's .ost and .pst files:
@@ -23,7 +23,7 @@ An application to view Microsoft Outlook's .ost and .pst files:
 
 More information in [XstReader.md](./XstReader.md)
 
-### XstExporter
+### [XstExporter](./XstExporter.md)
 ![XstExporter ScreenShot](https://raw.githubusercontent.com/iluvadev/XstReader/master/docs/img/XstExporter-Screenshot01_small.png)
 
 A Command Line tool for exporting emails, attachments or properties from an Microsoft Outlook's .ost and .pst file. 
@@ -31,7 +31,7 @@ A Command Line tool for exporting emails, attachments or properties from an Micr
 
 More information in [XstExporter.md](./XstExporter.md)
 
-### XstReader.Api
+### [XstReader.Api.md](./XstReader.Api.md)
 A library to read all content of Microsoft Outlook's .ost and .pst files. Is built with .Net Standard 2.0 (cross-platform)
 
 
