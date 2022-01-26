@@ -1,15 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
-    <Version>2.0.1</Version>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyVersion>2.0.1</AssemblyVersion>
     <FileVersion>2.0.1</FileVersion>
-    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <Version>2.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\XstExporter\Extensions.cs" Link="Extensions.cs" />
+    <Compile Include="..\XstExporter\Options.cs" Link="Options.cs" />
+    <Compile Include="..\XstExporter\Program.cs" Link="Program.cs" />
+    <Compile Include="..\XstExporter\XstExportException.cs" Link="XstExportException.cs" />
     <Compile Include="..\XstReader\XstFormatter.cs" Link="XstFormatter.cs" />
     <Compile Include="..\XstReader\XstMessageFormatter.cs" Link="XstMessageFormatter.cs" />
     <Compile Include="..\XstReader\XstMessageFormatter.rtf.cs" Link="XstMessageFormatter.rtf.cs" />
@@ -17,12 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\XstReader.Api\XstReader.Api.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
 
 </Project>
