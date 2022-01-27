@@ -50,9 +50,6 @@ public void ProcessFolder(XstFolder folder)
   foreach(var childFolder in folder.Folders)
   {
     ProcessFolder(childFolder);
-
-    // We don't need more the data inside the childfolder
-    childFolder.ClearContents();
   }
 }
 ```
