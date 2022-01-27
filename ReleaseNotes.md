@@ -1,4 +1,7 @@
 # Release Notes
+**XstReader.Api v.1.0.2**:
+* Fixed error with intellisense in nuget package
+
 ## 2022-01-26
 **All projects**:
 * New folder structure for code
