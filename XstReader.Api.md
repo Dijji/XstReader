@@ -29,9 +29,6 @@ public void OpenOstOrPstFile(string fileName)
   using(var xstFile = new XstFile(fileName))
   {
     ProcessFolder(xstFile.RootFolder);
-
-    // We don't need more the data inside the folder
-    childFolder.ClearContents(); 
   }
 }
 ```
@@ -53,6 +50,9 @@ public void ProcessFolder(XstFolder folder)
   foreach(var childFolder in folder.Folders)
   {
     ProcessFolder(childFolder);
+
+    // We don't need more the data inside the childfolder
+    childFolder.ClearContents();
   }
 }
 ```
