@@ -5,7 +5,7 @@ By default, all folders in the Outlook file are exported into a directory struct
 
 The differences from the export capabilities of the UI are: the ability to export from a subtree of Outlook folders; and the ability to export attachments only, without the body of the email.
 
-In addition to XstExport, XstPortableExport is also provided, which is a portable version based on .Net Core 2.1 that can be run on Windows, Mac, Linux etc. 
+In addition to XstExporter, XstExporter.Portable is also provided, which is a portable version based on .Net Core 2.1 that can be run on Windows, Mac, Linux etc. 
 
 Both versions support the following options:
 
