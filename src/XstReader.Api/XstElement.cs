@@ -23,7 +23,7 @@ namespace XstReader
         /// <summary>
         /// The Container File
         /// </summary>
-        internal protected abstract XstFile XstFile { get; }
+        public abstract XstFile XstFile { get; }
         private protected LTP Ltp => XstFile.Ltp;
         private protected NDB Ndb => XstFile.Ndb;
         internal NID Nid { get; set; } //Where element data is held

@@ -15,7 +15,7 @@ using System.Text;
 namespace XstReader
 {
     /// <summary>
-    /// Extensions for IEnumerable<XstAttachment>
+    /// Extensions for IEnumerable[XstAttachment]
     /// </summary>
     public static class IEnumerableXstAttachmentExtensions
     {

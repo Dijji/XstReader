@@ -14,7 +14,7 @@ namespace XstReader.ElementProperties
 {
     /// <summary>
     /// Values of the PidTagMessageFlags property
-    /// Enum names are taken from <MS-PST> <see cref="https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxcmsg/a0c52fe2-3014-43a7-942d-f43f6f91c366"/>
+    /// Enum names are taken from [MS-PST] <see href="https://docs.microsoft.com/en-us/openspecs/exchange_server_protocols/ms-oxcmsg/a0c52fe2-3014-43a7-942d-f43f6f91c366"/>
     /// </summary>
     [Flags]
     public enum MessageFlags : Int32
@@ -74,7 +74,7 @@ namespace XstReader.ElementProperties
 
         /// <summary>
         /// The message has been read at least once. 
-        /// This flag is set or cleared by the server whenever the mfRead flag is set or cleared.<4> Clients SHOULD ignore this flag.
+        /// This flag is set or cleared by the server whenever the mfRead flag is set or cleared. Clients SHOULD ignore this flag.
         /// </summary>
         mfEverRead = 0x00000400,
 

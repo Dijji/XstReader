@@ -14,7 +14,7 @@ namespace XstReader.ElementProperties
 {
     /// <summary>
     /// Values of the PidTagAttachMethod property
-    /// Enum names are taken from <MS-PST> 
+    /// Enum names are taken from [MS-PST] 
     /// </summary>
     internal enum AttachMethod : Int32
     {

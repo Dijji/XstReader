@@ -14,7 +14,7 @@ namespace XstReader.ElementProperties
 {
     /// <summary>
     /// Values of the PidTagNativeBody property 
-    /// Enum names are taken from <MS-PST>
+    /// Enum names are taken from [MS-PST]
     /// </summary>
     internal enum BodyType : Int32
     {

@@ -69,7 +69,6 @@ namespace XstReader
         /// Ctor
         /// </summary>
         /// <param name="newTag"></param>
-        /// <param name="original"></param>
         internal XstProperty CopyToNew(PropertyCanonicalName newTag)
             => new XstProperty
             {

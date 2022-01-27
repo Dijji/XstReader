@@ -24,7 +24,7 @@ namespace XstReader
         /// <summary>
         /// The Container File
         /// </summary>
-        internal protected override XstFile XstFile { get; }
+        public override XstFile XstFile { get; }
 
         /// <summary>
         /// Number of messages inside the Folder
@@ -46,6 +46,9 @@ namespace XstReader
         /// The Folders contained inside this Folder
         /// </summary>
         public IEnumerable<XstFolder> Folders => GetFolders();
+        /// <summary>
+        /// Returns if the current folder has folders inside
+        /// </summary>
         public bool HasSubFolders => Folders.Any();
 
         private string _Path = null;

@@ -33,7 +33,7 @@ namespace XstReader
         /// <summary>
         /// The Container File
         /// </summary>
-        protected internal override XstFile XstFile => Message.XstFile;
+        public override XstFile XstFile => Message.XstFile;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
 

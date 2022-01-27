@@ -41,7 +41,7 @@ namespace XstReader
         /// <summary>
         /// The Container File
         /// </summary>
-        internal protected override XstFile XstFile => ParentFolder.XstFile;
+        public override XstFile XstFile => ParentFolder.XstFile;
 
 
         private XstRecipientSet _Recipients = null;
@@ -178,7 +178,9 @@ namespace XstReader
         /// </summary>
         public bool HasAttachmentsVisibleFiles => HasAttachments && AttachmentsVisibleFiles.Any();
 
-
+        /// <summary>
+        /// Indicates if the Message is Encrypted or signed
+        /// </summary>
         public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null &&
                                            Attachments.Count() == 1 &&
                                            Attachments.First().FileNameForSaving == "smime.p7m";
@@ -190,6 +192,10 @@ namespace XstReader
             set => _SubNodeTreeProperties = value;
         }
         internal BTree<Node> SubNodeTreeParentAttachment = null;
+
+        /// <summary>
+        /// Indicates if the Message is an attachment of other Message
+        /// </summary>
         public bool IsAttached => SubNodeTreeParentAttachment != null;
 
         #region Content Exclusions
@@ -253,6 +259,10 @@ namespace XstReader
         #endregion Properties
 
         #region Attachments
+        /// <summary>
+        /// Returns the Attachments of this Message
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<XstAttachment> GetAttachments()
             => _Attachments ?? (_Attachments = GetAttachmentsInternal());
 
@@ -290,6 +300,10 @@ namespace XstReader
                                  (NativeBody == BodyType.Undefined && BodyRtfCompressed?.Length > 0);
 
 
+        /// <summary>
+        /// Obtains the Body of the Message
+        /// </summary>
+        /// <returns></returns>
         public XstMessageBody GetBody()
         {
             if (_Body == null)

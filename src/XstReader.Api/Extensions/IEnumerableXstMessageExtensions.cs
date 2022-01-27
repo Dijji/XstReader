@@ -14,7 +14,7 @@ using System.Linq;
 namespace XstReader
 {
     /// <summary>
-    /// Extensions for IEnumerable<XstMessage>
+    /// Extensions for IEnumerable[XstMessage]
     /// </summary>
     public static class IEnumerableXstMessageExtensions
     {

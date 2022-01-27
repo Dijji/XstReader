@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>XstReader</RootNamespace>
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
-    <FileVersion>1.0.2</FileVersion>
+    <Version>1.0.3</Version>
+    <AssemblyVersion>1.0.3</AssemblyVersion>
+    <FileVersion>1.0.3</FileVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>iluvadev</Authors>
@@ -23,7 +23,7 @@ Original project: https://github.com/dijji/XstReader</Description>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <PackageReleaseNotes>Fixed intellisense info</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

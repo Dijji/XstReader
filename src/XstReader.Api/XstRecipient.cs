@@ -28,7 +28,7 @@ namespace XstReader
         /// <summary>
         /// The File
         /// </summary>
-        protected internal override XstFile XstFile => Message.XstFile;
+        public override XstFile XstFile => Message.XstFile;
 
         /// <summary>
         /// The Type of the Recipient in the Message

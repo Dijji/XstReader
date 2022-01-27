@@ -18,7 +18,7 @@ using XstReader.ElementProperties;
 namespace XstReader
 {
     /// <summary>
-    /// Extensions for IEnumerable<XstProperty>
+    /// Extensions for IEnumerable[XstProperty]
     /// </summary>
     public static class IEnumerableXstPropertyExtensions
     {
