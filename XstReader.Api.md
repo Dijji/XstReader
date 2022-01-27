@@ -29,6 +29,9 @@ public void OpenOstOrPstFile(string fileName)
   using(var xstFile = new XstFile(fileName))
   {
     ProcessFolder(xstFile.RootFolder);
+	
+	// We don't need more the data inside the folder
+    childFolder.ClearContents(); 
   }
 }
 ```
