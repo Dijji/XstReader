@@ -1,5 +1,5 @@
 # XstReader
-Xst Reader is an open source viewer for Microsoft Outlook’s .ost and .pst files, written entirely in C#, requiring only .Net Framework 4.6.1, and with no dependency on any Microsoft Office components.
+XstReader is an open source viewer for Microsoft Outlook’s .ost and .pst files, written entirely in C#, requiring only .Net Framework 4.6.1, and with no dependency on any Microsoft Office components.
 
 It presents as a simple, classic, three pane mail viewer:
 
@@ -9,7 +9,7 @@ XstReader goes beyond Outlook in that it will allow you to open .ost files, whic
 
 It requires only .Net Framework 4.6.1. It can be downloaded from <https://www.microsoft.com/es-es/download/details.aspx?id=49982>
 
-Xst Reader is based on Microsoft’s documentation of the Outlook file formats in [MS-PST], first published in 2010 as part of the anti-trust settlement with the DOJ and the EU: <https://msdn.microsoft.com/en-us/library/ff385210(v=office.12).aspx>
+XstReader is based on Microsoft’s documentation of the Outlook file formats in [MS-PST], first published in 2010 as part of the anti-trust settlement with the DOJ and the EU: <https://msdn.microsoft.com/en-us/library/ff385210(v=office.12).aspx>
 
 ## Installation
 To install a binary:
