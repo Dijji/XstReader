@@ -33,7 +33,7 @@ namespace XstReader
         /// <summary>
         /// The Type of the Recipient in the Message
         /// </summary>
-        public RecipientType RecipientType 
+        public RecipientType RecipientType
             => (RecipientType)(Properties[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
 
         /// <summary>
@@ -58,9 +58,14 @@ namespace XstReader
         public XstRecipient(XstMessage message, Func<IEnumerable<XstProperty>> propertiesGetter)
         {
             Message = message;
-            Properties = new XstPropertySet(propertiesGetter);
+            Properties = new XstPropertySet(propertiesGetter,
+                                            (t) => propertiesGetter?.Invoke().FirstOrDefault(p => p.Tag == t),
+                                            (t) => propertiesGetter?.Invoke().Any(p => p.Tag == t) ?? false);
         }
-
+        private protected override XstProperty LoadProperty(PropertyCanonicalName tag)
+            => null;
+        private protected override bool CheckProperty(PropertyCanonicalName tag)
+            => false;
         private protected override IEnumerable<XstProperty> LoadProperties()
             => new XstProperty[0];//Ltp.ReadAllProperties(Nid);
 

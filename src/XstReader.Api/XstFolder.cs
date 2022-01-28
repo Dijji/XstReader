@@ -82,6 +82,11 @@ namespace XstReader
         #endregion Ctor
 
         #region Properties
+        private protected override bool CheckProperty(PropertyCanonicalName tag)
+            => Ltp.ContainsProperty(Nid, tag);
+        private protected override XstProperty LoadProperty(PropertyCanonicalName tag)
+            => Ltp.ReadProperty(Nid, tag);
+
         private protected override IEnumerable<XstProperty> LoadProperties()
             => Ltp.ReadAllProperties(Nid);
 

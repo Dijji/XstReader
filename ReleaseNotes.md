@@ -1,4 +1,9 @@
 # Release Notes
+**XstReader.Api v.1.0.3**:
+* Optimized check if mail is Signed or encrypted
+* XstElements can access XstFile
+* Fixed some errors in comments
+
 **XstReader.Api v.1.0.2**:
 * Fixed error with intellisense in nuget package
 

@@ -91,7 +91,21 @@ namespace XstReader
 
             return childSubNodeTree;
         }
+        public bool ContainsProperty(NID nid, PropertyCanonicalName tag)
+        {
+            BTree<Node> subNodeTree;
+            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
 
+            return ContainsPropertyInternal(subNodeTree, rn.DataBid, tag);
+        }
+
+        public XstProperty ReadProperty(NID nid, PropertyCanonicalName tag)
+        {
+            BTree<Node> subNodeTree;
+            var rn = ndb.LookupNodeAndReadItsSubNodeBtree(nid, out subNodeTree);
+
+            return ReadPropertyInternal(subNodeTree, rn.DataBid, tag);
+        }
 
         // Read all the properties in a property context, apart from a supplied set of exclusions
         // Returns a series of Property objects
@@ -105,6 +119,21 @@ namespace XstReader
             return ReadAllPropertiesInternal(subNodeTree, rn.DataBid, excluding);
         }
 
+        public bool ContainsProperty(BTree<Node> subNodeTree, NID nid, PropertyCanonicalName tag, bool propertyValuesInChildNodeTree = false)
+        {
+            BTree<Node> childSubNodeTree;
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
+
+            return ContainsPropertyInternal(propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, tag);
+        }
+
+        public XstProperty ReadProperty(BTree<Node> subNodeTree, NID nid, PropertyCanonicalName tag, bool propertyValuesInChildNodeTree = false)
+        {
+            BTree<Node> childSubNodeTree;
+            var rn = ndb.LookupSubNodeAndReadItsSubNodeBtree(subNodeTree, nid, out childSubNodeTree);
+
+            return ReadPropertyInternal(propertyValuesInChildNodeTree ? childSubNodeTree : subNodeTree, rn.DataBid, tag);
+        }
 
         // Second form takes a node ID for a node in the supplied sub node tree
         // An optional switch can be used to indicate that the property values are stored in the child node tree of the supplied node tree
@@ -216,6 +245,41 @@ namespace XstReader
 
             yield break;
         }
+
+        private bool ContainsPropertyInternal(BTree<Node> subNodeTree, UInt64 dataBid, PropertyCanonicalName tag)
+        {
+            var blocks = ReadHeapOnNode(dataBid);
+            var h = blocks.First();
+            if (h.bClientSig != EbType.bTypePC)
+                throw new XstException("Was expecting a PC");
+
+            // Read the index of properties
+            var props = ReadBTHIndex<PCBTH>(blocks, h.hidUserRoot);
+            return props.Any(p => p.wPropId == tag);
+        }
+
+        // Common implementation of property reading takes a data ID for a block in the main block tree
+        private XstProperty ReadPropertyInternal(BTree<Node> subNodeTree, UInt64 dataBid, PropertyCanonicalName tag)
+        {
+            var blocks = ReadHeapOnNode(dataBid);
+            var h = blocks.First();
+            if (h.bClientSig != EbType.bTypePC)
+                throw new XstException("Was expecting a PC");
+
+            // Read the index of properties
+            var props = ReadBTHIndex<PCBTH>(blocks, h.hidUserRoot);
+            XstProperty p = null;
+            foreach (var prop in props)
+            {
+                if (tag == prop.wPropId)
+                {
+                    p = CreatePropertyObject(prop, () => ReadPropertyValue(subNodeTree, blocks, prop));
+                    break;
+                }
+            }
+            return p;
+        }
+
 
         private dynamic ReadPropertyValue(BTree<Node> subNodeTree, List<HNDataBlock> blocks, PCBTH prop)
         {

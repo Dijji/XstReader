@@ -24,6 +24,8 @@ namespace XstReader
         private Dictionary<PropertyCanonicalName, XstProperty> DicProperties
             => _DicProperties ?? (_DicProperties = new Dictionary<PropertyCanonicalName, XstProperty>());
 
+        private List<PropertyCanonicalName> _NotPresentTags = new List<PropertyCanonicalName>();
+
         /// <summary>
         /// Indicates if the Properties are loaded
         /// </summary>
@@ -47,10 +49,16 @@ namespace XstReader
                                                                            p.PropertyType != EpropertyType.PtypMultipleBinary);
 
         private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
+        private Func<PropertyCanonicalName, XstProperty> PropertyGetter { get; set; }
+        private Func<PropertyCanonicalName, bool> PropertyChecker { get; set; }
 
-        internal XstPropertySet(Func<IEnumerable<XstProperty>> propertiesGetter)
+        internal XstPropertySet(Func<IEnumerable<XstProperty>> propertiesGetter,
+                                Func<PropertyCanonicalName, XstProperty> propertyGetter,
+                                Func<PropertyCanonicalName, bool> propertyChecker)
         {
             PropertiesGetter = propertiesGetter;
+            PropertyGetter = propertyGetter;
+            PropertyChecker = propertyChecker;
         }
 
         /// <summary>
@@ -58,14 +66,14 @@ namespace XstReader
         /// </summary>
         /// <param name="tag"></param>
         /// <returns></returns>
-        public XstProperty this[UInt16 tag] 
+        public XstProperty this[UInt16 tag]
             => Get(tag);
         /// <summary>
         /// Gets the Property by its Tag
         /// </summary>
         /// <param name="tag"></param>
         /// <returns></returns>
-        public XstProperty this[PropertyCanonicalName tag] 
+        public XstProperty this[PropertyCanonicalName tag]
             => Get(tag);
 
         /// <summary>
@@ -83,8 +91,22 @@ namespace XstReader
         /// <returns></returns>
         public XstProperty Get(PropertyCanonicalName tag)
         {
-            if (!Contains(tag) && !IsLoaded)
-                LoadProperties();
+            if (!DicProperties.ContainsKey(tag))
+            {
+                if (_NotPresentTags.Contains(tag)) return null;
+                if (IsLoaded)
+                {
+                    _NotPresentTags.Add(tag);
+                    return null;
+                }
+                var p = PropertyGetter?.Invoke(tag);
+                if (p == null)
+                {
+                    _NotPresentTags.Add(tag);
+                    return null;
+                }
+                DicProperties[tag] = p;
+            }
             if (DicProperties.ContainsKey(tag))
                 return DicProperties[tag];
             return null;
@@ -131,7 +153,15 @@ namespace XstReader
         /// <param name="tag"></param>
         /// <returns></returns>
         public bool Contains(PropertyCanonicalName tag)
-            => DicProperties.ContainsKey(tag);
+        {
+            if (_NotPresentTags.Contains(tag))
+                return false;
+            if (DicProperties.ContainsKey(tag) || (PropertyChecker?.Invoke(tag) ?? false))
+                return true;
+
+            _NotPresentTags.Add(tag);
+            return false;
+        }
 
         internal void Add(XstProperty property)
         {

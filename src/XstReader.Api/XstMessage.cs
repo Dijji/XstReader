@@ -181,9 +181,10 @@ namespace XstReader
         /// <summary>
         /// Indicates if the Message is Encrypted or signed
         /// </summary>
-        public bool IsEncryptedOrSigned => BodyHtml == null && Html == null && BodyPlainText == null &&
-                                           Attachments.Count() == 1 &&
-                                           Attachments.First().FileNameForSaving == "smime.p7m";
+        public bool IsEncryptedOrSigned => Attachments.Count() == 1 &&
+                                           Attachments.First().FileNameForSaving == "smime.p7m" &&
+                                           !Properties.Contains(PropertyCanonicalName.PidTagBody) &&
+                                           !Properties.Contains(PropertyCanonicalName.PidTagHtml);
 
         private BTree<Node> _SubNodeTreeProperties = null;
         internal BTree<Node> SubNodeTreeProperties
@@ -244,6 +245,26 @@ namespace XstReader
         }
 
         #region Properties
+        private protected override bool CheckProperty(PropertyCanonicalName tag)
+        {
+            if (SubNodeTreeParentAttachment != null)
+                return Ltp.ContainsProperty(SubNodeTreeParentAttachment, Nid, tag, true);
+
+            if (SubNodeTreeProperties != null)
+                return Ltp.ContainsProperty(Nid, tag);
+
+            return false;
+        }
+        private protected override XstProperty LoadProperty(PropertyCanonicalName tag)
+        {
+            if (SubNodeTreeParentAttachment != null)
+                return Ltp.ReadProperty(SubNodeTreeParentAttachment, Nid, tag, true);
+
+            if (SubNodeTreeProperties != null)
+                return Ltp.ReadProperty(Nid, tag);
+
+            return null;
+        }
 
         private protected override IEnumerable<XstProperty> LoadProperties()
         {

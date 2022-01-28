@@ -35,7 +35,7 @@ namespace XstReader
         /// </summary>
         public XstPropertySet Properties
         {
-            get => _Properties ?? (_Properties = new XstPropertySet(LoadProperties));
+            get => _Properties ?? (_Properties = new XstPropertySet(LoadProperties, LoadProperty, CheckProperty));
             protected set => _Properties = value;
         }
 
@@ -57,6 +57,10 @@ namespace XstReader
         #region Properties
         private protected abstract IEnumerable<XstProperty> LoadProperties();
 
+        private protected abstract XstProperty LoadProperty(PropertyCanonicalName tag);
+
+        private protected abstract bool CheckProperty(PropertyCanonicalName tag);
+
         internal void AddProperty(XstProperty property)
             => Properties.Add(property);
 
@@ -72,7 +76,7 @@ namespace XstReader
         private protected void ClearProperties()
         {
             Properties.ClearContents();
-            _Properties = null;
+            //_Properties = null;
         }
 
         /// <summary>

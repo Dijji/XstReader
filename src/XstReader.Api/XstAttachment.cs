@@ -164,6 +164,35 @@ namespace XstReader
 
             return _AttachedEmailMessage;
         }
+        private protected override bool CheckProperty(PropertyCanonicalName tag)
+        {
+            if (WasLoadedFromMime)
+                return false;
+
+            BTree<Node> subNodeTreeMessage = SubNodeTreeProperties;
+
+            if (subNodeTreeMessage == null)
+                // No subNodeTree given: assume we can look it up in the main tree
+                Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
+
+            // Read property
+            return Ltp.ContainsProperty(subNodeTreeMessage, Nid, tag, true);
+        }
+
+        private protected override XstProperty LoadProperty(PropertyCanonicalName tag)
+        {
+            if (WasLoadedFromMime)
+                return null;
+
+            BTree<Node> subNodeTreeMessage = SubNodeTreeProperties;
+
+            if (subNodeTreeMessage == null)
+                // No subNodeTree given: assume we can look it up in the main tree
+                Ndb.LookupNodeAndReadItsSubNodeBtree(Message.Nid, out subNodeTreeMessage);
+
+            // Read property
+            return Ltp.ReadProperty(subNodeTreeMessage, Nid, tag, true);
+        }
 
         private protected override IEnumerable<XstProperty> LoadProperties()
         {
