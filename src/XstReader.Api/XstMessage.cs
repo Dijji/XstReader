@@ -54,7 +54,7 @@ namespace XstReader
         /// The Subject of the Message
         /// </summary>
         public string Subject => Properties[PropertyCanonicalName.PidTagSubject]?.Value;
-        
+
         /// <summary>
         /// The Cc Summary of the Message
         /// </summary>
@@ -102,6 +102,12 @@ namespace XstReader
             get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags]?.Value;
             private set => _Flags = value;
         }
+
+        /// <summary>
+        /// The Status of the Message
+        /// </summary>
+        public MessageStatus? Status => (MessageStatus?)Properties[PropertyCanonicalName.PidTagMessageStatus]?.Value;
+
         /// <summary>
         /// DateTime when Message was submitted
         /// </summary>
@@ -114,6 +120,21 @@ namespace XstReader
         /// DateTime of the Message (Received or Submitted)
         /// </summary>
         public DateTime? Date => ReceivedTime ?? SubmittedTime;
+
+        /// <summary>
+        /// The Priority of the message
+        /// </summary>
+        public MessagePriority? Priority => (MessagePriority?)Properties[PropertyCanonicalName.PidTagPriority]?.Value;
+
+        /// <summary>
+        /// The Importance of the Message
+        /// </summary>
+        public MessageImportance? Importance => (MessageImportance?)Properties[PropertyCanonicalName.PidTagImportance]?.Value;
+
+        /// <summary>
+        /// The Sensitivity of the Message
+        /// </summary>
+        public MessageSensitivity? Sensitivity => (MessageSensitivity?)Properties[PropertyCanonicalName.PidTagSensitivity]?.Value;
 
         private Func<BTree<Node>> _BodyLoader = null;
         internal Func<BTree<Node>> BodyLoader
@@ -146,7 +167,13 @@ namespace XstReader
         /// <summary>
         /// Indicates if the Message was been read
         /// </summary>
-        public bool IsRead => (Flags & MessageFlags.mfRead) == MessageFlags.mfRead;
+        public bool IsRead => Flags?.HasFlag(MessageFlags.mfRead) ?? true;
+
+        /// <summary>
+        /// Indicates if the Message is a Draft (unsent message)
+        /// </summary>
+        public bool IsDraft => Flags?.HasFlag(MessageFlags.mfUnsent) ?? false;
+
 
         private IEnumerable<XstAttachment> _Attachments = null;
         /// <summary>
@@ -164,7 +191,7 @@ namespace XstReader
         /// <summary>
         /// Indicates if the Message has Attachments
         /// </summary>
-        public bool HasAttachments => (Flags & MessageFlags.mfHasAttach) == MessageFlags.mfHasAttach;
+        public bool HasAttachments => Flags?.HasFlag(MessageFlags.mfHasAttach) ?? false;
         /// <summary>
         /// Indicates if the Message may have Attachments inline, incrusted in the body
         /// </summary>
