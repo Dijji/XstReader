@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using XstReader.ElementProperties;
 
@@ -24,29 +25,41 @@ namespace XstReader
         /// <summary>
         /// The Message of the Recipient
         /// </summary>
+        [DisplayName("Message")]
+        [Category("General")]
+        [Description("The Message of the Recipient")]
         public XstMessage Message { get; internal set; }
         /// <summary>
         /// The File
         /// </summary>
+        [DisplayName("File")]
+        [Category("General")]
+        [Description("The Container File")]
         public override XstFile XstFile => Message.XstFile;
 
         /// <summary>
         /// The Type of the Recipient in the Message
         /// </summary>
+        [DisplayName("Recipient Type")]
+        [Category(@"Mapi Recipient")]
+        [Description(@"Represents the recipient type of a recipient on the message.")]
         public RecipientType RecipientType
             => (RecipientType)(Properties[PropertyCanonicalName.PidTagRecipientType]?.Value ?? 0);
 
         /// <summary>
         /// The Address of the Recipient (SmtpAddress or EmailAddress)
         /// </summary>
+        [DisplayName("Address")]
+        [Category(@"General")]
+        [Description(@"Contains the SMTP address or the email address of the Message object.")]
         public string Address
-            => Properties[PropertyCanonicalName.PidTagSmtpAddress]?.Value ??
-               Properties[PropertyCanonicalName.PidTagEmailAddress]?.Value;
+            => Properties[PropertyCanonicalName.PidTagSmtpAddress]?.ValueAsStringSanitized ??
+               Properties[PropertyCanonicalName.PidTagEmailAddress]?.ValueAsStringSanitized;
 
         /// <summary>
         /// Ctor
         /// </summary>
-        public XstRecipient()
+        public XstRecipient() : base(XstElementType.Recipient)
         {
         }
 
@@ -55,7 +68,7 @@ namespace XstReader
         /// </summary>
         /// <param name="message"></param>
         /// <param name="propertiesGetter"></param>
-        public XstRecipient(XstMessage message, Func<IEnumerable<XstProperty>> propertiesGetter)
+        public XstRecipient(XstMessage message, Func<IEnumerable<XstProperty>> propertiesGetter) : this()
         {
             Message = message;
             Properties = new XstPropertySet(propertiesGetter,

@@ -1,4 +1,9 @@
 # Release Notes
+**XstReader.Api v.1.1.0**:
+* Decryption support for .net core
+* Enhanced information in class properties
+* Removed unicode control chars from values of some element properties 
+
 **XstReader.Api v.1.0.3**:
 * Optimized check if mail is Signed or encrypted
 * XstElements can access XstFile

@@ -11,7 +11,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -81,5 +80,15 @@ namespace XstReader
             return removeInvalidChars.Replace(value, with);
         }
 
+        /// <summary>
+        /// Returns a string without unicode control chars
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string SanitizeControlChars(this string value)
+        {
+            if (value == null) return null;
+            return new string(value.Where(c => !char.IsControl(c)).ToArray()).Trim();
+        }
     }
 }

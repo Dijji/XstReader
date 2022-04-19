@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using XstReader.ElementProperties;
 
@@ -45,8 +46,21 @@ namespace XstReader
         /// <summary>
         /// The Properties that are not Binary values (as attachment binary content)
         /// </summary>
-        public IEnumerable<XstProperty> ItemsNonBinary => Items.Where(p => p.PropertyType != EpropertyType.PtypBinary &&
-                                                                           p.PropertyType != EpropertyType.PtypMultipleBinary);
+        [Obsolete("This property is Obsolete. Use Items.NonBinary() instead")]
+        [Browsable(false)]
+        public IEnumerable<XstProperty> ItemsNonBinary => Items.NonBinary();
+
+        /// <summary>
+        /// The Tags of the properties
+        /// </summary>
+        public IEnumerable<PropertyCanonicalName> Tags
+        {
+            get
+            {
+                LoadProperties();
+                return DicProperties.Keys;
+            }
+        }
 
         private Func<IEnumerable<XstProperty>> PropertiesGetter { get; set; }
         private Func<PropertyCanonicalName, XstProperty> PropertyGetter { get; set; }

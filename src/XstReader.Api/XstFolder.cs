@@ -9,7 +9,9 @@
 // Copyright (c) 2021 iluvadev, and released under Ms-PL License.
 // Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using XstReader.Common.BTrees;
 using XstReader.ElementProperties;
@@ -24,54 +26,74 @@ namespace XstReader
         /// <summary>
         /// The Container File
         /// </summary>
+        [DisplayName("File")]
+        [Category("General")]
+        [Description("The Container File")]
         public override XstFile XstFile { get; }
 
         /// <summary>
         /// Number of messages inside the Folder
         /// </summary>
+        [DisplayName("Content Count")]
+        [Category(@"Folder Properties")]
+        [Description(@"Specifies the number of rows under the header row.")]
         public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
 
         /// <summary>
         /// Number of unread messages inside the Folder
         /// </summary>
+        [DisplayName("Content Unread Count")]
+        [Category(@"Folder Properties")]
+        [Description(@"Specifies the number of rows under the header row that have the PidTagRead property (section 2.878) set to FALSE.")]
         public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
 
         /// <summary>
         /// The Parent Folder of this Folder
         /// </summary>
+        [DisplayName("Parent Folder")]
+        [Category("General")]
+        [Description(@"The Parent Folder of this Folder")]
         public XstFolder ParentFolder { get; set; }
         private IEnumerable<XstFolder> _Folders = null;
 
         /// <summary>
         /// The Folders contained inside this Folder
         /// </summary>
+        [Browsable(false)]
         public IEnumerable<XstFolder> Folders => GetFolders();
+
         /// <summary>
         /// Returns if the current folder has folders inside
         /// </summary>
+        [Obsolete("This property is Obsolete. Use Folders.Any() instead")]
+        [Browsable(false)]
         public bool HasSubFolders => Folders.Any();
 
         private string _Path = null;
         /// <summary>
         /// The Path of this Folder
         /// </summary>
+        [DisplayName("Path")]
+        [Category("General")]
+        [Description(@"The Path of this Folder")]
         public string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.DisplayName) ? DisplayName : $"{ParentFolder.Path}\\{DisplayName}");
 
         private IEnumerable<XstMessage> _Messages = null;
         /// <summary>
         /// The Messages contained in the Folder
         /// </summary>
+        [Browsable(false)]
         public IEnumerable<XstMessage> Messages => GetMessages();
         /// <summary>
         /// The unread Messages contained in the Folder
         /// </summary>
+        [Obsolete("This property is Obsolete. Use Messages.Unread() instead")]
+        [Browsable(false)]
         public IEnumerable<XstMessage> UnreadMessages => Messages.Where(m => !m.IsRead);
-
         private BTree<Node> _SubnodeTreeProperties = null;
 
-
         #region Ctor
-        internal XstFolder(XstFile xstFile, NID nid, XstFolder parentFolder = null)
+        internal XstFolder(XstFile xstFile, NID nid, XstFolder parentFolder = null) : base(XstElementType.Folder)
         {
             XstFile = xstFile;
             Nid = nid;
@@ -151,6 +173,19 @@ namespace XstReader
             base.ClearContentsInternal();
             ClearFolders();
             ClearMessages();
+        }
+
+        /// <summary>
+        /// Gets the String representation of the object
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            if (!string.IsNullOrEmpty(DisplayName))
+                return DisplayName.Trim();
+            if (ParentFolder == null)
+                return $"[Root] {XstFile}";
+            return string.Empty;
         }
     }
 }

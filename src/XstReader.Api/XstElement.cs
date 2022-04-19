@@ -10,6 +10,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using XstReader.ElementProperties;
 
@@ -21,8 +22,20 @@ namespace XstReader
     public abstract class XstElement
     {
         /// <summary>
+        /// The Type of the element
+        /// </summary>
+        [DisplayName("Type")]
+        [Category(@"General")]
+        [Description(@"The internal type of the XstElement")]
+        public XstElementType ElementType { get; private set; }
+
+
+        /// <summary>
         /// The Container File
         /// </summary>
+        [DisplayName("File")]
+        [Category("General")]
+        [Description("The Container File")]
         public abstract XstFile XstFile { get; }
         private protected LTP Ltp => XstFile.Ltp;
         private protected NDB Ndb => XstFile.Ndb;
@@ -33,6 +46,7 @@ namespace XstReader
         /// <summary>
         /// The Properties of the Element
         /// </summary>
+        [Browsable(false)]
         public XstPropertySet Properties
         {
             get => _Properties ?? (_Properties = new XstPropertySet(LoadProperties, LoadProperty, CheckProperty));
@@ -43,16 +57,21 @@ namespace XstReader
         /// <summary>
         /// The Name of the Element
         /// </summary>
+        [DisplayName("Display Name")]
+        [Category(@"Mapi Common")]
+        [Description(@"Contains the display name of the folder.")]
         public string DisplayName
         {
-            get => _DisplayName ?? Properties[PropertyCanonicalName.PidTagDisplayName]?.Value;
-            protected set => _DisplayName = value;
+            get => _DisplayName ?? (_DisplayName = Properties[PropertyCanonicalName.PidTagDisplayName]?.ValueAsStringSanitized);
+            protected set => _DisplayName = value.SanitizeControlChars();
         }
         /// <summary>
         /// The last modification time of the Element
         /// </summary>
+        [DisplayName("Last Modification Time")]
+        [Category(@"Message Time Properties")]
+        [Description(@"Contains the time, in UTC, of the last modification to the object.")]
         public DateTime? LastModificationTime => Properties[PropertyCanonicalName.PidTagLastModificationTime]?.Value;
-
 
         #region Properties
         private protected abstract IEnumerable<XstProperty> LoadProperties();
@@ -69,9 +88,20 @@ namespace XstReader
         /// </summary>
         /// <returns></returns>
         public IEnumerable<XstProperty> GetProperties()
-            => Properties.ItemsNonBinary;
+            => Properties.Items.NonBinary();
 
         #endregion Properties
+
+        #region Ctor
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="elementType"></param>
+        protected XstElement(XstElementType elementType)
+        {
+            ElementType = elementType;
+        }
+        #endregion Ctor
 
         private protected void ClearProperties()
         {
@@ -91,5 +121,12 @@ namespace XstReader
         {
             ClearProperties();
         }
+
+        /// <summary>
+        /// Gets the String representation of the object
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+            => DisplayName;
     }
 }

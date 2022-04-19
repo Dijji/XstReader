@@ -47,14 +47,14 @@ namespace XstReader
         public XstMessageBody Body => Message.Body;
         public ObservableCollection<XstAttachment> Attachments { get; private set; } = new ObservableCollection<XstAttachment>();
         public IEnumerable<XstRecipient> Recipients => Message.Recipients.Items;
-        public IEnumerable<XstProperty> Properties => Message.Properties.ItemsNonBinary;
-        public bool MayHaveInlineAttachment => Message.MayHaveAttachmentsInline;
+        public IEnumerable<XstProperty> Properties => Message.Properties.Items.NonBinary();
+        public bool MayHaveInlineAttachment => Message.Attachments.Inlines().Any();
         public bool IsEncryptedOrSigned => Message.IsEncryptedOrSigned;
 
         // The following properties are used in XAML bindings to control the UI
-        public bool HasAttachment => Message.HasAttachments;
-        public bool HasFileAttachment => Message.HasAttachmentsFiles;
-        public bool HasVisibleFileAttachment => Message.HasAttachmentsVisibleFiles;
+        public bool HasAttachment => Message.Attachments.Any();
+        public bool HasFileAttachment => Message.Attachments.Files().Any();
+        public bool HasVisibleFileAttachment => Message.Attachments.VisibleFiles().Any();
         public bool HasEmailAttachment => Attachments.Any(a => a.IsEmail);
         public bool ShowText => Message.Body.Format == XstMessageBodyFormat.PlainText;
         public bool ShowHtml => Message.Body.Format == XstMessageBodyFormat.Html;

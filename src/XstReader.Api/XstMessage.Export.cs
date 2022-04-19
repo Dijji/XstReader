@@ -25,10 +25,10 @@ namespace XstReader
             if (body == null)
                 return null;
 
-            if (!MayHaveAttachmentsInline)
+            if (!Attachments.Inlines().Any())
                 return body;
 
-            var dict = Attachments.Where(a => a.HasContentId)
+            var dict = Attachments.Inlines()
                                   .GroupBy(a => a.ContentId)
                                   .Select(g => g.First())
                                   .ToDictionary(a => a.ContentId);
@@ -91,7 +91,7 @@ namespace XstReader
 
         private Encoding GetEncoding()
         {
-            var p = Properties.ItemsNonBinary.FirstOrDefault(x => x.PropertySetGuid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
+            var p = Properties.Items.NonBinary().FirstOrDefault(x => x.PropertySetGuid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
             if (p != null)
             {
 
@@ -103,7 +103,8 @@ namespace XstReader
             p = Properties[PropertyCanonicalName.PidTagInternetCodepage];
             if (p != null)
             {
-                return Encoding.GetEncoding((int)p.Value);
+                try { return Encoding.GetEncoding((int)p.Value); }
+                catch { return null; }
             }
 
             return null;

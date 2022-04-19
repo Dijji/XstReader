@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1185.39" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XstReader.Api\XstReader.Api.csproj" />
+    <ProjectReference Include="..\XstReader.Common\XstReader.App.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="XstFolderTreeControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

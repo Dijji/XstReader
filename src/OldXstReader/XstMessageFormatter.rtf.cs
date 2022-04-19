@@ -66,7 +66,7 @@ namespace XstReader
             if (BccRecipients.Any())
                 AddRtfTableRow(table1, "Bcc:", BccFormatted);
             AddRtfTableRow(table1, "Subject:", Message.Subject);
-            if (Message.HasAttachmentsFiles)
+            if (Message.Attachments.Files().Any())
                 AddRtfTableRow(table1, "Attachments:", AttachmentsVisibleFilesFormatted);
 
             // Cope with the empty document case

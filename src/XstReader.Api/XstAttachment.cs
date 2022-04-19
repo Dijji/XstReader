@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using XstReader.Common.BTrees;
 using XstReader.ElementProperties;
@@ -25,14 +26,23 @@ namespace XstReader
         /// <summary>
         /// The container Message
         /// </summary>
+        [DisplayName("Message")]
+        [Category("General")]
+        [Description("The Container Message")]
         public XstMessage Message { get; internal set; }
         /// <summary>
-        /// Th Container Folder
+        /// The Container Folder
         /// </summary>
+        [DisplayName("Folder")]
+        [Category("General")]
+        [Description("The Container Folder")]
         public XstFolder Folder => Message.ParentFolder;
         /// <summary>
         /// The Container File
         /// </summary>
+        [DisplayName("File")]
+        [Category("General")]
+        [Description("The Container File")]
         public override XstFile XstFile => Message.XstFile;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
@@ -40,21 +50,33 @@ namespace XstReader
         /// <summary>
         /// The FileName of the Attachment
         /// </summary>
-        public string FileName => Properties[PropertyCanonicalName.PidTagAttachFilename]?.Value;
+        [DisplayName("Attach Filename")]
+        [Category(@"Message Attachment Properties")]
+        [Description(@"Contains the 8.3 name of the PidTagAttachLongFilename property (section 2.595).")]
+        public string FileName => Properties[PropertyCanonicalName.PidTagAttachFilename]?.ValueAsStringSanitized;
         /// <summary>
         /// The Description of the Attachment (DisplayName or FileName)
         /// </summary>
+        [DisplayName("Description")]
+        [Category("General")]
+        [Description("The Description of the Attachment (DisplayName or FileName)")]
         public string Description => DisplayName ?? FileName;
 
         private string _LongFileName = null;
         /// <summary>
         /// The LongFileName of the Attachment
         /// </summary>
-        public string LongFileName => _LongFileName ?? Properties[PropertyCanonicalName.PidTagAttachLongFilename]?.Value;
+        [DisplayName("Attach Long Filename")]
+        [Category(@"Message Attachment Properties")]
+        [Description(@"Contains the full filename and extension of the Attachment object.")]
+        public string LongFileName => _LongFileName ?? (_LongFileName = Properties[PropertyCanonicalName.PidTagAttachLongFilename]?.ValueAsStringSanitized);
         private int? _Size = null;
         /// <summary>
         /// The Size (in bytes) of the Attachement file
         /// </summary>
+        [DisplayName("Attach Size")]
+        [Category(@"Message Attachment Properties")]
+        [Description(@"Contains the size, in bytes, consumed by the Attachment object on the server.")]
         public int Size => _Size ?? (int)(Properties[PropertyCanonicalName.PidTagAttachSize]?.Value ?? 0);
 
         private AttachMethod? _AttachMethod = null;
@@ -65,14 +87,23 @@ namespace XstReader
         /// <summary>
         /// The ContentId of the Attachment
         /// </summary>
-        public string ContentId => _ContentId ?? Properties[PropertyCanonicalName.PidTagAttachContentId]?.Value;
+        [DisplayName("Attach Content Id")]
+        [Category(@"Message Attachment Properties")]
+        [Description(@"Contains a content identifier unique to the Message object that matches a corresponding ""cid:"" URI schema reference in the HTML body of the Message object.")]
+        public string ContentId => _ContentId ?? (_ContentId = Properties[PropertyCanonicalName.PidTagAttachContentId]?.ValueAsStringSanitized);
         /// <summary>
         /// Indicates if the Attachment is Hidden
         /// </summary>
+        [DisplayName("Attachment Hidden")]
+        [Category(@"Message Attachment Properties")]
+        [Description(@"Indicates whether an Attachment object is hidden from the end user.")]
         public bool IsHidden => Properties[PropertyCanonicalName.PidTagAttachmentHidden]?.Value ?? false;
         /// <summary>
         /// The FileName used for Savig to disc
         /// </summary>
+        [DisplayName("Filename for saving")]
+        [Category(@"General")]
+        [Description(@"The FileName used for Savig to disc")]
         public string FileNameForSaving => LongFileName ?? FileName;
 
         private dynamic _Content = null;
@@ -80,45 +111,69 @@ namespace XstReader
         /// <summary>
         /// Indicates if the Attachement is a File
         /// </summary>
+        [DisplayName("Is File")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachement is a File")]
         public bool IsFile => AttachMethod == AttachMethod.afByValue;
         /// <summary>
         /// Indicates if the Attachment is an Email
         /// </summary>
+        [DisplayName("Is Email")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachement is an Email")]
         public bool IsEmail => AttachMethod == AttachMethod.afEmbeddedMessage;
         //public bool IsEmail { get { return /*AttachMethod == AttachMethods.afStorage ||*/ AttachMethod == AttachMethod.afEmbeddedMessage; } }
 
         /// <summary>
         /// Indicates if the Attachment was rendered inside the body
         /// </summary>
+        [DisplayName("Was Rendered Inline")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachment was rendered inside the body")]
         public bool WasRenderedInline { get; set; } = false;
         /// <summary>
         /// Indicates if the Attachment was loaded from Mime
         /// </summary>
+        [DisplayName("Was Loaded from Mime")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachment was loaded from Mime")]
         public bool WasLoadedFromMime { get; set; } = false;
 
         /// <summary>
-        /// Indicates the Type of tha Attachment
+        /// Indicates the Type of the Attachment
         /// </summary>
-        public XstAttachmentType Type 
-            => IsFile ? XstAttachmentType.File 
-               : IsEmail ? XstAttachmentType.Email 
+        [DisplayName("Type")]
+        [Category(@"General")]
+        [Description(@"Indicates the Type of the Attachment")]
+        public XstAttachmentType Type
+            => IsFile ? XstAttachmentType.File
+               : IsEmail ? XstAttachmentType.Email
                : XstAttachmentType.Other;
 
         /// <summary>
         /// Indicates if the Attachment should be Hidden (Is Hidden or rendered in the body) 
         /// </summary>
+        [DisplayName("Hide")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachment should be Hidden (Is Hidden or rendered in the body)")]
         public bool Hide => IsHidden || IsInlineAttachment;
         //public FontWeight Weight { get { return Hide ? FontWeights.ExtraLight: FontWeights.SemiBold; } }
 
         /// <summary>
         /// Indicates if the Attachment has ContentId
         /// </summary>
+        [DisplayName("Has Content Id")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachment has ContentId")]
         public bool HasContentId => ContentId != null && ContentId.Length > 0;
 
         // To do: case where ContentLocation property is used instead of ContentId
         /// <summary>
         /// Indicates if the Attachment is an Inline Attachement
         /// </summary>
+        [DisplayName("Is Inline Attachment")]
+        [Category(@"General")]
+        [Description(@"Indicates if the Attachment is an Inline Attachement")]
         public bool IsInlineAttachment
         {
             get
@@ -133,6 +188,9 @@ namespace XstReader
         /// <summary>
         /// If the Attachment is an email, contains the Message
         /// </summary>
+        [DisplayName("Attached Email Message")]
+        [Category(@"General")]
+        [Description(@"If the Attachment is an email, contains the Message")]
         public XstMessage AttachedEmailMessage => GetAttachedEmailMessage();
         private XstMessage GetAttachedEmailMessage()
         {
@@ -217,7 +275,7 @@ namespace XstReader
         /// <summary>
         /// Ctor
         /// </summary>
-        public XstAttachment()
+        public XstAttachment() : base(XstElementType.Attachment)
         {
 
         }
@@ -227,7 +285,7 @@ namespace XstReader
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="content"></param>
-        public XstAttachment(string fileName, byte[] content)
+        public XstAttachment(string fileName, byte[] content) : this()
         {
             _LongFileName = fileName;
             _AttachMethod = AttachMethod.afByValue;
@@ -357,6 +415,13 @@ namespace XstReader
             ClearAttachedEmailMessage();
             ClearAttachmentContent();
         }
+
+        /// <summary>
+        /// Gets the String representation of the object
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+            => LongFileName ?? FileName ?? base.ToString();
     }
 
 }

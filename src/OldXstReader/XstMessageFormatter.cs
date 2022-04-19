@@ -67,7 +67,7 @@ namespace XstReader
         public string ReceivedFormatted => XstFormatter.Format(Message.ReceivedTime);
         public string SubmittedFormatted => XstFormatter.Format(Message.SubmittedTime);
 
-        public string AttachmentsVisibleFilesFormatted => XstFormatter.Format(Message.AttachmentsVisibleFiles);
+        public string AttachmentsVisibleFilesFormatted => XstFormatter.Format(Message.Attachments.VisibleFiles());
 
         private string HtmlHeader
             => "<p class=\"MsoNormal\">" +
@@ -81,7 +81,7 @@ namespace XstReader
                     (ReceivedByRecipient != null ? $"<b>Received by:</b> {ReceivedByFormatted.AppendNewLine().TextToHtml()}" : "") +
                     (Message.IsReceivedRepresentingOther ? $"<b>Received representing:</b> {ReceivedRepresentingFormatted.AppendNewLine().TextToHtml()}" : "") +
                     $"<b>Subject:</b> {Message.Subject.AppendNewLine().TextToHtml()}" +
-                    (Message.HasAttachmentsVisibleFiles ? $"<b>Attachments:</b> {AttachmentsVisibleFilesFormatted.AppendNewLine().TextToHtml()}" : "") +
+                    (Message.Attachments.VisibleFiles().Any() ? $"<b>Attachments:</b> {AttachmentsVisibleFilesFormatted.AppendNewLine().TextToHtml()}" : "") +
                 "</p><p/><p/>";
         private string TxtHeader
             => $"From: {SenderFormatted.AppendNewLine()}" +
@@ -94,7 +94,7 @@ namespace XstReader
                 (ReceivedByRecipient != null ? $"Received by: {ReceivedByFormatted.AppendNewLine()}" : "") +
                 (Message.IsReceivedRepresentingOther ? $"Received representing: {ReceivedRepresentingFormatted.AppendNewLine()}" : "") +
                 $"Subject: {Message.Subject.AppendNewLine()}" +
-                (Message.HasAttachmentsVisibleFiles ? $"Attachments: {AttachmentsVisibleFilesFormatted.AppendNewLine()}" : "")
+                (Message.Attachments.VisibleFiles().Any() ? $"Attachments: {AttachmentsVisibleFilesFormatted.AppendNewLine()}" : "")
                 .AppendNewLine().AppendNewLine().AppendNewLine();
 
         public string EmbedHtmlHeader(string body)
@@ -175,7 +175,7 @@ namespace XstReader
 
         private void SaveVisibleAttachmentsToAssociatedFolder(XstMessage message, string fullFileName)
         {
-            if (message.HasAttachmentsVisibleFiles)
+            if (message.Attachments.VisibleFiles().Any())
             {
                 var targetFolder = Path.Combine(Path.GetDirectoryName(fullFileName),
                     Path.GetFileNameWithoutExtension(fullFileName) + " Attachments");
@@ -185,7 +185,7 @@ namespace XstReader
                     if (message.Date != null)
                         Directory.SetCreationTime(targetFolder, (DateTime)message.Date);
                 }
-                message.Attachments.Where(a => a.IsFile && !a.Hide).SaveToFolder(targetFolder, message.Date);
+                message.Attachments.VisibleFiles().SaveToFolder(targetFolder, message.Date);
             }
         }
     }

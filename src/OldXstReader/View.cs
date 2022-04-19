@@ -137,7 +137,7 @@ namespace XstReader
         {
             if (recipient != null)
             {
-                CurrentProperties.PopulateWith(recipient.Properties.ItemsNonBinary);
+                CurrentProperties.PopulateWith(recipient.Properties.Items.NonBinary());
                 OnPropertyChanged(nameof(CurrentProperties));
             }
         }
@@ -146,7 +146,7 @@ namespace XstReader
         {
             if(folder != null)
             {
-                CurrentProperties.PopulateWith(folder.Properties.ItemsNonBinary);
+                CurrentProperties.PopulateWith(folder.Properties.Items.NonBinary());
                 OnPropertyChanged(nameof(CurrentProperties));
             }
         }
@@ -160,7 +160,7 @@ namespace XstReader
             var firstAttachment = selection.FirstOrDefault(a => (a.IsFile || a.IsEmail));
             if (firstAttachment != null)
             {
-                CurrentProperties.PopulateWith(firstAttachment.Properties.ItemsNonBinary);
+                CurrentProperties.PopulateWith(firstAttachment.Properties.Items.NonBinary());
                 OnPropertyChanged(nameof(CurrentProperties));
             }
         }

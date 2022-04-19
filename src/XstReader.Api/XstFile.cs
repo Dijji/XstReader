@@ -107,5 +107,14 @@ namespace XstReader
         {
             ClearContents();
         }
+
+        /// <summary>
+        /// Gets the String representation of the object
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Path.GetFileName(FileName??"");
+        }
     }
 }

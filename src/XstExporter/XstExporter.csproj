@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <Version>2.0.1</Version>
     <AssemblyVersion>2.0.1</AssemblyVersion>
     <FileVersion>2.0.1</FileVersion>
@@ -10,9 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\XstReader\XstFormatter.cs" Link="XstFormatter.cs" />
-    <Compile Include="..\XstReader\XstMessageFormatter.cs" Link="XstMessageFormatter.cs" />
-    <Compile Include="..\XstReader\XstMessageFormatter.rtf.cs" Link="XstMessageFormatter.rtf.cs" />
+    <Compile Include="..\OldXstReader\XstFormatter.cs" Link="XstFormatter.cs" />
+    <Compile Include="..\OldXstReader\XstMessageFormatter.cs" Link="XstMessageFormatter.cs" />
+    <Compile Include="..\OldXstReader\XstMessageFormatter.rtf.cs" Link="XstMessageFormatter.rtf.cs" />
   </ItemGroup>
 
   <ItemGroup>

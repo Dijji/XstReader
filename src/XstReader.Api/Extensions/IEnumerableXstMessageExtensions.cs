@@ -24,6 +24,14 @@ namespace XstReader
         /// <param name="messages"></param>
         /// <param name="fileName"></param>
         public static void SavePropertiesToFile(this IEnumerable<XstMessage> messages, string fileName)
-            => messages.Select(m => m.Properties.ItemsNonBinary).SaveToFile(fileName);
+            => messages.Select(m => m.Properties.Items.NonBinary()).SaveToFile(fileName);
+
+        /// <summary>
+        /// The unread messages
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <returns></returns>
+        public static IEnumerable<XstMessage>Unread(this IEnumerable<XstMessage> messages)
+            =>messages.Where(m => !m.IsRead);
     }
 }

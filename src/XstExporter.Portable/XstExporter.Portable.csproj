@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyVersion>2.0.1</AssemblyVersion>
     <FileVersion>2.0.1</FileVersion>
     <Version>2.0.1</Version>
@@ -13,9 +13,9 @@
     <Compile Include="..\XstExporter\Options.cs" Link="Options.cs" />
     <Compile Include="..\XstExporter\Program.cs" Link="Program.cs" />
     <Compile Include="..\XstExporter\XstExportException.cs" Link="XstExportException.cs" />
-    <Compile Include="..\XstReader\XstFormatter.cs" Link="XstFormatter.cs" />
-    <Compile Include="..\XstReader\XstMessageFormatter.cs" Link="XstMessageFormatter.cs" />
-    <Compile Include="..\XstReader\XstMessageFormatter.rtf.cs" Link="XstMessageFormatter.rtf.cs" />
+    <Compile Include="..\OldXstReader\XstFormatter.cs" Link="XstFormatter.cs" />
+    <Compile Include="..\OldXstReader\XstMessageFormatter.cs" Link="XstMessageFormatter.cs" />
+    <Compile Include="..\OldXstReader\XstMessageFormatter.rtf.cs" Link="XstMessageFormatter.rtf.cs" />
   </ItemGroup>
 
   <ItemGroup>

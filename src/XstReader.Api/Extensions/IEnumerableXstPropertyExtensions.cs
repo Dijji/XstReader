@@ -50,9 +50,9 @@ namespace XstReader
             var dict = new Dictionary<string, Queue<LineProp>>();
             int lines = 1;
 
-            foreach(var line in lineProperties)
+            foreach (var line in lineProperties)
             {
-                foreach(var p in line)
+                foreach (var p in line)
                 {
                     if (!dict.TryGetValue(p.Tag.Id0x(), out Queue<LineProp> queue))
                     {
@@ -62,7 +62,7 @@ namespace XstReader
                     queue.Enqueue(new LineProp { line = lines, p = p });
                 }
                 lines++;
-            }    
+            }
 
             // Now we sort the columns by ID
             var columns = dict.Keys.OrderBy(x => x).ToArray();
@@ -127,5 +127,12 @@ namespace XstReader
             else
                 return value.Substring(0, valueLengthLimit) + "…";
         }
+
+        /// <summary>
+        /// The Properties that are not Binary values (as attachment binary content)
+        /// </summary>
+        public static IEnumerable<XstProperty> NonBinary(this IEnumerable<XstProperty> properties)
+            => properties.Where(p => p.PropertyType != EpropertyType.PtypBinary &&
+                                     p.PropertyType != EpropertyType.PtypMultipleBinary);
     }
 }

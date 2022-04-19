@@ -68,7 +68,7 @@ namespace XstReader
             Mouse.OverrideCursor = Cursors.Wait;
 
             // Load on a background thread so we can keep the UI in sync
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew((Action)(() =>
             {
                 try
                 {
@@ -82,7 +82,7 @@ namespace XstReader
                 {
                     MessageBox.Show(ex.ToString(), "Error reading xst file");
                 }
-            })
+            }))
             // When loading completes, update the UI using the UI thread 
             .ContinueWith((task) =>
             {
@@ -428,7 +428,7 @@ namespace XstReader
                 string fileName = GetPropertiesExportFileName(view.CurrentMessage.ExportFileName);
 
                 if (fileName != null)
-                    view.CurrentMessage.Message.Properties.ItemsNonBinary.SaveToFile(fileName);
+                    view.CurrentMessage.Message.Properties.Items.NonBinary().SaveToFile(fileName);
             }
         }
 

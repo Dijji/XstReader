@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XstReader.Api\XstReader.Api.csproj" />
+    <ProjectReference Include="..\XstReader.Common\XstReader.App.Common.csproj" />
+    <ProjectReference Include="..\XstReader.Controls\XstReader.App.Controls.csproj" />
+  </ItemGroup>
+
+</Project>

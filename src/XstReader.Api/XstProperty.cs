@@ -45,6 +45,8 @@ namespace XstReader
             set => _Value = value;
         }
 
+        internal string ValueAsStringSanitized => (Value as string).SanitizeControlChars();
+
         /// <summary>
         /// Ctor
         /// </summary>
@@ -143,6 +145,11 @@ namespace XstReader
         /// The Description of the Property, when we know it
         /// </summary>
         public string Description => Tag.Description();
+
+        /// <summary>
+        /// The Description of the Property, when we know it, in HTML format
+        /// </summary>
+        public string HtmlDescription => Tag.HtmlDescription();
 
         /// <summary>
         /// The String representation of the Value's Property
