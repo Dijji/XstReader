@@ -19,6 +19,7 @@ namespace XstReader.App.Controls
 
             MainTreeView.AfterSelect += (s, e) => RaiseSelectedItemChanged();
             MainTreeView.GotFocus += (s, e) => OnGotFocus(e);
+            SetDataSource(null);
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
@@ -71,5 +72,12 @@ namespace XstReader.App.Controls
             node.Expand();
             return node;
         }
+
+        public void ClearContents()
+        {
+            GetSelectedItem()?.ClearContents();
+            SetDataSource(null);
+        }
+
     }
 }

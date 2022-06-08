@@ -37,7 +37,7 @@ namespace XstReader
         [DisplayName("Content Count")]
         [Category(@"Folder Properties")]
         [Description(@"Specifies the number of rows under the header row.")]
-        public uint ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (uint)0;
+        public int ContentCount => Properties[PropertyCanonicalName.PidTagContentCount]?.Value ?? (int)0;
 
         /// <summary>
         /// Number of unread messages inside the Folder
@@ -45,7 +45,7 @@ namespace XstReader
         [DisplayName("Content Unread Count")]
         [Category(@"Folder Properties")]
         [Description(@"Specifies the number of rows under the header row that have the PidTagRead property (section 2.878) set to FALSE.")]
-        public uint ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (uint)0;
+        public int ContentUnreadCount => Properties[PropertyCanonicalName.PidTagContentUnreadCount]?.Value ?? (int)0;
 
         /// <summary>
         /// The Parent Folder of this Folder

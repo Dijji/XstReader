@@ -84,5 +84,55 @@ namespace XstReader.ElementProperties
         [Description("Pstid Sharing")]
         PSTID_Sharing,
 
+
+        // ---------------
+        // Added manually:
+        // 
+
+        /// <summary> MAPI (00020328-0000-0000-C000-000000000046) </summary>
+        [Guid("00020328-0000-0000-C000-000000000046")]
+        [Description("MAPI")]
+        MAPI,
+
+        /// <summary> InternetHeaders (00020386-0000-0000-C000-000000000046) </summary>
+        [Guid("00020386-0000-0000-C000-000000000046")]
+        [Description("Internet headers")]
+        InternetHeaders,
+
+        /// <summary> Unknown1 (0006200B-0000-0000-C000-000000000046) </summary>
+        [Guid("0006200B-0000-0000-C000-000000000046")]
+        [Description("Unknown - 1")]
+        Unknown1,
+
+        /// <summary> Unknown2 (00062014-0000-0000-C000-000000000046) </summary>
+        [Guid("00062014-0000-0000-C000-000000000046")]
+        [Description("Unknown - 2")]
+        Unknown2,
+
+        /// <summary> PostRSS (00062041-0000-0000-C000-000000000046) </summary>
+        [Guid("00062041-0000-0000-C000-000000000046")]
+        [Description("Post RSS")]
+        PostRSS,
+
+        /// <summary> Unknown3 (29F3AB56-554D-11D0-A97C-00A0C911F50A) </summary>
+        [Guid("29F3AB56-554D-11D0-A97C-00A0C911F50A")]
+        [Description("Unknown - 3")]
+        Unknown3,
+
+        /// <summary> UnifiedMessaging (4442858E-A9E3-4E80-B900-317A210CC15B) </summary>
+        [Guid("4442858E-A9E3-4E80-B900-317A210CC15B")]
+        [Description("Unified Messaging")]
+        UnifiedMessaging,
+
+        /// <summary> AirSync (71035549-0739-4DCB-9163-00F0580DBBDF) </summary>
+        [Guid("71035549-0739-4DCB-9163-00F0580DBBDF")]
+        [Description("Air Sync")]
+        AirSync,
+
+        /// <summary> Attachment (96357F7F-59E1-47D0-99A7-46515C183B54) </summary>
+        [Guid("96357F7F-59E1-47D0-99A7-46515C183B54")]
+        [Description("Attachment")]
+        Attachment,
+
     }
 }

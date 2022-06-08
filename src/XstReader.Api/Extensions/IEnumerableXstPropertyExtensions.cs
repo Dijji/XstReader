@@ -132,7 +132,7 @@ namespace XstReader
         /// The Properties that are not Binary values (as attachment binary content)
         /// </summary>
         public static IEnumerable<XstProperty> NonBinary(this IEnumerable<XstProperty> properties)
-            => properties.Where(p => p.PropertyType != EpropertyType.PtypBinary &&
-                                     p.PropertyType != EpropertyType.PtypMultipleBinary);
+            => properties.Where(p => p.PropertyType != PropertyType.PT_BINARY &&
+                                     p.PropertyType != PropertyType.PT_MV_BINARY);
     }
 }

@@ -279,7 +279,7 @@ namespace XstReader
     internal struct PCBTH
     {
         public PropertyCanonicalName wPropId;
-        public EpropertyType wPropType;
+        public PropertyType wPropType;
         public HNID dwValueHnid;
     }
 
@@ -321,7 +321,7 @@ namespace XstReader
     {
         public UInt32 tag;
         public PropertyCanonicalName wPropId { get { return (PropertyCanonicalName)(tag >> 16); } }
-        public EpropertyType wPropType { get { return (EpropertyType)(tag & 0x0000ffff); } }
+        public PropertyType wPropType { get { return (PropertyType)(tag & 0x0000ffff); } }
         public UInt16 ibData;
         public Byte cbData;
         public Byte iBit;

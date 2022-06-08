@@ -3,8 +3,12 @@
 namespace XstReader.App.Controls
 {
     public partial class XstMessageViewControl : UserControl,
-                                                 IXstDataSourcedControl<XstMessage>
+                                                 IXstDataSourcedControl<XstMessage>,
+                                                 IXstElementSelectable<XstElement>
     {
+
+        private XstMessageContentViewControl MessageContentControl { get; } = new XstMessageContentViewControl();
+
         public XstMessageViewControl()
         {
             InitializeComponent();
@@ -14,8 +18,12 @@ namespace XstReader.App.Controls
         {
             if (DesignMode) return;
 
-            WebView2.EnsureCoreWebView2Async();
+            MessageContentControl.DoubleClickItem += (s, e) => AddTab(e?.Element);
+            MessageContentControl.SelectedItemChanged += (s, e) => RaiseSelectedItemChanged(e.Element);
         }
+
+        public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
+        private void RaiseSelectedItemChanged(XstElement? element) => SelectedItemChanged?.Invoke(this, new XstElementEventArgs(element));
 
         private XstMessage? _DataSource;
         public XstMessage? GetDataSource()
@@ -23,39 +31,82 @@ namespace XstReader.App.Controls
 
         public void SetDataSource(XstMessage? dataSource)
         {
-            CleanTempFile();
+            if (dataSource != null && _DataSource != null && dataSource.GetHashCode() == _DataSource.GetHashCode())
+                return;
+
             _DataSource = dataSource;
-            try
+
+            if (dataSource != null)
             {
-                FormatLabel.Text = _DataSource?.Body?.Format.ToString();
-                MessageLabel.Text = _DataSource?.Subject;
-                var text = _DataSource?.Body?.Text ?? "";
-                if (text.Length < 1500000)
-                    WebView2.NavigateToString(text);
-                else
-                    WebView2.Source = new Uri(SetTempFileContent(text));
+                if (MainKryptonNavigator.Pages.Count == 0)
+                {
+                    var page = new Krypton.Navigator.KryptonPage();
+                    MainKryptonNavigator.Pages.Add(page);
+                    page.Controls.Add(MessageContentControl);
+                    MessageContentControl.Dock = DockStyle.Fill;
+                }
+                MainKryptonNavigator.Pages[0].Text = $"Message: {dataSource.Subject}";
+                MainKryptonNavigator.SelectedIndex = 0;
+                while (MainKryptonNavigator.Pages.Count > 1)
+                    MainKryptonNavigator.Pages.RemoveAt(1);
             }
-            catch (Exception ex)
-            {
-                WebView2?.NavigateToString(ex.Message);
-                MessageBox.Show(ex.Message, "Error showing message");
-            }
+            MessageContentControl.SetDataSource(dataSource);
         }
 
-        private string? _TempFileName = null;
-        private void CleanTempFile()
+        public XstElement? GetSelectedItem()
         {
-            if (_TempFileName != null && File.Exists(_TempFileName))
-                try { File.Delete(_TempFileName); }
-                catch { }
-            _TempFileName = null;
+            return _DataSource;
         }
-        private string SetTempFileContent(string text)
-        {
-            _TempFileName = Path.GetTempFileName() + ".html";
-            File.WriteAllText(_TempFileName, text);
 
-            return _TempFileName;
+        public void SetSelectedItem(XstElement? item)
+        { }
+
+        public void ClearContents()
+        {
+            MainKryptonNavigator.Pages.Clear();
+            MessageContentControl.ClearContents();
+
+            GetDataSource()?.ClearContents();
+            SetDataSource(null);
+        }
+
+        private void AddTab(XstElement? element)
+        {
+            if (element == null)
+                return;
+
+            var page = MainKryptonNavigator.Pages.FirstOrDefault(p => p.Tag != null && ((int)p.Tag) == element.GetHashCode());
+            if (page == null)
+            {
+                page = new Krypton.Navigator.KryptonPage
+                {
+                    Text = $"{element.ElementType}: {element.DisplayName}",
+                    Tag = element.GetHashCode(),
+                };
+                MainKryptonNavigator.Pages.Add(page);
+
+                if (element is XstAttachment attachment)
+                {
+                    if (attachment.IsEmail)
+                    {
+                        var viewer = new XstMessageContentViewControl();
+                        page.Controls.Add(viewer);
+                        viewer.Dock = DockStyle.Fill;
+                        viewer.SetDataSource(attachment.AttachedEmailMessage);
+                        viewer.SelectedItemChanged += (s, e) => RaiseSelectedItemChanged(e.Element);
+                        viewer.DoubleClickItem += (s, e) => AddTab(e.Element);
+                    }
+                    else
+                    {
+                        var viewer = new XstAttachmentViewControl();
+                        page.Controls.Add(viewer);
+                        viewer.Dock = DockStyle.Fill;
+                        viewer.SetDataSource(attachment);
+                        viewer.SelectedItemChanged += (s, e) => RaiseSelectedItemChanged(e.Element);
+                    }
+                }
+            }
+            MainKryptonNavigator.SelectedPage = page;
         }
     }
 }

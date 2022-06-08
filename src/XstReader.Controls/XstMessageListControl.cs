@@ -40,23 +40,8 @@ namespace XstReader.App.Controls
             };
             DataGridView.Sorted += (s, e) => RaiseSelectedItemChanged();
             DataGridView.GotFocus += (s, e) => OnGotFocus(e);
-
-            //foreach (var ctrl in DataGridView.Controls)
-            //    if (ctrl is HScrollBar scrollBar)
-            //        scrollBar.VisibleChanged += (s, e) => MessageBox.Show(scrollBar.Maximum.ToString());
-            /*
-             For Each ctrl As Control In DataGridView1.Controls
-            If TypeOf (ctrl) Is VScrollBar Then
-                AddHandler ctrl.VisibleChanged, AddressOf VScrollBar1_VisibleChanged
-            End If
-        Next
-        Dim bl As New BindingList(Of BindTo)
-        For x As Integer = 0 To 3
-            Dim bt As New BindTo
-            bt.NewProperty = x.ToString
-            bl.Add(bt)
-        Next
-            */
+            DataGridView.StretchLastColumn();
+            SetDataSource(null);
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
@@ -95,9 +80,12 @@ namespace XstReader.App.Controls
         }
         public void SetSelectedItem(XstMessage? item)
         { }
-        //=> MainTreeView.SelectedNode = (item != null && _DicMapFoldersNodes.ContainsKey(item.GetId())) ?
-        //                                   _DicMapFoldersNodes[item.GetId()]
-        //                                   : null;
+
+        public void ClearContents()
+        {
+            GetSelectedItem()?.ClearContents();
+            SetDataSource(null);
+        }
 
     }
 }

@@ -40,7 +40,8 @@ Original project: https://github.com/dijji/XstReader</Description>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="6.0.0" />
+    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>

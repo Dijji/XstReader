@@ -91,7 +91,7 @@ namespace XstReader
 
         private Encoding GetEncoding()
         {
-            var p = Properties.Items.NonBinary().FirstOrDefault(x => x.PropertySetGuid == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
+            var p = Properties.Items.NonBinary().FirstOrDefault(x => x.PropertySet?.Guid()?.ToString() == "00020386-0000-0000-c000-000000000046" && x.Name == "content-type");
             if (p != null)
             {
 

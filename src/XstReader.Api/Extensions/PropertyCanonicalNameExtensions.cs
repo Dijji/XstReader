@@ -46,7 +46,7 @@ namespace XstReader
         {
             string canonicalName = propertyCanonicalName.ToString();
             if (Char.IsNumber(canonicalName[0]))
-                return "";
+                return null;
             return canonicalName;
         }
 

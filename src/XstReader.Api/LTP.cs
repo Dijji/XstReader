@@ -288,15 +288,15 @@ namespace XstReader
 
             switch (prop.wPropType)
             {
-                case EpropertyType.PtypInteger16:
+                case PropertyType.PT_SHORT:
                     val = (Int16)prop.dwValueHnid.dwValue;
                     break;
 
-                case EpropertyType.PtypInteger32:
-                    val = prop.dwValueHnid.dwValue;
+                case PropertyType.PT_LONG:
+                    val = (Int32)prop.dwValueHnid.dwValue;
                     break;
 
-                case EpropertyType.PtypInteger64:
+                case PropertyType.PT_LONGLONG:
                     buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
@@ -305,7 +305,7 @@ namespace XstReader
                         val = Map.MapType<Int64>(buf);
                     break;
 
-                case EpropertyType.PtypFloating64:
+                case PropertyType.PT_DOUBLE:
                     buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
@@ -314,7 +314,7 @@ namespace XstReader
                         val = Map.MapType<Double>(buf);
                     break;
 
-                case EpropertyType.PtypMultipleInteger32:
+                case PropertyType.PT_MV_LONG:
                     buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
@@ -323,11 +323,11 @@ namespace XstReader
                         val = Map.MapArray<Int32>(buf, 0, buf.Length / sizeof(Int32));
                     break;
 
-                case EpropertyType.PtypBoolean:
+                case PropertyType.PT_BOOLEAN:
                     val = (prop.dwValueHnid.dwValue == 0x01);
                     break;
 
-                case EpropertyType.PtypBinary:
+                case PropertyType.PT_BINARY:
                     if (prop.dwValueHnid.HasValue && prop.dwValueHnid.hidType != EnidType.HID && prop.wPropId == PropertyCanonicalName.PidTagAttachDataBinary)
                     {
                         // Special case for out of line attachment contents: don't dereference to binary yet
@@ -344,7 +344,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypString: // Unicode string
+                case PropertyType.PT_UNICODE: // Unicode string
                     if (!prop.dwValueHnid.HasValue)
                         val = "";
                     else
@@ -360,7 +360,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypString8:  // Multipoint string in variable encoding
+                case PropertyType.PT_STRING8:  // Multipoint string in variable encoding
                     if (!prop.dwValueHnid.HasValue)
                         val = "";
                     else
@@ -374,7 +374,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypMultipleString: // Unicode strings
+                case PropertyType.PT_MV_TSTRING: // Unicode strings
                     if (!prop.dwValueHnid.HasValue)
                         val = "";
                     else
@@ -405,7 +405,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypMultipleBinary:
+                case PropertyType.PT_MV_BINARY:
                     if (!prop.dwValueHnid.HasValue)
                         val = null;
                     else
@@ -438,7 +438,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypTime:
+                case PropertyType.PT_SYSTIME:
                     // In a Property Context, time values are references to data
                     buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
@@ -449,7 +449,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypGuid:
+                case PropertyType.PT_CLSID:
                     buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
@@ -458,7 +458,7 @@ namespace XstReader
                         val = new Guid(buf);
                     break;
 
-                case EpropertyType.PtypObject:
+                case PropertyType.PT_OBJECT:
                     buf = GetBytesForHNID(blocks, subNodeTree, prop.dwValueHnid);
 
                     if (buf == null)
@@ -593,17 +593,17 @@ namespace XstReader
 
             switch (col.wPropType)
             {
-                case EpropertyType.PtypInteger32:
+                case PropertyType.PT_LONG:
                     if (col.cbData != 4)
                         throw new XstException("Unexpected property length");
                     val = Map.MapType<Int32>(db.Buffer, (int)rowOffset + col.ibData);
                     break;
 
-                case EpropertyType.PtypBoolean:
+                case PropertyType.PT_BOOLEAN:
                     val = (db.Buffer[rowOffset + col.ibData] == 0x01);
                     break;
 
-                case EpropertyType.PtypBinary:
+                case PropertyType.PT_BINARY:
                     if (col.cbData != 4)
                         throw new XstException("Unexpected property length");
                     hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
@@ -621,7 +621,7 @@ namespace XstReader
                     }
                     break;
 
-                case EpropertyType.PtypString:  // Unicode string
+                case PropertyType.PT_UNICODE:  // Unicode string
                     if (col.cbData != 4)
                         throw new XstException("Unexpected property length");
                     hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
@@ -647,7 +647,7 @@ namespace XstReader
                         val = "<No subject>";
                     break;
 
-                case EpropertyType.PtypString8: // Multibyte string in variable encoding
+                case PropertyType.PT_STRING8: // Multibyte string in variable encoding
                     if (col.cbData != 4)
                         throw new XstException("Unexpected property length");
                     hnid = Map.MapType<HNID>(db.Buffer, (int)rowOffset + col.ibData);
@@ -674,7 +674,7 @@ namespace XstReader
                         val = "<No subject>";
                     break;
 
-                case EpropertyType.PtypTime:
+                case PropertyType.PT_SYSTIME:
                     // In a Table Context, time values are held in line
                     if (col.cbData != 8)
                         throw new XstException("Unexpected property length");

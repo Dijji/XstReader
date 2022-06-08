@@ -1,4 +1,4 @@
-namespace XstReader
+namespace XstReader.App
 {
     internal static class Program
     {

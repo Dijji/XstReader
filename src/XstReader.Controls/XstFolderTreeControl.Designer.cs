@@ -34,18 +34,22 @@
             // MainTreeView
             // 
             this.MainTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MainTreeView.HideSelection = false;
             this.MainTreeView.Location = new System.Drawing.Point(0, 0);
+            this.MainTreeView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.MainTreeView.Name = "MainTreeView";
-            this.MainTreeView.Size = new System.Drawing.Size(397, 686);
+            this.MainTreeView.Size = new System.Drawing.Size(200, 350);
             this.MainTreeView.TabIndex = 0;
             // 
             // XstFolderTreeControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.MainTreeView);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.MinimumSize = new System.Drawing.Size(200, 350);
             this.Name = "XstFolderTreeControl";
-            this.Size = new System.Drawing.Size(397, 686);
+            this.Size = new System.Drawing.Size(200, 350);
             this.ResumeLayout(false);
 
         }

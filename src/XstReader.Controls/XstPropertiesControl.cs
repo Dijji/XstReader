@@ -44,8 +44,14 @@ namespace XstReader.App.Controls
             ElementTypeLabel.Text = _DataSource?.GetType().Name?.Replace("Xst","");
             ElementNameLabel.Text = _DataSource?.ToString();
 
-            PropertyGridInfo.SelectedObject = _DataSource;
             PropertyGridProperties.SelectedObject = _DataSource?.Properties.ToPropertyGridSelectedObject();
         }
+
+        public void ClearContents()
+        {
+            GetDataSource()?.ClearContents();
+            SetDataSource(null);
+        }
+
     }
 }

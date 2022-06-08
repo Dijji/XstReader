@@ -59,5 +59,11 @@ namespace XstReader.App.Controls
 
         public Func<XstMessage, bool>? GetSelectedFilter()
             => CurrentFilter;
+
+        public void ClearContents()
+        {
+            SetDataSource(null);
+        }
+
     }
 }

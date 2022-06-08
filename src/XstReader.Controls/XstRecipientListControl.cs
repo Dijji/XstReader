@@ -5,7 +5,7 @@ namespace XstReader.App.Controls
 {
     public partial class XstRecipientListControl : UserControl,
                                                    IXstDataSourcedControl<IEnumerable<XstRecipient>>,
-                                                   IXstElementSelectable<XstRecipient>
+                                                   IXstElementDoubleClickable<XstRecipient>
     {
         public XstRecipientListControl()
         {
@@ -26,12 +26,18 @@ namespace XstReader.App.Controls
                     RaiseSelectedItemChanged();
                 }
             };
+            DataGridView.CellMouseDoubleClick += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
             DataGridView.Sorted += (s, e) => RaiseSelectedItemChanged();
             DataGridView.GotFocus += (s, e) => OnGotFocus(e);
+            DataGridView.StretchLastColumn();
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
         private void RaiseSelectedItemChanged() => SelectedItemChanged?.Invoke(this, new XstElementEventArgs(GetSelectedItem()));
+
+        public event EventHandler<XstElementEventArgs>? DoubleClickItem;
+        private void RaiseDoubleClickItem(XstRecipient? element) => DoubleClickItem?.Invoke(this, new XstElementEventArgs(element));
+
 
         private IEnumerable<XstRecipient>? _DataSource;
         public IEnumerable<XstRecipient>? GetDataSource()
@@ -41,7 +47,6 @@ namespace XstReader.App.Controls
         {
             _DataSource = dataSource;
             DataGridView.DataSource = dataSource?.ToList();
-            DataGridView.StretchLastColumn();
             RaiseSelectedItemChanged();
         }
         public XstRecipient? GetSelectedItem()
@@ -52,9 +57,10 @@ namespace XstReader.App.Controls
         }
         public void SetSelectedItem(XstRecipient? item)
         { }
-        //=> MainTreeView.SelectedNode = (item != null && _DicMapFoldersNodes.ContainsKey(item.GetId())) ?
-        //                                   _DicMapFoldersNodes[item.GetId()]
-        //                                   : null;
-
+        public void ClearContents()
+        {
+            GetSelectedItem()?.ClearContents();
+            SetDataSource(null);
+        }
     }
 }

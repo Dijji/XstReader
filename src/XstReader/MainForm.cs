@@ -1,7 +1,21 @@
-namespace XstReader
+﻿using Krypton.Docking;
+using Krypton.Navigator;
+using Krypton.Toolkit;
+using System.Data;
+using XstReader.App.Controls;
+using XstReader.App.Controls.Helpers;
+
+namespace XstReader.App
 {
-    public partial class MainForm : Form
+    public partial class MainForm : KryptonForm
     {
+        private XstFolderTreeControl FolderTreeControl { get; } = new XstFolderTreeControl() { Name = "Folders tree" };
+        private XstMessageListControl MessageListControl { get; } = new XstMessageListControl() { Name = "Message List" };
+        private XstMessageViewControl MessageViewControl { get; } = new XstMessageViewControl() { Name = "Message View" };
+        private XstPropertiesControl PropertiesControl { get; } = new XstPropertiesControl() { Name = "Properties" };
+        private XstPropertiesInfoControl InfoControl { get; } = new XstPropertiesInfoControl() { Name = "Information" };
+
+
         private XstFile? _XstFile = null;
         private XstFile? XstFile
         {
@@ -11,8 +25,8 @@ namespace XstReader
         private void SetXstFile(XstFile? value)
         {
             _XstFile = value;
-            FolderTree.SetDataSource(value);
-            closeFileToolStripMenuItem.Enabled = value != null;
+            FolderTreeControl.SetDataSource(value);
+            CloseFileToolStripMenuItem.Enabled = value != null;
         }
 
         private XstElement? _CurrentXstElement = null;
@@ -23,8 +37,24 @@ namespace XstReader
         }
         private void SetCurrentXstElement(XstElement? value)
         {
-            _CurrentXstElement = value;
+            if (_CurrentXstElement == value)
+                return;
+
+            _CurrentXstElement?.ClearContents();
+            if (value is XstFolder folder)
+            {
+                MessageListControl.SetDataSource(folder?.Messages?.OrderByDescending(m => m.Date));//, MessageFilter.GetSelectedFilter());
+            }
+            else if (value is XstMessage message)
+            {
+                MessageViewControl.SetDataSource(message);
+            }
+
+            MessageToolStripMenuItem.Enabled = value != null && value is XstMessage;
+            ExportAsmsgToolStripMenuItem.Enabled = value != null && value is XstMessage;
+            InfoControl.SetDataSource(value);
             PropertiesControl.SetDataSource(value);
+            _CurrentXstElement = value;
         }
 
         public MainForm()
@@ -35,44 +65,36 @@ namespace XstReader
 
         private void Initialize()
         {
-            openToolStripMenuItem.Click += OpenXstFile;
-            closeFileToolStripMenuItem.Click += (s, e) => CloseXstFile();
+            OpenToolStripMenuItem.Click += OpenXstFile;
+            CloseFileToolStripMenuItem.Click += (s, e) => CloseXstFile();
+            ExportAsmsgToolStripMenuItem.Click += (s, e) => ExportToMsg();
 
-            XstFolder? lastFolder = null;
-            FolderTree.SelectedItemChanged += (s, e) =>
-            {
-                if (lastFolder != null) lastFolder.ClearContents();
-                lastFolder = e.Element as XstFolder;
-                //MessageFilter.SetDataSource(lastFolder?.Messages);
-                MessageList.SetDataSource(lastFolder?.Messages?.OrderByDescending(m => m.Date));//, MessageFilter.GetSelectedFilter());
-                SplitContainer3.SplitterDistance = MessageList.GetGridWidth();
-                CurrentXstElement = e.Element;
-            };
-            FolderTree.GotFocus += (s, e) => CurrentXstElement = FolderTree.GetSelectedItem();
-            //MessageFilter.FilterChanged += (s, e) => MessageList.ApplyFilter(e.Filter);
-            MessageList.SelectedItemChanged += (s, e) =>
-            {
-                var message = e.Element as XstMessage;
-                RecipientList.SetDataSource(message?.Recipients.Items);
-                AttachmentList.SetDataSource(message?.Attachments);
-                MessageView.SetDataSource(message);
-                CurrentXstElement = e.Element;
-            };
-            MessageList.GotFocus += (s, e) => CurrentXstElement = MessageList.GetSelectedItem();
-            RecipientList.SelectedItemChanged += (s, e) =>
-            {
-                CurrentXstElement = e.Element;
-            };
-            RecipientList.GotFocus += (s, e) => CurrentXstElement = RecipientList.GetSelectedItem();
-            AttachmentList.SelectedItemChanged += (s, e) =>
-            {
-                CurrentXstElement = e.Element;
-            };
-            AttachmentList.GotFocus += (s, e) => CurrentXstElement = AttachmentList.GetSelectedItem();
+            FolderTreeControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
+            FolderTreeControl.GotFocus += (s, e) => CurrentXstElement = FolderTreeControl.GetSelectedItem();
+
+            MessageListControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
+            MessageListControl.GotFocus += (s, e) => CurrentXstElement = MessageListControl.GetSelectedItem();
+
+            MessageViewControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
+            MessageViewControl.GotFocus += (s, e) => CurrentXstElement = MessageViewControl.GetSelectedItem();
+            //RecipientListControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
+            //RecipientListControl.GotFocus += (s, e) => CurrentXstElement = RecipientListControl.GetSelectedItem();
+
+            //AttachmentListControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
+            //AttachmentListControl.GotFocus += (s, e) => CurrentXstElement = AttachmentListControl.GetSelectedItem();
 
             Reset();
         }
-
+        private void ExportToMsg()
+        {
+            if (CurrentXstElement is XstMessage msg)
+            {
+                var invalidPathChars = Path.GetInvalidFileNameChars();
+                string fileName = Path.Combine(@"C:\Dev\out\", new string(msg.Subject.Where(c => !invalidPathChars.Contains(c)).ToArray()) + ".msg");
+                msg.SaveToMsg(fileName);
+                //System.Diagnostics.Process.Start(fileName);
+            }
+        }
         private void OpenXstFile(object? sender, EventArgs e)
         {
             if (OpenXstFileDialog.ShowDialog(this) == DialogResult.OK)
@@ -86,8 +108,15 @@ namespace XstReader
                 XstFile.ClearContents();
                 XstFile.Dispose();
                 XstFile = null;
+
+                FolderTreeControl.ClearContents();
+                MessageListControl.ClearContents();
+                MessageViewControl.ClearContents();
+                //RecipientListControl.ClearContents();
+                //AttachmentListControl.ClearContents();
+                MessageViewControl.ClearContents();
+                PropertiesControl.ClearContents();
             }
-            CurrentXstElement = null;
         }
         private void LoadXstFile(string filename)
         {
@@ -105,5 +134,25 @@ namespace XstReader
             Reset();
             base.OnClosed(e);
         }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            LoadForm();
+        }
+
+        private void LoadForm()
+        {
+            KryptonMessagePanel.Controls.Add(MessageViewControl);
+            MessageViewControl.Dock = DockStyle.Fill;
+
+            // Setup docking functionality
+            KryptonDockingManager.ManageControl(KryptonMainPanel);
+
+            KryptonDockingManager.AddXstDockSpaceInTabs(DockingEdge.Top, MessageListControl);
+            KryptonDockingManager.AddXstDockSpaceInTabs(DockingEdge.Right, InfoControl, PropertiesControl);
+            KryptonDockingManager.AddXstDockSpaceInTabs(DockingEdge.Left, FolderTreeControl);
+        }
+
     }
 }

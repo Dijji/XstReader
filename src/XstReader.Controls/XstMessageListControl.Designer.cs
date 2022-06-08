@@ -45,8 +45,8 @@
             this.DataGridView.AllowUserToDeleteRows = false;
             this.DataGridView.AllowUserToOrderColumns = true;
             this.DataGridView.AutoGenerateColumns = false;
-            this.DataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCellsExceptHeader;
             this.DataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
+            this.DataGridView.BackgroundColor = System.Drawing.SystemColors.Window;
             this.DataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.DataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.subjectDataGridViewTextBoxColumn,
@@ -64,7 +64,8 @@
             this.DataGridView.RowHeadersVisible = false;
             this.DataGridView.RowHeadersWidth = 50;
             this.DataGridView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.DataGridView.Size = new System.Drawing.Size(484, 558);
+            this.DataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.DataGridView.Size = new System.Drawing.Size(500, 200);
             this.DataGridView.TabIndex = 1;
             // 
             // subjectDataGridViewTextBoxColumn
@@ -80,19 +81,17 @@
             // 
             this.From.DataPropertyName = "From";
             this.From.HeaderText = "From";
-            this.From.MinimumWidth = 50;
+            this.From.MinimumWidth = 100;
             this.From.Name = "From";
             this.From.ReadOnly = true;
-            this.From.Width = 50;
             // 
             // To
             // 
             this.To.DataPropertyName = "To";
             this.To.HeaderText = "To";
-            this.To.MinimumWidth = 50;
+            this.To.MinimumWidth = 100;
             this.To.Name = "To";
             this.To.ReadOnly = true;
-            this.To.Width = 50;
             // 
             // dateDataGridViewTextBoxColumn
             // 
@@ -106,14 +105,15 @@
             // 
             this.xstMessageBindingSource.DataSource = typeof(XstReader.XstMessage);
             // 
-            // XstMessageListControl
+            // OldXstMessageListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.DataGridView);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Name = "XstMessageListControl";
-            this.Size = new System.Drawing.Size(484, 558);
+            this.MinimumSize = new System.Drawing.Size(500, 200);
+            this.Name = "OldXstMessageListControl";
+            this.Size = new System.Drawing.Size(500, 200);
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.xstMessageBindingSource)).EndInit();
             this.ResumeLayout(false);

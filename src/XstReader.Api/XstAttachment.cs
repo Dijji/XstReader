@@ -348,12 +348,15 @@ namespace XstReader
         /// </summary>
         /// <param name="fullFileName"></param>
         /// <param name="creationTime"></param>
-        public void SaveToFile(string fullFileName, DateTime? creationTime)
+        public void SaveToFile(string fullFileName, DateTime? creationTime = null)
         {
             using (var afs = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
             {
                 SaveToStream(afs);
             }
+            if (creationTime == null)
+                creationTime = LastModificationTime;
+
             if (creationTime != null)
                 File.SetCreationTime(fullFileName, (DateTime)creationTime);
         }

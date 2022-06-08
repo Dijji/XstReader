@@ -17,7 +17,7 @@ namespace XstReader
     {
         public XstFolder Folder { get; private set; }
         public string Name => Folder.DisplayName;
-        public uint ContentCount => Folder.ContentCount;
+        public int ContentCount => Folder.ContentCount;
         public string Description => $"{Name} ({ContentCount})";
         public ObservableCollection<FolderView> FolderViews { get; private set; } = new ObservableCollection<FolderView>();
         public ObservableCollection<MessageView> MessageViews { get; private set; } = new ObservableCollection<MessageView>();

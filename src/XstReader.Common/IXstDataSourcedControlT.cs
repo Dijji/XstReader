@@ -13,5 +13,7 @@ namespace XstReader.App.Common
         public T? GetDataSource();
         public void SetDataSource(T? dataSource);
 
+        public void ClearContents();
+
     }
 }

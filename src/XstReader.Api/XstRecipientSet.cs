@@ -95,11 +95,11 @@ namespace XstReader
             if (_Items == null)
             {
                 _Items = GetRecipientsInternal().ToList();
-                _Items.Add(new XstRecipient(Message, GetPropertiesOriginalSentRepresenting));
-                _Items.Add(new XstRecipient(Message, GetPropertiesSentRepresenting));
-                _Items.Add(new XstRecipient(Message, GetPropertiesReceivedRepresenting));
-                _Items.Add(new XstRecipient(Message, GetPropertiesSender));
-                _Items.Add(new XstRecipient(Message, GetPropertiesReceivedBy));
+                _Items.Add(new XstRecipient(Message, GetPropertiesOriginalSentRepresenting, true));
+                _Items.Add(new XstRecipient(Message, GetPropertiesSentRepresenting, true));
+                _Items.Add(new XstRecipient(Message, GetPropertiesReceivedRepresenting, true));
+                _Items.Add(new XstRecipient(Message, GetPropertiesSender, true));
+                _Items.Add(new XstRecipient(Message, GetPropertiesReceivedBy, true));
             }
             return _Items.Where(r => r.Properties.Items.Any(p => p.Tag != PropertyCanonicalName.PidTagRecipientType));
         }
@@ -115,7 +115,7 @@ namespace XstReader
                 Message.Properties[PropertyCanonicalName.PidTagOriginalSentRepresentingSearchKey]?.CopyToNew(PropertyCanonicalName.PidTagSearchKey),
             }.Where(p => p != null).ToList();
             if (propList.Any())
-                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, EpropertyType.PtypInteger32, () => RecipientType.OriginalSentRepresenting));
+                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, PropertyType.PT_LONG, RecipientType.OriginalSentRepresenting));
 
             return propList;
         }
@@ -132,7 +132,7 @@ namespace XstReader
                 Message.Properties[PropertyCanonicalName.PidTagSentRepresentingSmtpAddress]?.CopyToNew(PropertyCanonicalName.PidTagSmtpAddress),
             }.Where(p => p != null).ToList();
             if (propList.Any())
-                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, EpropertyType.PtypInteger32, () => RecipientType.SentRepresenting));
+                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, PropertyType.PT_LONG, RecipientType.SentRepresenting));
 
             return propList;
         }
@@ -148,7 +148,7 @@ namespace XstReader
                 Message.Properties[PropertyCanonicalName.PidTagReceivedRepresentingSmtpAddress]?.CopyToNew(PropertyCanonicalName.PidTagSmtpAddress),
             }.Where(p => p != null).ToList();
             if (propList.Any())
-                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, EpropertyType.PtypInteger32, () => RecipientType.ReceivedRepresenting));
+                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, PropertyType.PT_LONG, RecipientType.ReceivedRepresenting));
 
             return propList;
         }
@@ -166,7 +166,7 @@ namespace XstReader
                 Message.Properties[PropertyCanonicalName.PidTagSenderTelephoneNumber]?.CopyToNew(PropertyCanonicalName.PidTagSenderTelephoneNumber),
             }.Where(p => p != null).ToList();
             if (propList.Any())
-                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, EpropertyType.PtypInteger32, () => RecipientType.Sender));
+                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, PropertyType.PT_LONG, RecipientType.Sender));
 
             return propList;
         }
@@ -182,7 +182,7 @@ namespace XstReader
                 Message.Properties[PropertyCanonicalName.PidTagReceivedBySmtpAddress]?.CopyToNew(PropertyCanonicalName.PidTagSmtpAddress),
             }.Where(p => p != null).ToList();
             if (propList.Any())
-                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, EpropertyType.PtypInteger32, () => RecipientType.ReceivedBy));
+                propList.Add(new XstProperty(PropertyCanonicalName.PidTagRecipientType, PropertyType.PT_LONG, RecipientType.ReceivedBy));
 
             return propList;
         }

@@ -31,20 +31,23 @@ namespace XstReader
     {
         private static RtfDecompressor RtfDecompressor = new RtfDecompressor();
 
+        #region Structure Class properties
         /// <summary>
         /// The Folder of this Message
         /// </summary>
         [DisplayName("Parent Folder")]
         [Category("General")]
         [Description("The Folder of this Message")]
-        public XstFolder ParentFolder { get; private set; }
+        public virtual XstFolder ParentFolder { get; private set; }
+        
         /// <summary>
         /// If is an Attached Message, contains the Attachement
         /// </summary>
         [DisplayName("Parent Attachment")]
         [Category("General")]
         [Description("If is an Attached Message, contains the Attachement")]
-        public XstAttachment ParentAttachment { get; private set; }
+        public virtual XstAttachment ParentAttachment { get; private set; }
+
         /// <summary>
         /// The Container File
         /// </summary>
@@ -52,14 +55,15 @@ namespace XstReader
         [Category("General")]
         [Description("The Container File")]
         public override XstFile XstFile => ParentFolder.XstFile;
+        #endregion Structure Class properties
 
-
+        #region Sending Class Properties
         private XstRecipientSet _Recipients = null;
         /// <summary>
         /// The Recipients involved in the Message
         /// </summary>
         [Browsable(false)]
-        public XstRecipientSet Recipients => _Recipients ?? (_Recipients = new XstRecipientSet(this));
+        public virtual XstRecipientSet Recipients => _Recipients ?? (_Recipients = new XstRecipientSet(this));
 
         /// <summary>
         /// The Subject of the Message
@@ -67,7 +71,7 @@ namespace XstReader
         [DisplayName("Subject")]
         [Category(@"General Message Properties")]
         [Description(@"Contains the subject of the email message.")]
-        public string Subject => Properties[PropertyCanonicalName.PidTagSubject]?.ValueAsStringSanitized;
+        public virtual string Subject => Properties[PropertyCanonicalName.PidTagSubject]?.ValueAsStringSanitized;
 
         /// <summary>
         /// The Cc Summary of the Message
@@ -75,7 +79,7 @@ namespace XstReader
         [DisplayName("Display Cc")]
         [Category(@"Message Properties")]
         [Description(@"Contains a list of carbon copy (Cc) recipient display names.")]
-        public string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc]?.ValueAsStringSanitized;
+        public virtual string Cc => Properties[PropertyCanonicalName.PidTagDisplayCc]?.ValueAsStringSanitized;
 
         /// <summary>
         /// The To Summary of the Message
@@ -83,14 +87,14 @@ namespace XstReader
         [DisplayName("Display To")]
         [Category(@"Message Properties")]
         [Description(@"Contains a list of the primary recipient display names, separated by semicolons, when an email message has primary recipients .")]
-        public string To => Properties[PropertyCanonicalName.PidTagDisplayTo]?.ValueAsStringSanitized;
+        public virtual string To => Properties[PropertyCanonicalName.PidTagDisplayTo]?.ValueAsStringSanitized;
         /// <summary>
         /// The From Summary of the Message
         /// </summary>
         [DisplayName("Sender Name")]
         [Category(@"Address Properties")]
         [Description(@"Contains the display name of the sending mailbox owner.")]
-        public string From => Properties[PropertyCanonicalName.PidTagSenderName]?.ValueAsStringSanitized;
+        public virtual string From => Properties[PropertyCanonicalName.PidTagSenderName]?.ValueAsStringSanitized;
 
         /// <summary>
         /// Indicates if the Message is sent in representation of other 
@@ -98,7 +102,7 @@ namespace XstReader
         [DisplayName("Is Sent Representing Other")]
         [Category("General")]
         [Description(@"Indicates if the Message is sent in representation of other.")]
-        public bool IsSentRepresentingOther
+        public virtual bool IsSentRepresentingOther
         {
             get
             {
@@ -113,7 +117,7 @@ namespace XstReader
         [DisplayName("Is Received Representing Other")]
         [Category("General")]
         [Description(@"Indicates if the Messages was received representing other.")]
-        public bool IsReceivedRepresentingOther
+        public virtual bool IsReceivedRepresentingOther
         {
             get
             {
@@ -123,6 +127,30 @@ namespace XstReader
             }
         }
 
+        /// <summary>
+        /// DateTime when Message was submitted
+        /// </summary>
+        [DisplayName("Client Submit Time")]
+        [Category(@"Message Time Properties")]
+        [Description(@"Contains the current time, in UTC, when the email message is submitted.")]
+        public virtual DateTime? SubmittedTime => Properties[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
+        /// <summary>
+        /// DateTime when Message was received
+        /// </summary>
+        [DisplayName("Message Delivery Time")]
+        [Category(@"Message Time Properties")]
+        [Description(@"Specifies the time (in UTC) when the server received the message.")]
+        public virtual DateTime? ReceivedTime => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
+        /// <summary>
+        /// DateTime of the Message (Received or Submitted)
+        /// </summary>
+        [DisplayName("Date")]
+        [Category("General")]
+        [Description(@"DateTime of the Message (Received or Submitted)")]
+        public virtual DateTime? Date => ReceivedTime ?? SubmittedTime;
+        #endregion Sending Class Properties
+
+        #region Message State Class Properties
         private MessageFlags? _Flags = null;
         /// <summary>
         /// The Flags of the Message
@@ -130,7 +158,7 @@ namespace XstReader
         [DisplayName("Message Flags")]
         [Category(@"General Message Properties")]
         [Description(@"Specifies the status of the Message object.")]
-        public MessageFlags? Flags
+        public virtual MessageFlags? Flags
         {
             get => _Flags ?? (MessageFlags?)Properties[PropertyCanonicalName.PidTagMessageFlags]?.Value;
             private set => _Flags = value;
@@ -142,29 +170,7 @@ namespace XstReader
         [DisplayName("Message Status")]
         [Category(@"General Message Properties")]
         [Description(@"Specifies the status of a message in a contents table.")]
-        public MessageStatus? Status => (MessageStatus?)Properties[PropertyCanonicalName.PidTagMessageStatus]?.Value;
-
-        /// <summary>
-        /// DateTime when Message was submitted
-        /// </summary>
-        [DisplayName("Client Submit Time")]
-        [Category(@"Message Time Properties")]
-        [Description(@"Contains the current time, in UTC, when the email message is submitted.")]
-        public DateTime? SubmittedTime => Properties[PropertyCanonicalName.PidTagClientSubmitTime]?.Value;
-        /// <summary>
-        /// DateTime when Message was received
-        /// </summary>
-        [DisplayName("Message Delivery Time")]
-        [Category(@"Message Time Properties")]
-        [Description(@"Specifies the time (in UTC) when the server received the message.")]
-        public DateTime? ReceivedTime => Properties[PropertyCanonicalName.PidTagMessageDeliveryTime]?.Value;
-        /// <summary>
-        /// DateTime of the Message (Received or Submitted)
-        /// </summary>
-        [DisplayName("Date")]
-        [Category("General")]
-        [Description(@"DateTime of the Message (Received or Submitted)")]
-        public DateTime? Date => ReceivedTime ?? SubmittedTime;
+        public virtual MessageStatus? Status => (MessageStatus?)Properties[PropertyCanonicalName.PidTagMessageStatus]?.Value;
 
         /// <summary>
         /// The Priority of the message
@@ -172,7 +178,7 @@ namespace XstReader
         [DisplayName("Priority")]
         [Category(@"Email")]
         [Description(@"Indicates the client's request for the priority with which the message is to be sent by the messaging system.")]
-        public MessagePriority? Priority => (MessagePriority?)Properties[PropertyCanonicalName.PidTagPriority]?.Value;
+        public virtual MessagePriority? Priority => (MessagePriority?)Properties[PropertyCanonicalName.PidTagPriority]?.Value;
 
         /// <summary>
         /// The Importance of the Message
@@ -180,7 +186,7 @@ namespace XstReader
         [DisplayName("Importance")]
         [Category(@"General Message Properties")]
         [Description(@"Indicates the level of importance assigned by the end user to the Message object.")]
-        public MessageImportance? Importance => (MessageImportance?)Properties[PropertyCanonicalName.PidTagImportance]?.Value;
+        public virtual MessageImportance? Importance => (MessageImportance?)Properties[PropertyCanonicalName.PidTagImportance]?.Value;
 
         /// <summary>
         /// The Sensitivity of the Message
@@ -188,7 +194,7 @@ namespace XstReader
         [DisplayName("Sensitivity")]
         [Category(@"General Message Properties")]
         [Description(@"Indicates the sender's assessment of the sensitivity of the Message object.")]
-        public MessageSensitivity? Sensitivity => (MessageSensitivity?)Properties[PropertyCanonicalName.PidTagSensitivity]?.Value;
+        public virtual MessageSensitivity? Sensitivity => (MessageSensitivity?)Properties[PropertyCanonicalName.PidTagSensitivity]?.Value;
 
         /// <summary>
         /// The Internet Message Id
@@ -196,8 +202,55 @@ namespace XstReader
         [DisplayName("Internet Message Id")]
         [Category(@"MIME Properties")]
         [Description(@"Corresponds to the message-id field.")]
-        public string InternetMessageId => Properties[PropertyCanonicalName.PidTagInternetMessageId]?.Value;
+        public virtual string InternetMessageId => Properties[PropertyCanonicalName.PidTagInternetMessageId]?.Value;
 
+        //public virtual string MessageClassName
+
+        /// <summary>
+        /// Indicates if the Message was been read
+        /// </summary>
+        [DisplayName("Is Read")]
+        [Category("General")]
+        [Description(@"Indicates if the Message was been read")]
+        public virtual bool IsRead => Flags?.HasFlag(MessageFlags.mfRead) ?? true;
+
+        /// <summary>
+        /// Indicates if the Message is a Draft (unsent message)
+        /// </summary>
+        [DisplayName("Is Draft")]
+        [Category("General")]
+        [Description(@"Indicates if the Message is a Draft (unsent message)")]
+        public virtual bool IsDraft => Flags?.HasFlag(MessageFlags.mfUnsent) ?? false;
+
+        /// <summary>
+        /// Indicates if the Message is Encrypted or signed
+        /// </summary>
+        [DisplayName("Is Encrypted or Signed")]
+        [Category("General")]
+        [Description(@"Indicates if the Message is Encrypted or signed")]
+        public virtual bool IsEncryptedOrSigned => Attachments.Count() == 1 &&
+                                                   Attachments.First().FileNameForSaving == "smime.p7m" &&
+                                                   !Properties.Contains(PropertyCanonicalName.PidTagBody) &&
+                                                   !Properties.Contains(PropertyCanonicalName.PidTagHtml);
+
+        private BTree<Node> _SubNodeTreeProperties = null;
+        internal BTree<Node> SubNodeTreeProperties
+        {
+            get => _SubNodeTreeProperties ?? (_SubNodeTreeProperties = BodyLoader?.Invoke());
+            set => _SubNodeTreeProperties = value;
+        }
+        internal BTree<Node> SubNodeTreeParentAttachment = null;
+
+        /// <summary>
+        /// Indicates if the Message is an attachment of other Message
+        /// </summary>
+        [DisplayName("Is Attached")]
+        [Category("General")]
+        [Description(@"Indicates if the Message is an attachment of other Message")]
+        public virtual bool IsAttached => SubNodeTreeParentAttachment != null;
+        #endregion Message State Class Properties
+
+        #region Body Class Properties
         private Func<BTree<Node>> _BodyLoader = null;
         internal Func<BTree<Node>> BodyLoader
         {
@@ -217,7 +270,7 @@ namespace XstReader
         [DisplayName("Encoding")]
         [Category("General")]
         [Description(@"The Message Encoding")]
-        public Encoding Encoding => _Encoding ?? (_Encoding = GetEncoding());
+        public virtual Encoding Encoding => _Encoding ?? (_Encoding = GetEncoding());
         private BodyType? _NativeBody = null;
         internal BodyType NativeBody
         {
@@ -229,97 +282,60 @@ namespace XstReader
         /// The Body of the Message
         /// </summary>
         [Browsable(false)]
-        public XstMessageBody Body => GetBody();
-        /// <summary>
-        /// Indicates if the Message was been read
-        /// </summary>
-        [DisplayName("Is Read")]
-        [Category("General")]
-        [Description(@"Indicates if the Message was been read")]
-        public bool IsRead => Flags?.HasFlag(MessageFlags.mfRead) ?? true;
+        public virtual XstMessageBody Body => GetBody();
+        #endregion Body Class Properties
 
-        /// <summary>
-        /// Indicates if the Message is a Draft (unsent message)
-        /// </summary>
-        [DisplayName("Is Draft")]
-        [Category("General")]
-        [Description(@"Indicates if the Message is a Draft (unsent message)")]
-        public bool IsDraft => Flags?.HasFlag(MessageFlags.mfUnsent) ?? false;
-
-
+        #region Attachments Class Properties
         private IEnumerable<XstAttachment> _Attachments = null;
         /// <summary>
         /// The Attachments of the Message
         /// </summary>
         [Browsable(false)]
-        public IEnumerable<XstAttachment> Attachments => GetAttachments();
+        public virtual IEnumerable<XstAttachment> Attachments => GetAttachments();
+
         /// <summary>
         /// The Files Attached to the Message
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.Files() instead")]
         [Browsable(false)]
-        public IEnumerable<XstAttachment> AttachmentsFiles => Attachments.Files();
+        public virtual IEnumerable<XstAttachment> AttachmentsFiles => Attachments.Files();
+        
         /// <summary>
         /// The Visible Files Attached to the Message
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.VisibleFiles() instead")]
         [Browsable(false)]
-        public IEnumerable<XstAttachment> AttachmentsVisibleFiles => Attachments.VisibleFiles();
+        public virtual IEnumerable<XstAttachment> AttachmentsVisibleFiles => Attachments.VisibleFiles();
+        
         /// <summary>
         /// Indicates if the Message has Attachments
         /// </summary>
         [DisplayName("Has Attachments")]
         [Category("General")]
         [Description(@"Indicates if the Message has Attachments")]
-        public bool HasAttachments => Flags?.HasFlag(MessageFlags.mfHasAttach) ?? false;
+        public virtual bool HasAttachments => Flags?.HasFlag(MessageFlags.mfHasAttach) ?? false;
+        
         /// <summary>
         /// Indicates if the Message may have Attachments inline, incrusted in the body
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.Inlines().Any() instead")]
         [Browsable(false)]
-
-        public bool MayHaveAttachmentsInline => Attachments.Inlines().Any();
+        public virtual bool MayHaveAttachmentsInline => Attachments.Inlines().Any();
+        
         /// <summary>
         /// Indicates if the Message has any File attached
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.Files().Any() instead")]
         [Browsable(false)]
-
-        public bool HasAttachmentsFiles => Attachments.Files().Any();
+        public virtual bool HasAttachmentsFiles => Attachments.Files().Any();
+        
         /// <summary>
         /// Indicates if the Message has any Visible File attached
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.VisibleFiles().Any() instead")]
         [Browsable(false)]
-
-        public bool HasAttachmentsVisibleFiles => Attachments.VisibleFiles().Any();
-
-        /// <summary>
-        /// Indicates if the Message is Encrypted or signed
-        /// </summary>
-        [DisplayName("Is Encrypted or Signed")]
-        [Category("General")]
-        [Description(@"Indicates if the Message is Encrypted or signed")]
-        public bool IsEncryptedOrSigned => Attachments.Count() == 1 &&
-                                           Attachments.First().FileNameForSaving == "smime.p7m" &&
-                                           !Properties.Contains(PropertyCanonicalName.PidTagBody) &&
-                                           !Properties.Contains(PropertyCanonicalName.PidTagHtml);
-
-        private BTree<Node> _SubNodeTreeProperties = null;
-        internal BTree<Node> SubNodeTreeProperties
-        {
-            get => _SubNodeTreeProperties ?? (_SubNodeTreeProperties = BodyLoader?.Invoke());
-            set => _SubNodeTreeProperties = value;
-        }
-        internal BTree<Node> SubNodeTreeParentAttachment = null;
-
-        /// <summary>
-        /// Indicates if the Message is an attachment of other Message
-        /// </summary>
-        [DisplayName("Is Attached")]
-        [Category("General")]
-        [Description(@"Indicates if the Message is an attachment of other Message")]
-        public bool IsAttached => SubNodeTreeParentAttachment != null;
+        public virtual bool HasAttachmentsVisibleFiles => Attachments.VisibleFiles().Any();
+        #endregion Attachments Class Properties
 
         #region Content Exclusions
         private static readonly HashSet<PropertyCanonicalName> ContentExclusions = new HashSet<PropertyCanonicalName>
@@ -332,6 +348,7 @@ namespace XstReader
 
         #endregion Content Exclusions
 
+        #region Ctor
         /// <summary>
         /// Ctor
         /// </summary>
@@ -365,6 +382,7 @@ namespace XstReader
             //BodyLoader = () => Ltp.ReadProperties<XstMessage>(Nid, PropertyGetters.MessageContentProperties, this);
             BodyLoader = () => Ltp.ReadProperties(Nid, Properties);
         }
+        #endregion Ctor
 
         #region Properties
         private protected override bool CheckProperty(PropertyCanonicalName tag)
@@ -406,7 +424,7 @@ namespace XstReader
         /// Returns the Attachments of this Message
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<XstAttachment> GetAttachments()
+        public virtual IEnumerable<XstAttachment> GetAttachments()
             => _Attachments ?? (_Attachments = GetAttachmentsInternal());
 
         private IEnumerable<XstAttachment> GetAttachmentsInternal()
@@ -425,7 +443,6 @@ namespace XstReader
                                                 a => a.Initialize(this, IsAttached));
         }
         #endregion Attachments
-
 
         #region Body
         private string BodyPlainText => Properties[PropertyCanonicalName.PidTagBody]?.Value;
@@ -447,7 +464,7 @@ namespace XstReader
         /// Obtains the Body of the Message
         /// </summary>
         /// <returns></returns>
-        public XstMessageBody GetBody()
+        public virtual XstMessageBody GetBody()
         {
             if (_Body == null)
             {
@@ -705,11 +722,6 @@ namespace XstReader
             }
             return "";
         }
-
-        #region Save
-
-
-        #endregion Save
 
         /// <summary>
         /// Gets the String representation of the object

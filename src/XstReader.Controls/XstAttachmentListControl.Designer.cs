@@ -30,11 +30,11 @@
         {
             this.components = new System.ComponentModel.Container();
             this.DataGridView = new XstReader.App.Controls.XstDataGridView();
-            this.xstAttachmentBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.LongFileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.LastModificationTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.xstAttachmentBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.xstAttachmentBindingSource)).BeginInit();
             this.SuspendLayout();
@@ -47,6 +47,7 @@
             this.DataGridView.AutoGenerateColumns = false;
             this.DataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCellsExceptHeader;
             this.DataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
+            this.DataGridView.BackgroundColor = System.Drawing.SystemColors.Window;
             this.DataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.DataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.LongFileName,
@@ -57,6 +58,7 @@
             this.DataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.DataGridView.Location = new System.Drawing.Point(0, 0);
             this.DataGridView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.DataGridView.MultiSelect = false;
             this.DataGridView.Name = "DataGridView";
             this.DataGridView.ReadOnly = true;
             this.DataGridView.RightToLeft = System.Windows.Forms.RightToLeft.No;
@@ -64,12 +66,9 @@
             this.DataGridView.RowHeadersWidth = 51;
             this.DataGridView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.DataGridView.RowTemplate.Height = 20;
-            this.DataGridView.Size = new System.Drawing.Size(640, 112);
+            this.DataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.DataGridView.Size = new System.Drawing.Size(500, 100);
             this.DataGridView.TabIndex = 2;
-            // 
-            // xstAttachmentBindingSource
-            // 
-            this.xstAttachmentBindingSource.DataSource = typeof(XstReader.XstAttachment);
             // 
             // LongFileName
             // 
@@ -105,14 +104,19 @@
             this.LastModificationTime.ReadOnly = true;
             this.LastModificationTime.Width = 150;
             // 
+            // xstAttachmentBindingSource
+            // 
+            this.xstAttachmentBindingSource.DataSource = typeof(XstReader.XstAttachment);
+            // 
             // XstAttachmentListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.DataGridView);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.MinimumSize = new System.Drawing.Size(300, 100);
             this.Name = "XstAttachmentListControl";
-            this.Size = new System.Drawing.Size(640, 112);
+            this.Size = new System.Drawing.Size(500, 100);
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.xstAttachmentBindingSource)).EndInit();
             this.ResumeLayout(false);

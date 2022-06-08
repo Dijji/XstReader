@@ -13,6 +13,18 @@ namespace XstReader.App.Controls
         public XstDataGridView() : base()
         {
             RowHeadersVisible = false;
+            
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            MultiSelect = false;
+            RowPrePaint += (s,e)=> e.PaintParts &= ~DataGridViewPaintParts.Focus;
+
+            AllowUserToAddRows = false;
+            AllowUserToDeleteRows = false;
+            AllowUserToOrderColumns = true;
+            AllowUserToResizeColumns = true;
+            ReadOnly = true;
+
+            BackgroundColor = Color.FromKnownColor(KnownColor.Window);
         }
 
         public void Sort(DataGridViewColumn column)
@@ -65,5 +77,6 @@ namespace XstReader.App.Controls
                 column.SortMode == DataGridViewColumnSortMode.NotSortable)
                 Sort(column);
         }
+       
     }
 }

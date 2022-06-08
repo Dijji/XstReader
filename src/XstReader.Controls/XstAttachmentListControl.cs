@@ -13,7 +13,7 @@ namespace XstReader.App.Controls
 {
     public partial class XstAttachmentListControl : UserControl,
                                                     IXstDataSourcedControl<IEnumerable<XstAttachment>>,
-                                                    IXstElementSelectable<XstAttachment>
+                                                    IXstElementDoubleClickable<XstAttachment>
     {
         public XstAttachmentListControl()
         {
@@ -34,12 +34,18 @@ namespace XstReader.App.Controls
                     RaiseSelectedItemChanged();
                 }
             };
+            DataGridView.CellMouseDoubleClick += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
             DataGridView.Sorted += (s, e) => RaiseSelectedItemChanged();
             DataGridView.GotFocus += (s, e) => OnGotFocus(e);
+            DataGridView.StretchLastColumn();
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
         private void RaiseSelectedItemChanged() => SelectedItemChanged?.Invoke(this, new XstElementEventArgs(GetSelectedItem()));
+
+        public event EventHandler<XstElementEventArgs>? DoubleClickItem;
+        private void RaiseDoubleClickItem(XstAttachment? element) => DoubleClickItem?.Invoke(this, new XstElementEventArgs(element));
+
 
         private IEnumerable<XstAttachment>? _DataSource;
         public IEnumerable<XstAttachment>? GetDataSource()
@@ -49,7 +55,6 @@ namespace XstReader.App.Controls
         {
             _DataSource = dataSource;
             DataGridView.DataSource = dataSource?.ToList();
-            DataGridView.StretchLastColumn();
             RaiseSelectedItemChanged();
         }
         public XstAttachment? GetSelectedItem()
@@ -60,6 +65,13 @@ namespace XstReader.App.Controls
         }
         public void SetSelectedItem(XstAttachment? item)
         { }
+
+        public void ClearContents()
+        {
+            GetSelectedItem()?.ClearContents();
+            SetDataSource(null);
+        }
+
         //=> MainTreeView.SelectedNode = (item != null && _DicMapFoldersNodes.ContainsKey(item.GetId())) ?
         //                                   _DicMapFoldersNodes[item.GetId()]
         //                                   : null;
