@@ -36,13 +36,13 @@ namespace XstReader
         [Category("General")]
         [Description("The Message of the Recipient")]
         public XstMessage Message { get; internal set; }
+
         /// <summary>
-        /// The File
+        /// The Parents of this Element
         /// </summary>
-        [DisplayName("File")]
-        [Category("General")]
-        [Description("The Container File")]
-        public override XstFile XstFile => Message.XstFile;
+        [Browsable(false)]
+        public override XstElement Parent => Message;
+
 
         /// <summary>
         /// The Type of the Recipient in the Message

@@ -28,98 +28,44 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.DataGridView = new XstReader.App.Controls.XstDataGridView();
-            this.recipientTypeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.addressDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.displayNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.xstRecipientBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.xstRecipientBindingSource)).BeginInit();
+            this.ObjectListView = new BrightIdeasSoftware.ObjectListView();
+            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView)).BeginInit();
             this.SuspendLayout();
             // 
-            // DataGridView
+            // ObjectListView
             // 
-            this.DataGridView.AllowUserToAddRows = false;
-            this.DataGridView.AllowUserToDeleteRows = false;
-            this.DataGridView.AllowUserToOrderColumns = true;
-            this.DataGridView.AutoGenerateColumns = false;
-            this.DataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCellsExceptHeader;
-            this.DataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
-            this.DataGridView.BackgroundColor = System.Drawing.SystemColors.Window;
-            this.DataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.DataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.recipientTypeDataGridViewTextBoxColumn,
-            this.addressDataGridViewTextBoxColumn,
-            this.displayNameDataGridViewTextBoxColumn});
-            this.DataGridView.DataSource = this.xstRecipientBindingSource;
-            this.DataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DataGridView.Location = new System.Drawing.Point(0, 0);
-            this.DataGridView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.DataGridView.MultiSelect = false;
-            this.DataGridView.Name = "DataGridView";
-            this.DataGridView.ReadOnly = true;
-            this.DataGridView.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.DataGridView.RowHeadersVisible = false;
-            this.DataGridView.RowHeadersWidth = 51;
-            this.DataGridView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.DataGridView.RowTemplate.Height = 20;
-            this.DataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.DataGridView.Size = new System.Drawing.Size(500, 100);
-            this.DataGridView.TabIndex = 1;
-            // 
-            // recipientTypeDataGridViewTextBoxColumn
-            // 
-            this.recipientTypeDataGridViewTextBoxColumn.DataPropertyName = "RecipientType";
-            this.recipientTypeDataGridViewTextBoxColumn.HeaderText = "RecipientType";
-            this.recipientTypeDataGridViewTextBoxColumn.MinimumWidth = 150;
-            this.recipientTypeDataGridViewTextBoxColumn.Name = "recipientTypeDataGridViewTextBoxColumn";
-            this.recipientTypeDataGridViewTextBoxColumn.ReadOnly = true;
-            this.recipientTypeDataGridViewTextBoxColumn.Width = 150;
-            // 
-            // addressDataGridViewTextBoxColumn
-            // 
-            this.addressDataGridViewTextBoxColumn.DataPropertyName = "Address";
-            this.addressDataGridViewTextBoxColumn.HeaderText = "Address";
-            this.addressDataGridViewTextBoxColumn.MinimumWidth = 150;
-            this.addressDataGridViewTextBoxColumn.Name = "addressDataGridViewTextBoxColumn";
-            this.addressDataGridViewTextBoxColumn.ReadOnly = true;
-            this.addressDataGridViewTextBoxColumn.Width = 150;
-            // 
-            // displayNameDataGridViewTextBoxColumn
-            // 
-            this.displayNameDataGridViewTextBoxColumn.DataPropertyName = "DisplayName";
-            this.displayNameDataGridViewTextBoxColumn.HeaderText = "Display Name";
-            this.displayNameDataGridViewTextBoxColumn.MinimumWidth = 200;
-            this.displayNameDataGridViewTextBoxColumn.Name = "displayNameDataGridViewTextBoxColumn";
-            this.displayNameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.displayNameDataGridViewTextBoxColumn.Width = 200;
-            // 
-            // xstRecipientBindingSource
-            // 
-            this.xstRecipientBindingSource.DataSource = typeof(XstReader.XstRecipient);
+            this.ObjectListView.AllowColumnReorder = true;
+            this.ObjectListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ObjectListView.EmptyListMsg = "";
+            this.ObjectListView.FullRowSelect = true;
+            this.ObjectListView.GridLines = true;
+            this.ObjectListView.IncludeColumnHeadersInCopy = true;
+            this.ObjectListView.Location = new System.Drawing.Point(0, 0);
+            this.ObjectListView.MultiSelect = false;
+            this.ObjectListView.Name = "ObjectListView";
+            this.ObjectListView.ShowGroups = false;
+            this.ObjectListView.ShowItemToolTips = true;
+            this.ObjectListView.Size = new System.Drawing.Size(300, 150);
+            this.ObjectListView.TabIndex = 2;
+            this.ObjectListView.UseFilterIndicator = true;
+            this.ObjectListView.UseFiltering = true;
+            this.ObjectListView.View = System.Windows.Forms.View.Details;
             // 
             // XstRecipientListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.DataGridView);
-            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Controls.Add(this.ObjectListView);
             this.MinimumSize = new System.Drawing.Size(300, 100);
             this.Name = "XstRecipientListControl";
-            this.Size = new System.Drawing.Size(500, 100);
-            ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.xstRecipientBindingSource)).EndInit();
+            this.Size = new System.Drawing.Size(300, 150);
+            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private XstDataGridView DataGridView;
-        private BindingSource xstRecipientBindingSource;
-        private DataGridViewTextBoxColumn recipientTypeDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn addressDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn displayNameDataGridViewTextBoxColumn;
+        private BrightIdeasSoftware.ObjectListView ObjectListView;
     }
 }

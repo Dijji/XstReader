@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.MainTreeView = new System.Windows.Forms.TreeView();
+            this.MainTreeView = new Krypton.Toolkit.KryptonTreeView();
             this.SuspendLayout();
             // 
             // MainTreeView
@@ -56,6 +56,6 @@
 
         #endregion
 
-        private TreeView MainTreeView;
+        private Krypton.Toolkit.KryptonTreeView MainTreeView;
     }
 }

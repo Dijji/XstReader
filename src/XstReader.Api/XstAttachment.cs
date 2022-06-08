@@ -37,13 +37,12 @@ namespace XstReader
         [Category("General")]
         [Description("The Container Folder")]
         public XstFolder Folder => Message.ParentFolder;
+
         /// <summary>
-        /// The Container File
+        /// The Parents of this Element
         /// </summary>
-        [DisplayName("File")]
-        [Category("General")]
-        [Description("The Container File")]
-        public override XstFile XstFile => Message.XstFile;
+        [Browsable(false)]
+        public override XstElement Parent => Message;
 
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
 
@@ -130,14 +129,14 @@ namespace XstReader
         [DisplayName("Was Rendered Inline")]
         [Category(@"General")]
         [Description(@"Indicates if the Attachment was rendered inside the body")]
-        public bool WasRenderedInline { get; set; } = false;
+        public bool WasRenderedInline { get; internal set; } = false;
         /// <summary>
         /// Indicates if the Attachment was loaded from Mime
         /// </summary>
         [DisplayName("Was Loaded from Mime")]
         [Category(@"General")]
         [Description(@"Indicates if the Attachment was loaded from Mime")]
-        public bool WasLoadedFromMime { get; set; } = false;
+        public bool WasLoadedFromMime { get; internal set; } = false;
 
         /// <summary>
         /// Indicates the Type of the Attachment
@@ -330,16 +329,16 @@ namespace XstReader
         /// </summary>
         /// <param name="folderpath"></param>
         /// <param name="creationTime"></param>
-        public void SaveToFolder(string folderpath, DateTime? creationTime)
+        public void SaveToFolder(string folderpath, DateTime? creationTime = null)
         {
-            var fullFileName = Path.Combine(folderpath, FileNameForSaving);
+            var fullFileName = System.IO.Path.Combine(folderpath, FileNameForSaving);
 
             // If the result is too long, truncate the attachment name as required
             if (fullFileName.Length >= MaxPath)
             {
-                var ext = Path.GetExtension(FileNameForSaving);
-                var att = Path.GetFileNameWithoutExtension(FileNameForSaving).Truncate(MaxPath - folderpath.Length - ext.Length - 5) + ext;
-                fullFileName = Path.Combine(folderpath, att);
+                var ext = System.IO.Path.GetExtension(FileNameForSaving);
+                var att = System.IO.Path.GetFileNameWithoutExtension(FileNameForSaving).Truncate(MaxPath - folderpath.Length - ext.Length - 5) + ext;
+                fullFileName = System.IO.Path.Combine(folderpath, att);
             }
             SaveToFile(fullFileName, creationTime);
         }
@@ -358,7 +357,7 @@ namespace XstReader
                 creationTime = LastModificationTime;
 
             if (creationTime != null)
-                File.SetCreationTime(fullFileName, (DateTime)creationTime);
+                System.IO.File.SetCreationTime(fullFileName, (DateTime)creationTime);
         }
         /// <summary>
         /// Save the Attachment to a Stream

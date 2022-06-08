@@ -10,7 +10,10 @@
 // Copyright (c) 2016, Dijji, and released under Ms-PL.  This can be found in the root of this distribution. 
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using XstReader.ElementProperties;
 
 namespace XstReader
 {
@@ -22,7 +25,7 @@ namespace XstReader
     /// <summary>
     /// Main handling for xst (.ost and .pst) files 
     /// </summary>
-    public class XstFile : IDisposable
+    public class XstFile : XstElement, IDisposable
     {
         private NDB _Ndb;
         internal NDB Ndb => _Ndb ?? (_Ndb = new NDB(this));
@@ -54,13 +57,27 @@ namespace XstReader
         /// </summary>
         public XstFolder RootFolder => _RootFolder ?? (_RootFolder = new XstFolder(this, new NID(EnidSpecial.NID_ROOT_FOLDER)));
 
+        /// <summary>
+        /// The Path of this Element
+        /// </summary>
+        [DisplayName("Path")]
+        [Category("General")]
+        [Description(@"The Path of this Element")]
+        public override string Path => System.IO.Path.GetFileName(this.FileName);
+
+        /// <summary>
+        /// The Parents of this Element
+        /// </summary>
+        [Browsable(false)]
+        public override XstElement Parent => null;
+
 
         #region Ctor
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="fileName">The .pst or .ost file to open</param>
-        public XstFile(string fileName)
+        public XstFile(string fileName) : base(XstElementType.File)
         {
             FileName = fileName;
         }
@@ -114,7 +131,22 @@ namespace XstReader
         /// <returns></returns>
         public override string ToString()
         {
-            return Path.GetFileName(FileName??"");
+            return System.IO.Path.GetFileName(FileName ?? "");
+        }
+
+        private protected override IEnumerable<XstProperty> LoadProperties()
+        {
+            return new XstProperty[0];
+        }
+
+        private protected override XstProperty LoadProperty(PropertyCanonicalName tag)
+        {
+            return null;
+        }
+
+        private protected override bool CheckProperty(PropertyCanonicalName tag)
+        {
+            return false;
         }
     }
 }

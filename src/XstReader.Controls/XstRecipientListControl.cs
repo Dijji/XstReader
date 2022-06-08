@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using BrightIdeasSoftware;
 using XstReader.App.Common;
 
 namespace XstReader.App.Controls
@@ -12,24 +12,19 @@ namespace XstReader.App.Controls
             InitializeComponent();
             Initialize();
         }
-        private int? _CurrentRowIndex = null;
+
         private void Initialize()
         {
             if (DesignMode) return;
 
-            //AdvDataGridViewSearchToolBar.SetColumns(AdvDataGridViewSearchToolBar.getCol)
-            DataGridView.RowEnter += (s, e) =>
-            {
-                if (e.RowIndex != _CurrentRowIndex)
-                {
-                    _CurrentRowIndex = e.RowIndex;
-                    RaiseSelectedItemChanged();
-                }
-            };
-            DataGridView.CellMouseDoubleClick += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
-            DataGridView.Sorted += (s, e) => RaiseSelectedItemChanged();
-            DataGridView.GotFocus += (s, e) => OnGotFocus(e);
-            DataGridView.StretchLastColumn();
+            ObjectListView.Columns.Add(new OLVColumn("Type", nameof(XstRecipient.RecipientType)) { Width = 100 });
+            ObjectListView.Columns.Add(new OLVColumn("Name", nameof(XstRecipient.DisplayName)) { WordWrap = true, Width = 150 });
+            ObjectListView.Columns.Add(new OLVColumn("Address", nameof(XstRecipient.Address)) { Width = 150, FillsFreeSpace = true });
+
+            ObjectListView.ItemSelectionChanged += (s, e) => RaiseSelectedItemChanged();
+            ObjectListView.DoubleClick += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
+
+            SetDataSource(null);
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
@@ -46,17 +41,17 @@ namespace XstReader.App.Controls
         public void SetDataSource(IEnumerable<XstRecipient>? dataSource)
         {
             _DataSource = dataSource;
-            DataGridView.DataSource = dataSource?.ToList();
+            ObjectListView.Objects = dataSource;
             RaiseSelectedItemChanged();
         }
+
         public XstRecipient? GetSelectedItem()
         {
-            if (_CurrentRowIndex == null) return null;
-            if (_CurrentRowIndex.Value >= DataGridView.Rows.Count) return null;
-            return DataGridView.Rows[_CurrentRowIndex.Value].DataBoundItem as XstRecipient;
+            return ObjectListView.SelectedItem?.RowObject as XstRecipient;
         }
         public void SetSelectedItem(XstRecipient? item)
         { }
+
         public void ClearContents()
         {
             GetSelectedItem()?.ClearContents();

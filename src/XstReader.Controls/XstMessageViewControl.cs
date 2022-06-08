@@ -20,6 +20,17 @@ namespace XstReader.App.Controls
 
             MessageContentControl.DoubleClickItem += (s, e) => AddTab(e?.Element);
             MessageContentControl.SelectedItemChanged += (s, e) => RaiseSelectedItemChanged(e.Element);
+
+            MainKryptonNavigator.CloseAction += (s, e) =>
+            {
+                if (MainKryptonNavigator.SelectedIndex == 0)
+                    e.Action = Krypton.Navigator.CloseButtonAction.None;
+            };
+            MainKryptonNavigator.SelectedPageChanged += (s, e) =>
+            {
+                if (MainKryptonNavigator.SelectedPage?.Tag is XstElement element)
+                    RaiseSelectedItemChanged(element);
+            };
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
@@ -46,6 +57,7 @@ namespace XstReader.App.Controls
                     MessageContentControl.Dock = DockStyle.Fill;
                 }
                 MainKryptonNavigator.Pages[0].Text = $"Message: {dataSource.Subject}";
+                MainKryptonNavigator.Pages[0].Tag = dataSource;
                 MainKryptonNavigator.SelectedIndex = 0;
                 while (MainKryptonNavigator.Pages.Count > 1)
                     MainKryptonNavigator.Pages.RemoveAt(1);
@@ -74,14 +86,17 @@ namespace XstReader.App.Controls
         {
             if (element == null)
                 return;
+            if (element is XstAttachment attach && !attach.CanBeOpenedInApp())
+                return;
 
-            var page = MainKryptonNavigator.Pages.FirstOrDefault(p => p.Tag != null && ((int)p.Tag) == element.GetHashCode());
+
+            var page = MainKryptonNavigator.Pages.FirstOrDefault(p => p.Tag == element);
             if (page == null)
             {
                 page = new Krypton.Navigator.KryptonPage
                 {
                     Text = $"{element.ElementType}: {element.DisplayName}",
-                    Tag = element.GetHashCode(),
+                    Tag = element,
                 };
                 MainKryptonNavigator.Pages.Add(page);
 

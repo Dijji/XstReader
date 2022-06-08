@@ -45,9 +45,9 @@ namespace XstReader.App.Controls
             try
             {
                 if (!IsCoreViewInitialized)
-                    ToDoWhenInitialized.Add(() => WebView2.Source = new Uri(SetTempFileContent(_DataSource)));
+                    ToDoWhenInitialized.Add(() => WebView2.Source = new Uri(_DataSource?.SaveToTempFile() ?? ""));
                 else
-                    WebView2.Source = new Uri(SetTempFileContent(_DataSource));
+                    WebView2.Source = new Uri(_DataSource?.SaveToTempFile() ?? "");
             }
             catch (Exception ex)
             {
@@ -72,20 +72,12 @@ namespace XstReader.App.Controls
                 catch { }
             _TempFileName = null;
         }
-        private string SetTempFileContent(XstAttachment? attachment)
-        {
-            if (attachment == null)
-                return "";
 
-            _TempFileName = Path.GetTempFileName() + Path.GetExtension(attachment.FileName);
-            attachment?.SaveToFile(_TempFileName);
-
-            return _TempFileName;
-        }
         public void ClearContents()
         {
             GetDataSource()?.ClearContents();
             SetDataSource(null);
         }
+
     }
 }

@@ -39,7 +39,7 @@ namespace XstReader
         [Category("General")]
         [Description("The Folder of this Message")]
         public virtual XstFolder ParentFolder { get; private set; }
-        
+
         /// <summary>
         /// If is an Attached Message, contains the Attachement
         /// </summary>
@@ -49,12 +49,23 @@ namespace XstReader
         public virtual XstAttachment ParentAttachment { get; private set; }
 
         /// <summary>
-        /// The Container File
+        /// The Parents of this Element
         /// </summary>
-        [DisplayName("File")]
-        [Category("General")]
-        [Description("The Container File")]
-        public override XstFile XstFile => ParentFolder.XstFile;
+        [Browsable(false)]
+        public override XstElement Parent => IsAttached ? (XstElement)ParentAttachment : ParentFolder;
+
+        /// <summary>
+        /// The Name of the Element
+        /// </summary>
+        [DisplayName("Display Name")]
+        [Category(@"Mapi Common")]
+        [Description(@"Contains the display name of the element.")]
+        public override string DisplayName
+        {
+            get => string.IsNullOrEmpty(base.DisplayName) ? Subject : base.DisplayName;
+            protected set => base.DisplayName = value;
+        }
+
         #endregion Structure Class properties
 
         #region Sending Class Properties
@@ -299,14 +310,14 @@ namespace XstReader
         [Obsolete("This property is Obsolete. Use Attachments.Files() instead")]
         [Browsable(false)]
         public virtual IEnumerable<XstAttachment> AttachmentsFiles => Attachments.Files();
-        
+
         /// <summary>
         /// The Visible Files Attached to the Message
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.VisibleFiles() instead")]
         [Browsable(false)]
         public virtual IEnumerable<XstAttachment> AttachmentsVisibleFiles => Attachments.VisibleFiles();
-        
+
         /// <summary>
         /// Indicates if the Message has Attachments
         /// </summary>
@@ -314,21 +325,21 @@ namespace XstReader
         [Category("General")]
         [Description(@"Indicates if the Message has Attachments")]
         public virtual bool HasAttachments => Flags?.HasFlag(MessageFlags.mfHasAttach) ?? false;
-        
+
         /// <summary>
         /// Indicates if the Message may have Attachments inline, incrusted in the body
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.Inlines().Any() instead")]
         [Browsable(false)]
         public virtual bool MayHaveAttachmentsInline => Attachments.Inlines().Any();
-        
+
         /// <summary>
         /// Indicates if the Message has any File attached
         /// </summary>
         [Obsolete("This property is Obsolete. Use Attachments.Files().Any() instead")]
         [Browsable(false)]
         public virtual bool HasAttachmentsFiles => Attachments.Files().Any();
-        
+
         /// <summary>
         /// Indicates if the Message has any Visible File attached
         /// </summary>

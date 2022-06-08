@@ -1,9 +1,7 @@
 ﻿using Krypton.Docking;
-using Krypton.Navigator;
 using Krypton.Toolkit;
 using System.Data;
 using XstReader.App.Controls;
-using XstReader.App.Controls.Helpers;
 
 namespace XstReader.App
 {
@@ -54,6 +52,7 @@ namespace XstReader.App
             ExportAsmsgToolStripMenuItem.Enabled = value != null && value is XstMessage;
             InfoControl.SetDataSource(value);
             PropertiesControl.SetDataSource(value);
+
             _CurrentXstElement = value;
         }
 
@@ -77,11 +76,6 @@ namespace XstReader.App
 
             MessageViewControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
             MessageViewControl.GotFocus += (s, e) => CurrentXstElement = MessageViewControl.GetSelectedItem();
-            //RecipientListControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
-            //RecipientListControl.GotFocus += (s, e) => CurrentXstElement = RecipientListControl.GetSelectedItem();
-
-            //AttachmentListControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
-            //AttachmentListControl.GotFocus += (s, e) => CurrentXstElement = AttachmentListControl.GetSelectedItem();
 
             Reset();
         }

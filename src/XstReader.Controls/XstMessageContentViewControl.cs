@@ -7,7 +7,7 @@ namespace XstReader.App.Controls
                                                         IXstDataSourcedControl<XstMessage>,
                                                         IXstElementDoubleClickable<XstElement>
     {
-        private XstRecipientListControl RecipientListControl { get; } = new XstRecipientListControl() { Name = "Recipients List" };
+        private XstRecipientListControl RecipientListControl { get; } = new     XstRecipientListControl() { Name = "Recipients List" };
         private XstAttachmentListControl AttachmentListControl { get; } = new XstAttachmentListControl() { Name = "Attachments List" };
 
 

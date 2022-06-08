@@ -1,4 +1,5 @@
-﻿using XstReader.App.Common;
+﻿using BrightIdeasSoftware;
+using XstReader.App.Common;
 
 namespace XstReader.App.Controls
 {
@@ -12,35 +13,29 @@ namespace XstReader.App.Controls
             Initialize();
         }
 
-        public int GetGridWidth()
-        {
-            foreach (var ctrl in DataGridView.Controls)
-                if (ctrl is HScrollBar scrollBar)
-                    if (scrollBar.Visible) return scrollBar.Maximum; else break;
-
-            int gridWidth = 0;
-            for (int i = 0; i < DataGridView.ColumnCount; i++)
-                gridWidth += DataGridView.Columns[i].Width;
-
-            return gridWidth;
-        }
-
-        private int? _CurrentRowIndex = null;
         private void Initialize()
         {
             if (DesignMode) return;
 
-            DataGridView.CellEnter += (s, e) =>
+            ObjectListView.Columns.Add(new OLVColumn("Subject", nameof(XstMessage.Subject)) { WordWrap = true, FillsFreeSpace = true });
+            ObjectListView.Columns.Add(new OLVColumn("From", nameof(XstMessage.From)) { Width = 150 });
+            ObjectListView.Columns.Add(new OLVColumn("To", nameof(XstMessage.To)) { Width = 150 });
+            ObjectListView.Columns.Add(new OLVColumn("Date", nameof(XstMessage.Date)) { Width = 150 });
+
+            ObjectListView.FormatRow += (s, e) =>
             {
-                if (e.RowIndex != _CurrentRowIndex)
+                if (e.Item.RowObject is XstMessage message)
                 {
-                    _CurrentRowIndex = e.RowIndex;
-                    RaiseSelectedItemChanged();
+                    if (!message.IsRead)
+                    {
+                        e.Item.Font = new Font(Font, FontStyle.Bold);
+                        e.Item.ForeColor = Color.Blue;
+                    }
                 }
             };
-            DataGridView.Sorted += (s, e) => RaiseSelectedItemChanged();
-            DataGridView.GotFocus += (s, e) => OnGotFocus(e);
-            DataGridView.StretchLastColumn();
+
+            ObjectListView.ItemSelectionChanged += (s, e) => RaiseSelectedItemChanged();
+
             SetDataSource(null);
         }
 
@@ -51,32 +46,16 @@ namespace XstReader.App.Controls
         public IEnumerable<XstMessage>? GetDataSource()
             => _DataSource;
 
-        private Func<XstMessage, bool>? _CurrentFilter = null;
-        public void ApplyFilter(Func<XstMessage, bool>? filter)
-        {
-            _CurrentFilter = filter;
-            DataGridView.DataSource = (_CurrentFilter == null) ? _DataSource?.ToList() : _DataSource?.Where(_CurrentFilter).ToList();
-            RaiseSelectedItemChanged();
-        }
         public void SetDataSource(IEnumerable<XstMessage>? dataSource)
         {
             _DataSource = dataSource;
-            DataGridView.DataSource = dataSource?.ToList();
-            RaiseSelectedItemChanged();
-        }
-        public void SetDataSource(IEnumerable<XstMessage>? dataSource, Func<XstMessage, bool>? filter)
-        {
-            _DataSource = dataSource;
-            _CurrentFilter = filter;
-            DataGridView.DataSource = (_CurrentFilter == null) ? _DataSource?.ToList() : _DataSource?.Where(_CurrentFilter).ToList();
+            ObjectListView.Objects = dataSource;
             RaiseSelectedItemChanged();
         }
 
         public XstMessage? GetSelectedItem()
         {
-            if (_CurrentRowIndex == null) return null;
-            if (_CurrentRowIndex.Value >= DataGridView.Rows.Count) return null;
-            return DataGridView.Rows[_CurrentRowIndex.Value].DataBoundItem as XstMessage;
+            return ObjectListView.SelectedItem?.RowObject as XstMessage;
         }
         public void SetSelectedItem(XstMessage? item)
         { }
@@ -86,6 +65,5 @@ namespace XstReader.App.Controls
             GetSelectedItem()?.ClearContents();
             SetDataSource(null);
         }
-
     }
 }

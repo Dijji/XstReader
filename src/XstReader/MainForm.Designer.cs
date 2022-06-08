@@ -49,7 +49,7 @@
             // 
             // KryptonManager
             // 
-            this.KryptonManager.GlobalPaletteMode = Krypton.Toolkit.PaletteModeManager.Office2010Silver;
+            this.KryptonManager.GlobalPaletteMode = Krypton.Toolkit.PaletteModeManager.Office365Silver;
             // 
             // KryptonMainPanel
             // 

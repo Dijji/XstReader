@@ -28,108 +28,125 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.DataGridView = new XstReader.App.Controls.XstDataGridView();
-            this.LongFileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.LastModificationTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.xstAttachmentBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.xstAttachmentBindingSource)).BeginInit();
+            this.ObjectListView = new BrightIdeasSoftware.ObjectListView();
+            this.KryptonToolStrip = new Krypton.Toolkit.KryptonToolStrip();
+            this.SaveToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.SaveAllToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.OpenInAppToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.SaveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.FolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.OpenWithToolStripMenuItem = new System.Windows.Forms.ToolStripButton();
+            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView)).BeginInit();
+            this.KryptonToolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
-            // DataGridView
+            // ObjectListView
             // 
-            this.DataGridView.AllowUserToAddRows = false;
-            this.DataGridView.AllowUserToDeleteRows = false;
-            this.DataGridView.AllowUserToOrderColumns = true;
-            this.DataGridView.AutoGenerateColumns = false;
-            this.DataGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCellsExceptHeader;
-            this.DataGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
-            this.DataGridView.BackgroundColor = System.Drawing.SystemColors.Window;
-            this.DataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.DataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.LongFileName,
-            this.sizeDataGridViewTextBoxColumn,
-            this.typeDataGridViewTextBoxColumn,
-            this.LastModificationTime});
-            this.DataGridView.DataSource = this.xstAttachmentBindingSource;
-            this.DataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DataGridView.Location = new System.Drawing.Point(0, 0);
-            this.DataGridView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.DataGridView.MultiSelect = false;
-            this.DataGridView.Name = "DataGridView";
-            this.DataGridView.ReadOnly = true;
-            this.DataGridView.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.DataGridView.RowHeadersVisible = false;
-            this.DataGridView.RowHeadersWidth = 51;
-            this.DataGridView.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.DataGridView.RowTemplate.Height = 20;
-            this.DataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.DataGridView.Size = new System.Drawing.Size(500, 100);
-            this.DataGridView.TabIndex = 2;
+            this.ObjectListView.AllowColumnReorder = true;
+            this.ObjectListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ObjectListView.EmptyListMsg = "";
+            this.ObjectListView.FullRowSelect = true;
+            this.ObjectListView.GridLines = true;
+            this.ObjectListView.IncludeColumnHeadersInCopy = true;
+            this.ObjectListView.Location = new System.Drawing.Point(0, 27);
+            this.ObjectListView.MultiSelect = false;
+            this.ObjectListView.Name = "ObjectListView";
+            this.ObjectListView.ShowGroups = false;
+            this.ObjectListView.ShowItemToolTips = true;
+            this.ObjectListView.Size = new System.Drawing.Size(507, 191);
+            this.ObjectListView.TabIndex = 1;
+            this.ObjectListView.UseFilterIndicator = true;
+            this.ObjectListView.UseFiltering = true;
+            this.ObjectListView.View = System.Windows.Forms.View.Details;
             // 
-            // LongFileName
+            // KryptonToolStrip
             // 
-            this.LongFileName.DataPropertyName = "LongFileName";
-            this.LongFileName.HeaderText = "LongFileName";
-            this.LongFileName.MinimumWidth = 150;
-            this.LongFileName.Name = "LongFileName";
-            this.LongFileName.ReadOnly = true;
-            this.LongFileName.Width = 150;
+            this.KryptonToolStrip.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.KryptonToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.KryptonToolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.KryptonToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.SaveToolStripButton,
+            this.SaveAllToolStripButton,
+            this.toolStripSeparator1,
+            this.OpenInAppToolStripButton,
+            this.OpenWithToolStripMenuItem});
+            this.KryptonToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.KryptonToolStrip.Name = "KryptonToolStrip";
+            this.KryptonToolStrip.Size = new System.Drawing.Size(507, 27);
+            this.KryptonToolStrip.TabIndex = 2;
+            this.KryptonToolStrip.Text = "AttachmentsToolStrip";
             // 
-            // sizeDataGridViewTextBoxColumn
+            // SaveToolStripButton
             // 
-            this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
-            this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
-            this.sizeDataGridViewTextBoxColumn.MinimumWidth = 100;
-            this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
-            this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
+            this.SaveToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.SaveToolStripButton.Image = global::XstReader.App.Controls.Properties.Resources.content_save;
+            this.SaveToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.SaveToolStripButton.Name = "SaveToolStripButton";
+            this.SaveToolStripButton.Size = new System.Drawing.Size(24, 24);
+            this.SaveToolStripButton.Text = "Save as..";
+            this.SaveToolStripButton.ToolTipText = "Save selected Attachment as...";
             // 
-            // typeDataGridViewTextBoxColumn
+            // SaveAllToolStripButton
             // 
-            this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
-            this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
-            this.typeDataGridViewTextBoxColumn.MinimumWidth = 100;
-            this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
-            this.typeDataGridViewTextBoxColumn.ReadOnly = true;
+            this.SaveAllToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.SaveAllToolStripButton.Image = global::XstReader.App.Controls.Properties.Resources.content_save_all;
+            this.SaveAllToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.SaveAllToolStripButton.Name = "SaveAllToolStripButton";
+            this.SaveAllToolStripButton.Size = new System.Drawing.Size(24, 24);
+            this.SaveAllToolStripButton.Text = "Save all";
+            this.SaveAllToolStripButton.ToolTipText = "Save all Attachments";
             // 
-            // LastModificationTime
+            // toolStripSeparator1
             // 
-            this.LastModificationTime.DataPropertyName = "LastModificationTime";
-            this.LastModificationTime.HeaderText = "LastModificationTime";
-            this.LastModificationTime.MinimumWidth = 150;
-            this.LastModificationTime.Name = "LastModificationTime";
-            this.LastModificationTime.ReadOnly = true;
-            this.LastModificationTime.Width = 150;
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
             // 
-            // xstAttachmentBindingSource
+            // OpenInAppToolStripButton
             // 
-            this.xstAttachmentBindingSource.DataSource = typeof(XstReader.XstAttachment);
+            this.OpenInAppToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.OpenInAppToolStripButton.Image = global::XstReader.App.Controls.Properties.Resources.open_in_app;
+            this.OpenInAppToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.OpenInAppToolStripButton.Name = "OpenInAppToolStripButton";
+            this.OpenInAppToolStripButton.Size = new System.Drawing.Size(24, 24);
+            this.OpenInAppToolStripButton.Text = "Open in XstReader";
+            // 
+            // OpenWithToolStripMenuItem
+            // 
+            this.OpenWithToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.OpenWithToolStripMenuItem.Image = global::XstReader.App.Controls.Properties.Resources.open_in_new;
+            this.OpenWithToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.OpenWithToolStripMenuItem.Name = "OpenWithToolStripMenuItem";
+            this.OpenWithToolStripMenuItem.Size = new System.Drawing.Size(24, 24);
+            this.OpenWithToolStripMenuItem.Text = "Open with...";
             // 
             // XstAttachmentListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.DataGridView);
-            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Controls.Add(this.ObjectListView);
+            this.Controls.Add(this.KryptonToolStrip);
             this.MinimumSize = new System.Drawing.Size(300, 100);
             this.Name = "XstAttachmentListControl";
-            this.Size = new System.Drawing.Size(500, 100);
-            ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.xstAttachmentBindingSource)).EndInit();
+            this.Size = new System.Drawing.Size(507, 218);
+            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView)).EndInit();
+            this.KryptonToolStrip.ResumeLayout(false);
+            this.KryptonToolStrip.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
-        private XstDataGridView DataGridView;
-        private BindingSource xstAttachmentBindingSource;
-        private DataGridViewTextBoxColumn LongFileName;
-        private DataGridViewTextBoxColumn sizeDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn typeDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn LastModificationTime;
+        private BrightIdeasSoftware.ObjectListView ObjectListView;
+        private Krypton.Toolkit.KryptonToolStrip KryptonToolStrip;
+        private ToolStripButton SaveToolStripButton;
+        private ToolStripButton SaveAllToolStripButton;
+        private SaveFileDialog SaveFileDialog;
+        private FolderBrowserDialog FolderBrowserDialog;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripButton OpenInAppToolStripButton;
+        private ToolStripButton OpenWithToolStripMenuItem;
     }
 }

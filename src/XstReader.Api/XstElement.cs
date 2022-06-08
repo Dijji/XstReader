@@ -24,10 +24,22 @@ namespace XstReader
         /// <summary>
         /// The Type of the element
         /// </summary>
-        [DisplayName("Type")]
+        [DisplayName("Element Type")]
         [Category(@"General")]
         [Description(@"The internal type of the XstElement")]
         public XstElementType ElementType { get; private set; }
+
+
+        private protected LTP Ltp => XstFile.Ltp;
+        private protected NDB Ndb => XstFile.Ndb;
+        internal NID Nid { get; set; } //Where element data is held
+
+
+        /// <summary>
+        /// The Parents of this Element
+        /// </summary>
+        [Browsable(false)]
+        public abstract XstElement Parent { get; }
 
 
         /// <summary>
@@ -36,10 +48,16 @@ namespace XstReader
         [DisplayName("File")]
         [Category("General")]
         [Description("The Container File")]
-        public abstract XstFile XstFile { get; }
-        private protected LTP Ltp => XstFile.Ltp;
-        private protected NDB Ndb => XstFile.Ndb;
-        internal NID Nid { get; set; } //Where element data is held
+        public virtual XstFile XstFile => (this is XstFile file) ? file: Parent?.XstFile;
+
+        private string _Path = null;
+        /// <summary>
+        /// The Path of this Element
+        /// </summary>
+        [DisplayName("Path")]
+        [Category("General")]
+        [Description(@"The Path of this Element")]
+        public virtual string Path => _Path ?? (_Path = $"{Parent.Path}\\{DisplayName}");
 
 
         private XstPropertySet _Properties = null;
@@ -60,7 +78,7 @@ namespace XstReader
         [DisplayName("Display Name")]
         [Category(@"Mapi Common")]
         [Description(@"Contains the display name of the folder.")]
-        public string DisplayName
+        public virtual string DisplayName
         {
             get => _DisplayName ?? (_DisplayName = Properties[PropertyCanonicalName.PidTagDisplayName]?.ValueAsStringSanitized);
             protected set => _DisplayName = value.SanitizeControlChars();
@@ -114,7 +132,7 @@ namespace XstReader
         /// </summary>
         public void ClearContents()
         {
-            new Thread(()=> { ClearContentsInternal(); GC.Collect(); }).Start();
+            new Thread(() => { ClearContentsInternal(); GC.Collect(); }).Start();
         }
 
         internal virtual void ClearContentsInternal()

@@ -1,4 +1,5 @@
 ﻿
+using Krypton.Toolkit;
 using XstReader.App.Common;
 
 namespace XstReader.App.Controls
@@ -47,20 +48,20 @@ namespace XstReader.App.Controls
 
 
 
-        private Dictionary<string, TreeNode> _DicMapFoldersNodes = new Dictionary<string, TreeNode>();
+        private Dictionary<string, KryptonTreeNode> _DicMapFoldersNodes = new Dictionary<string, KryptonTreeNode>();
 
         private void LoadFolders()
         {
             MainTreeView.Nodes.Clear();
-            _DicMapFoldersNodes = new Dictionary<string, TreeNode>();
+            _DicMapFoldersNodes = new Dictionary<string, KryptonTreeNode>();
             if (_DataSource != null)
                 MainTreeView.SelectedNode = AddFolderToTree(_DataSource.RootFolder, null);
         }
 
-        private TreeNode AddFolderToTree(XstFolder folder, TreeNode? parentNode)
+        private KryptonTreeNode AddFolderToTree(XstFolder folder, KryptonTreeNode? parentNode)
         {
             string name = $"{folder.ToString() ?? "<no_name>"} ({folder.ContentCount}|{folder.ContentUnreadCount})";
-            var node = new TreeNode(name) { Tag = folder };
+            var node = new KryptonTreeNode(name) { Tag = folder };
             _DicMapFoldersNodes[folder.GetId()] = node;
 
             if (parentNode == null) MainTreeView.Nodes.Add(node);

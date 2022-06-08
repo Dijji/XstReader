@@ -37,10 +37,11 @@ namespace XstReader.App.Controls
 
         private void LoadProperties()
         {
-            ElementTypeLabel.Text = _DataSource?.GetType().Name?.Replace("Xst", "");
+            ElementTypeLabel.Text = _DataSource?.ElementType.ToString();
             ElementNameLabel.Text = _DataSource?.ToString();
 
-            PropertyGridInfo.SelectedObject = _DataSource;
+            try { PropertyGridInfo.SelectedObject = _DataSource; }
+            catch { }
         }
 
         public void ClearContents()

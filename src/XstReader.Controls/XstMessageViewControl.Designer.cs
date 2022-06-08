@@ -34,7 +34,6 @@
             // 
             // MainKryptonNavigator
             // 
-            this.MainKryptonNavigator.Button.CloseButtonDisplay = Krypton.Navigator.ButtonDisplay.Hide;
             this.MainKryptonNavigator.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainKryptonNavigator.Location = new System.Drawing.Point(0, 0);
             this.MainKryptonNavigator.Name = "MainKryptonNavigator";

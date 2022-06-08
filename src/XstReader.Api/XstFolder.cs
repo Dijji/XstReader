@@ -69,14 +69,33 @@ namespace XstReader
         [Browsable(false)]
         public bool HasSubFolders => Folders.Any();
 
-        private string _Path = null;
+
         /// <summary>
-        /// The Path of this Folder
+        /// The Parents of this Folder
         /// </summary>
-        [DisplayName("Path")]
-        [Category("General")]
-        [Description(@"The Path of this Folder")]
-        public string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.DisplayName) ? DisplayName : $"{ParentFolder.Path}\\{DisplayName}");
+        [Browsable(false)]
+        public override XstElement Parent => (XstElement)ParentFolder ?? XstFile;
+
+        /// <summary>
+        /// The Name of the Element
+        /// </summary>
+        [DisplayName("Display Name")]
+        [Category(@"Mapi Common")]
+        [Description(@"Contains the display name of the folder.")]
+        public override string DisplayName
+        {
+            get => string.IsNullOrEmpty(base.DisplayName) ? "Root" : base.DisplayName;
+            protected set => base.DisplayName = value;
+        }
+
+        //private string _Path = null;
+        ///// <summary>
+        ///// The Path of this Folder
+        ///// </summary>
+        //[DisplayName("Path")]
+        //[Category("General")]
+        //[Description(@"The Path of this Folder")]
+        //public override string Path => _Path ?? (_Path = string.IsNullOrEmpty(ParentFolder?.DisplayName) ? DisplayName : $"{ParentFolder.Path}\\{DisplayName}");
 
         private IEnumerable<XstMessage> _Messages = null;
         /// <summary>
