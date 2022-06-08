@@ -18,7 +18,8 @@ namespace XstReader.App
                 return value.ToLowerInvariant().StartsWith("image/") ||
                        value.ToLowerInvariant().StartsWith("audio/") ||
                        value.ToLowerInvariant().StartsWith("video/") ||
-                       value.ToLowerInvariant() == "application/pdf" ;
+                       value.ToLowerInvariant().StartsWith("text/") ||
+                       value.ToLowerInvariant() == "application/pdf";
             }
 
             var extension = Path.GetExtension(attachment.LongFileName).ToLowerInvariant().Replace(".", "");

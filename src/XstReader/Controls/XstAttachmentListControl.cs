@@ -37,7 +37,7 @@ namespace XstReader.App.Controls
             ObjectListView.DoubleClick += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
 
             SaveToolStripButton.Click += (s, e) => SaveAttachment(GetSelectedItem());
-            SaveAllToolStripButton.Click += (s, e) => SaveAllAttachments(_DataSource);
+            SaveAllToolStripButton.Click += (s, e) => SaveAllAttachments(_FilterdDataSource);
             OpenInAppToolStripButton.Click += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
             OpenWithToolStripMenuItem.Click += (s, e) => OpenWith(GetSelectedItem());
 
@@ -66,6 +66,7 @@ namespace XstReader.App.Controls
 
 
         private IEnumerable<XstAttachment>? _DataSource;
+        private IEnumerable<XstAttachment>? _FilterdDataSource;
         public IEnumerable<XstAttachment>? GetDataSource()
             => _DataSource;
 
@@ -81,9 +82,9 @@ namespace XstReader.App.Controls
 
         private void RefreshFilters()
         {
-            var elems = _DataSource?.Where(a => ShowHidden || !a.IsHidden);
-            ObjectListView.Objects = elems;
-            SaveAllToolStripButton.Enabled = elems?.Any() ?? false;
+            _FilterdDataSource = _DataSource?.Where(a => ShowHidden || !a.IsHidden);
+            ObjectListView.Objects = _FilterdDataSource;
+            SaveAllToolStripButton.Enabled = _FilterdDataSource?.Any() ?? false;
 
             RaiseSelectedItemChanged();
         }

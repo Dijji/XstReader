@@ -84,7 +84,7 @@
             // SaveToolStripButton
             // 
             this.SaveToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.SaveToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save;
+            this.SaveToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save_outline;
             this.SaveToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.SaveToolStripButton.Name = "SaveToolStripButton";
             this.SaveToolStripButton.Size = new System.Drawing.Size(24, 24);
@@ -94,7 +94,7 @@
             // SaveAllToolStripButton
             // 
             this.SaveAllToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.SaveAllToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save_all;
+            this.SaveAllToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save_all_outline;
             this.SaveAllToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.SaveAllToolStripButton.Name = "SaveAllToolStripButton";
             this.SaveAllToolStripButton.Size = new System.Drawing.Size(24, 24);
