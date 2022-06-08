@@ -28,12 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.KryptonDockingManager = new Krypton.Docking.KryptonDockingManager();
-            this.KryptonManager = new Krypton.Toolkit.KryptonManager(this.components);
             this.KryptonMainPanel = new Krypton.Toolkit.KryptonPanel();
             this.KryptonMessagePanel = new Krypton.Toolkit.KryptonPanel();
-            this.KryptonContextMenu = new Krypton.Toolkit.KryptonContextMenu();
             this.MainMenuSrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -46,10 +43,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.KryptonMessagePanel)).BeginInit();
             this.MainMenuSrip.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // KryptonManager
-            // 
-            this.KryptonManager.GlobalPaletteMode = Krypton.Toolkit.PaletteModeManager.Office365Silver;
             // 
             // KryptonMainPanel
             // 
@@ -145,9 +138,7 @@
 
         #endregion
         private Krypton.Docking.KryptonDockingManager KryptonDockingManager;
-        private Krypton.Toolkit.KryptonManager KryptonManager;
         private Krypton.Toolkit.KryptonPanel KryptonMainPanel;
-        private Krypton.Toolkit.KryptonContextMenu KryptonContextMenu;
         private MenuStrip MainMenuSrip;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem OpenToolStripMenuItem;

@@ -1,6 +1,7 @@
-﻿using XstReader.ElementProperties;
+﻿using XstReader.App.Controls;
+using XstReader.ElementProperties;
 
-namespace XstReader.App.Controls
+namespace XstReader.App
 {
     public static class XstPropertySetExtensions
     {

@@ -34,9 +34,11 @@
             this.SaveAllToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.OpenInAppToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.OpenWithToolStripMenuItem = new System.Windows.Forms.ToolStripButton();
+            this.ShowHiddenToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.SaveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.FolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.OpenWithToolStripMenuItem = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.ObjectListView)).BeginInit();
             this.KryptonToolStrip.SuspendLayout();
             this.SuspendLayout();
@@ -70,7 +72,9 @@
             this.SaveAllToolStripButton,
             this.toolStripSeparator1,
             this.OpenInAppToolStripButton,
-            this.OpenWithToolStripMenuItem});
+            this.OpenWithToolStripMenuItem,
+            this.ShowHiddenToolStripButton,
+            this.toolStripSeparator2});
             this.KryptonToolStrip.Location = new System.Drawing.Point(0, 0);
             this.KryptonToolStrip.Name = "KryptonToolStrip";
             this.KryptonToolStrip.Size = new System.Drawing.Size(507, 27);
@@ -80,7 +84,7 @@
             // SaveToolStripButton
             // 
             this.SaveToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.SaveToolStripButton.Image = global::XstReader.App.Controls.Properties.Resources.content_save;
+            this.SaveToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save;
             this.SaveToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.SaveToolStripButton.Name = "SaveToolStripButton";
             this.SaveToolStripButton.Size = new System.Drawing.Size(24, 24);
@@ -90,7 +94,7 @@
             // SaveAllToolStripButton
             // 
             this.SaveAllToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.SaveAllToolStripButton.Image = global::XstReader.App.Controls.Properties.Resources.content_save_all;
+            this.SaveAllToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save_all;
             this.SaveAllToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.SaveAllToolStripButton.Name = "SaveAllToolStripButton";
             this.SaveAllToolStripButton.Size = new System.Drawing.Size(24, 24);
@@ -105,7 +109,7 @@
             // OpenInAppToolStripButton
             // 
             this.OpenInAppToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.OpenInAppToolStripButton.Image = global::XstReader.App.Controls.Properties.Resources.open_in_app;
+            this.OpenInAppToolStripButton.Image = global::XstReader.App.Properties.Resources.open_in_app;
             this.OpenInAppToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.OpenInAppToolStripButton.Name = "OpenInAppToolStripButton";
             this.OpenInAppToolStripButton.Size = new System.Drawing.Size(24, 24);
@@ -114,11 +118,30 @@
             // OpenWithToolStripMenuItem
             // 
             this.OpenWithToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.OpenWithToolStripMenuItem.Image = global::XstReader.App.Controls.Properties.Resources.open_in_new;
+            this.OpenWithToolStripMenuItem.Image = global::XstReader.App.Properties.Resources.open_in_new;
             this.OpenWithToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.OpenWithToolStripMenuItem.Name = "OpenWithToolStripMenuItem";
             this.OpenWithToolStripMenuItem.Size = new System.Drawing.Size(24, 24);
             this.OpenWithToolStripMenuItem.Text = "Open with...";
+            // 
+            // ShowHiddenToolStripButton
+            // 
+            this.ShowHiddenToolStripButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.ShowHiddenToolStripButton.Checked = true;
+            this.ShowHiddenToolStripButton.CheckOnClick = true;
+            this.ShowHiddenToolStripButton.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ShowHiddenToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ShowHiddenToolStripButton.Image = global::XstReader.App.Properties.Resources.file_hidden;
+            this.ShowHiddenToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ShowHiddenToolStripButton.Name = "ShowHiddenToolStripButton";
+            this.ShowHiddenToolStripButton.Size = new System.Drawing.Size(24, 24);
+            this.ShowHiddenToolStripButton.Text = "Show hidden";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 27);
             // 
             // XstAttachmentListControl
             // 
@@ -148,5 +171,7 @@
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripButton OpenInAppToolStripButton;
         private ToolStripButton OpenWithToolStripMenuItem;
+        private ToolStripButton ShowHiddenToolStripButton;
+        private ToolStripSeparator toolStripSeparator2;
     }
 }

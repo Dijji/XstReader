@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using XstReader.App.Controls.Helpers;
+using XstReader.App.Helpers;
 
-namespace XstReader.App.Controls
+namespace XstReader.App
 {
     public static class KryptonDockingManagerExtensions
     {

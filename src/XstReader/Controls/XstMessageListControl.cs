@@ -1,4 +1,5 @@
 ﻿using BrightIdeasSoftware;
+using Krypton.Toolkit;
 using XstReader.App.Common;
 
 namespace XstReader.App.Controls
@@ -38,6 +39,15 @@ namespace XstReader.App.Controls
 
             SetDataSource(null);
         }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            ObjectListView.BackColor = this.BackColor;
+            ObjectListView.Font = this.Font;
+            ObjectListView.ForeColor = this.ForeColor;
+        }
+
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
         private void RaiseSelectedItemChanged() => SelectedItemChanged?.Invoke(this, new XstElementEventArgs(GetSelectedItem()));

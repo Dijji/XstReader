@@ -22,6 +22,13 @@ namespace XstReader.App.Controls
             MainTreeView.GotFocus += (s, e) => OnGotFocus(e);
             SetDataSource(null);
         }
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            MainTreeView.BackColor = this.BackColor;
+            MainTreeView.Font = this.Font;
+            MainTreeView.ForeColor = this.ForeColor;
+        }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
         private void RaiseSelectedItemChanged() => SelectedItemChanged?.Invoke(this, new XstElementEventArgs(GetSelectedItem()));

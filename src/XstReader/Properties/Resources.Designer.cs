@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace XstReader.App.Controls.Properties {
+namespace XstReader.App.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace XstReader.App.Controls.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("XstReader.App.Controls.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("XstReader.App.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -65,7 +65,7 @@ namespace XstReader.App.Controls.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap content_save {
             get {
-                object obj = ResourceManager.GetObject("content_save", resourceCulture);
+                object obj = ResourceManager.GetObject("content-save", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -75,7 +75,67 @@ namespace XstReader.App.Controls.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap content_save_all {
             get {
-                object obj = ResourceManager.GetObject("content_save_all", resourceCulture);
+                object obj = ResourceManager.GetObject("content-save-all", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap download {
+            get {
+                object obj = ResourceManager.GetObject("download", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap email {
+            get {
+                object obj = ResourceManager.GetObject("email", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap email_outline {
+            get {
+                object obj = ResourceManager.GetObject("email_outline", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap file {
+            get {
+                object obj = ResourceManager.GetObject("file", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap file_hidden {
+            get {
+                object obj = ResourceManager.GetObject("file_hidden", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap link {
+            get {
+                object obj = ResourceManager.GetObject("link", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -85,7 +145,7 @@ namespace XstReader.App.Controls.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap open_in_app {
             get {
-                object obj = ResourceManager.GetObject("open_in_app", resourceCulture);
+                object obj = ResourceManager.GetObject("open-in-app", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -95,7 +155,17 @@ namespace XstReader.App.Controls.Properties {
         /// </summary>
         internal static System.Drawing.Bitmap open_in_new {
             get {
-                object obj = ResourceManager.GetObject("open_in_new", resourceCulture);
+                object obj = ResourceManager.GetObject("open-in-new", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap paperclip {
+            get {
+                object obj = ResourceManager.GetObject("paperclip", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

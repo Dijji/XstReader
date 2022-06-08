@@ -9,6 +9,8 @@ namespace XstReader.App.Controls
                                                     IXstDataSourcedControl<IEnumerable<XstAttachment>>,
                                                     IXstElementDoubleClickable<XstAttachment>
     {
+        private static bool ShowHidden { get; set; } = true;
+
         public XstAttachmentListControl()
         {
             InitializeComponent();
@@ -24,6 +26,13 @@ namespace XstReader.App.Controls
             ObjectListView.Columns.Add(new OLVColumn("Type", nameof(XstAttachment.Type)) { Width = 100, Groupable = true });
             ObjectListView.Columns.Add(new OLVColumn("Last modification", nameof(XstAttachment.LastModificationTime)) { Width = 100 });
 
+            ShowHiddenToolStripButton.Checked = ShowHidden;
+            ShowHiddenToolStripButton.CheckedChanged += (s, e) =>
+            {
+                ShowHidden = ShowHiddenToolStripButton.Checked;
+                RefreshFilters();
+            };
+
             ObjectListView.ItemSelectionChanged += (s, e) => RaiseSelectedItemChanged();
             ObjectListView.DoubleClick += (s, e) => RaiseDoubleClickItem(GetSelectedItem());
 
@@ -33,6 +42,14 @@ namespace XstReader.App.Controls
             OpenWithToolStripMenuItem.Click += (s, e) => OpenWith(GetSelectedItem());
 
             SetDataSource(null);
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            ObjectListView.BackColor = this.BackColor;
+            ObjectListView.Font = this.Font;
+            ObjectListView.ForeColor = this.ForeColor;
         }
 
         public event EventHandler<XstElementEventArgs>? SelectedItemChanged;
@@ -55,12 +72,19 @@ namespace XstReader.App.Controls
         public void SetDataSource(IEnumerable<XstAttachment>? dataSource)
         {
             SaveToolStripButton.Enabled = false;
-            SaveAllToolStripButton.Enabled = dataSource?.Any() ?? false;
             OpenInAppToolStripButton.Enabled = false;
             OpenWithToolStripMenuItem.Enabled = false;
 
             _DataSource = dataSource;
-            ObjectListView.Objects = dataSource;
+            RefreshFilters();
+        }
+
+        private void RefreshFilters()
+        {
+            var elems = _DataSource?.Where(a => ShowHidden || !a.IsHidden);
+            ObjectListView.Objects = elems;
+            SaveAllToolStripButton.Enabled = elems?.Any() ?? false;
+
             RaiseSelectedItemChanged();
         }
 

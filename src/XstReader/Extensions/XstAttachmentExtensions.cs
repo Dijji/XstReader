@@ -1,6 +1,6 @@
 ﻿using XstReader.ElementProperties;
 
-namespace XstReader.App.Controls
+namespace XstReader.App
 {
     public static class XstAttachmentExtensions
     {

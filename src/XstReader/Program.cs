@@ -11,6 +11,7 @@ namespace XstReader.App
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+            Krypton.Toolkit.PaletteTools.ApplyTheme(new Krypton.Toolkit.KryptonManager(), Krypton.Toolkit.PaletteModeManager.Office365Silver);
             Application.Run(new MainForm());
         }
     }
