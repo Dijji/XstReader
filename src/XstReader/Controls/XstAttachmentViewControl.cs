@@ -44,15 +44,16 @@ namespace XstReader.App.Controls
 
             try
             {
+                string fileName = _DataSource?.SaveToTempFile() ?? "";
                 if (!IsCoreViewInitialized)
-                    ToDoWhenInitialized.Add(() => WebView2.Source = new Uri(_DataSource?.SaveToTempFile() ?? ""));
+                    ToDoWhenInitialized.Add(() => WebView2.Source = new Uri(fileName));
                 else
-                    WebView2.Source = new Uri(_DataSource?.SaveToTempFile() ?? "");
+                    WebView2.Source = new Uri(fileName);
             }
             catch (Exception ex)
             {
-                WebView2?.NavigateToString(ex.Message);
-                //MessageBox.Show(ex.Message, "Error showing message");
+                //WebView2?.NavigateToString(ex.Message);
+                MessageBox.Show(ex.Message, "Error showing message");
             }
         }
 

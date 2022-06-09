@@ -7,7 +7,7 @@ namespace XstReader.App.Controls
                                                         IXstDataSourcedControl<XstMessage>,
                                                         IXstElementDoubleClickable<XstElement>
     {
-        private XstRecipientListControl RecipientListControl { get; } = new     XstRecipientListControl() { Name = "Recipients List" };
+        private XstRecipientListControl RecipientListControl { get; } = new XstRecipientListControl() { Name = "Recipients List" };
         private XstAttachmentListControl AttachmentListControl { get; } = new XstAttachmentListControl() { Name = "Attachments List" };
 
 
@@ -28,6 +28,9 @@ namespace XstReader.App.Controls
             AttachmentListControl.GotFocus += (s, e) => RaiseSelectedItemChanged();
             AttachmentListControl.DoubleClickItem += (s, e) => RaiseDoubleClickItem(e.Element);
 
+            ExportPdfToolStripButton.Enabled = false;
+            ExportPdfToolStripButton.Click += (s, e) => ExportToPdf();
+
             WebView2.CoreWebView2InitializationCompleted += (s, e) =>
             {
                 if (ToDoWhenInitialized?.Any() ?? false)
@@ -38,6 +41,7 @@ namespace XstReader.App.Controls
             };
             WebView2.EnsureCoreWebView2Async();
         }
+
         private bool IsCoreViewInitialized { get; set; } = false;
         private List<Action> ToDoWhenInitialized { get; set; } = new List<Action>();
 
@@ -70,37 +74,48 @@ namespace XstReader.App.Controls
             CleanTempFile();
             _DataSource = dataSource;
 
+            ExportPdfToolStripButton.Enabled = _DataSource != null;
+
             RecipientListControl.SetDataSource(dataSource?.Recipients.Items);
             AttachmentListControl.SetDataSource(dataSource?.Attachments);
 
-            KryptonRichTextBox.Visible = dataSource?.Body?.Format == XstMessageBodyFormat.Rtf;
-            WebView2.Visible = !KryptonRichTextBox.Visible;
-            if (dataSource?.Body?.Format == XstMessageBodyFormat.Rtf)
-            {
-                KryptonRichTextBox.Rtf = _DataSource?.Body?.Text ?? "";
-            }
-            else
+            var htmlText = _DataSource?.GetHtmlVisualization() ?? "";
+            ExecuteWhenCoreViewInitialized(() =>
             {
                 try
                 {
-                    var text = _DataSource?.Body?.Text ?? "";
-                    if (text.Length < 1500000)
-                        if (!IsCoreViewInitialized)
-                            ToDoWhenInitialized.Add(() => WebView2.NavigateToString(text));
-                        else
-                            WebView2.NavigateToString(text);
+                    if (htmlText.Length < 1500000)
+                        WebView2.NavigateToString(htmlText);
                     else
-                        if (!IsCoreViewInitialized)
-                        ToDoWhenInitialized.Add(() => WebView2.Source = new Uri(SetTempFileContent(text)));
-                    else
-                        WebView2.Source = new Uri(SetTempFileContent(text));
+                        WebView2.Source = new Uri(SetTempFileContent(htmlText));
                 }
                 catch (Exception ex)
                 {
-                    WebView2?.NavigateToString(ex.Message);
-                    //MessageBox.Show(ex.Message, "Error showing message");
+                    MessageBox.Show(ex.Message, "Error showing message");
                 }
-            }
+            });
+        }
+
+        private void ExecuteWhenCoreViewInitialized(Action action)
+        {
+            if (action == null)
+                return;
+
+            if (!IsCoreViewInitialized)
+                ToDoWhenInitialized.Add(action);
+            else
+                action.Invoke();
+        }
+
+        private void ExportToPdf()
+        {
+            if (_DataSource == null)
+                return;
+
+            SaveFileDialog.FileName = _DataSource.DisplayName + ".pdf";
+
+            if (SaveFileDialog.ShowDialog() == DialogResult.OK)
+                WebView2.CoreWebView2.PrintToPdfAsync(SaveFileDialog.FileName);
         }
 
         public XstElement? GetSelectedItem()

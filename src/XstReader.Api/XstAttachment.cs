@@ -47,6 +47,18 @@ namespace XstReader
         internal BTree<Node> SubNodeTreeProperties { get; set; } = null; // Used when handling attachments which are themselves messages
 
         /// <summary>
+        /// The Name of the Element
+        /// </summary>
+        [DisplayName("Display Name")]
+        [Category(@"Mapi Common")]
+        [Description(@"Contains the display name of the folder.")]
+        public override string DisplayName
+        {
+            get => base.DisplayName ?? LongFileName;
+            protected set => base.DisplayName = value;
+        }
+
+        /// <summary>
         /// The FileName of the Attachment
         /// </summary>
         [DisplayName("Attach Filename")]

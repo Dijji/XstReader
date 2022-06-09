@@ -32,10 +32,10 @@ namespace XstReader.App
 
         }
 
-        public static string SaveToTempFile(this XstAttachment attachment)
+        public static string? SaveToTempFile(this XstAttachment attachment)
         {
             if (attachment == null)
-                return "";
+                return null;
 
             var tempFileName = Path.GetTempFileName().Replace(".","") + Path.GetExtension(attachment.FileName);
             attachment?.SaveToFile(tempFileName);
