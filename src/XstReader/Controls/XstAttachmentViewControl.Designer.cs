@@ -28,37 +28,29 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.WebView2 = new Microsoft.Web.WebView2.WinForms.WebView2();
-            ((System.ComponentModel.ISupportInitialize)(this.WebView2)).BeginInit();
+            this.KryptonWebBrowser = new Krypton.Toolkit.KryptonWebBrowser();
             this.SuspendLayout();
             // 
-            // WebView2
+            // KryptonWebBrowser
             // 
-            this.WebView2.AllowExternalDrop = true;
-            this.WebView2.CreationProperties = null;
-            this.WebView2.DefaultBackgroundColor = System.Drawing.Color.White;
-            this.WebView2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.WebView2.Location = new System.Drawing.Point(0, 0);
-            this.WebView2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.WebView2.Name = "WebView2";
-            this.WebView2.Size = new System.Drawing.Size(527, 525);
-            this.WebView2.TabIndex = 2;
-            this.WebView2.ZoomFactor = 1D;
+            this.KryptonWebBrowser.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.KryptonWebBrowser.Location = new System.Drawing.Point(0, 0);
+            this.KryptonWebBrowser.Name = "KryptonWebBrowser";
+            this.KryptonWebBrowser.Size = new System.Drawing.Size(527, 525);
+            this.KryptonWebBrowser.TabIndex = 3;
             // 
             // XstAttachmentViewControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.WebView2);
+            this.Controls.Add(this.KryptonWebBrowser);
             this.Name = "XstAttachmentViewControl";
             this.Size = new System.Drawing.Size(527, 525);
-            ((System.ComponentModel.ISupportInitialize)(this.WebView2)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
-
-        private Microsoft.Web.WebView2.WinForms.WebView2 WebView2;
+        private Krypton.Toolkit.KryptonWebBrowser KryptonWebBrowser;
     }
 }

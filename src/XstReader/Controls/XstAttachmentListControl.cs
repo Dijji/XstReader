@@ -10,7 +10,11 @@ namespace XstReader.App.Controls
                                                     IXstDataSourcedControl<IEnumerable<XstAttachment>>,
                                                     IXstElementDoubleClickable<XstAttachment>
     {
-        internal static bool ShowHidden { get; set; } = false;
+        private static bool ShowHidden
+        {
+            get => XstReaderEnvironment.Options.ShowHiddenAttachments;
+            set => XstReaderEnvironment.Options.ShowHiddenAttachments = value;
+        } 
 
         public XstAttachmentListControl()
         {

@@ -2,6 +2,9 @@
 {
     public static class XstRecipientExtensions
     {
+        public static string GetIdWithType(this XstRecipient recipient)
+            => $"{recipient.RecipientType}_{recipient.GetId()}";
+
         public static string GetId(this XstRecipient recipient)
             => recipient?.Address ?? string.Empty;
 

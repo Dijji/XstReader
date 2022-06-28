@@ -1,0 +1,42 @@
+﻿@using XstReader
+@using XstReader.App.Common
+@using XstReader.ElementProperties
+@using XstReader.Razor.Templates
+
+@model XstMessage
+
+@{
+    XstMessage Message = Model;
+    XstExportOptions Options = RenderOptions.ExportOptions;
+
+    if (!ViewData.ContainsKey("Level"))
+        ViewData.Add("Level", 1);
+
+    int level = (ViewData["Level"] as int?) ?? 0;
+    if (level == 0) level = 1;
+}
+
+@functions
+{
+    ViewDataDictionary GetDictionary(int innerLevel)
+    {
+        var dic = new ViewDataDictionary(ViewData);
+        dic["Level"] = innerLevel;
+        return dic;
+    }
+
+}
+
+<body>
+    @* Message *@
+    @{
+        Html.RenderPartial("XstMessageView_Message", Model, GetDictionary(level));
+    }
+
+    @* Properties *@
+    @{
+        if(Options.ShowDetails && Options.ShowPropertiesDescriptions)
+            Html.RenderPartial("KnownCanonicalNameProperty_ListItems", RenderOptions.UsedProperties.Values, GetDictionary(level));
+    }
+
+</body>

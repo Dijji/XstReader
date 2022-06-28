@@ -9,6 +9,7 @@
 // Copyright (c) 2022, iluvadev, and released under Ms-PL License.
 
 using System;
+using System.ComponentModel;
 using XstReader.ElementProperties;
 
 namespace XstReader
@@ -25,5 +26,13 @@ namespace XstReader
         /// <returns></returns>
         public static Guid? Guid(this PropertySet propertySet)
             => propertySet.GetAttribute<GuidAttribute>()?.Guid;
+
+        /// <summary>
+        /// Returns the Description (if any) of the PropertySet
+        /// </summary>
+        /// <param name="propertySet"></param>
+        /// <returns></returns>
+        public static string Description(this PropertySet propertySet)
+            => propertySet.GetAttribute<DescriptionAttribute>()?.Description;
     }
 }

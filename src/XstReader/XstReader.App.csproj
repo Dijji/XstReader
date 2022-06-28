@@ -13,15 +13,15 @@
     <PackageReference Include="Krypton.Navigator" Version="65.22.6.152" />
     <PackageReference Include="Krypton.Toolkit" Version="65.22.6.152" />
     <PackageReference Include="Krypton.Workspace" Version="65.22.6.152" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1210.39" />
     <PackageReference Include="ObjectListView.Repack.Core3" Version="2.9.2" />
-    <PackageReference Include="RtfPipe" Version="2.0.7677.4303" />
+    <PackageReference Include="Razor.Templating.Core" Version="1.7.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\XstReader.Api\XstReader.Api.csproj" />
     <ProjectReference Include="..\XstReader.Common\XstReader.App.Common.csproj" />
+    <ProjectReference Include="..\XstReader.Razor.Templates\XstReader.Razor.Templates.csproj" />
   </ItemGroup>
 
   <ItemGroup>

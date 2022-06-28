@@ -1,0 +1,20 @@
+﻿@using XstReader
+@using XstReader.App.Common
+@using XstReader.Razor.Templates
+
+@model XstRecipient
+
+@{
+    XstRecipient Recipient = Model;
+    XstExportOptions Options = RenderOptions.ExportOptions;
+
+
+    if(Recipient!=null)
+    {
+        <a href="#@Recipient.GetIdWithType()"> @Recipient.DisplayName</a>
+        if(!string.IsNullOrEmpty(Recipient.Address))
+        {
+            <i>@("<")<a href="mailto:@Recipient.Address">@($"{Recipient.Address}")</a>@(">")</i>
+        }
+    }
+}

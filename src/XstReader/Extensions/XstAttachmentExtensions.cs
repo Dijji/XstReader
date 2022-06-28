@@ -16,8 +16,8 @@ namespace XstReader.App
             if (contentType?.Value is string value && !string.IsNullOrEmpty(value))
             {
                 return value.ToLowerInvariant().StartsWith("image/") ||
-                       value.ToLowerInvariant().StartsWith("audio/") ||
-                       value.ToLowerInvariant().StartsWith("video/") ||
+                       //value.ToLowerInvariant().StartsWith("audio/") ||
+                       //value.ToLowerInvariant().StartsWith("video/") ||
                        value.ToLowerInvariant().StartsWith("text/") ||
                        value.ToLowerInvariant() == "application/pdf";
             }
@@ -42,6 +42,5 @@ namespace XstReader.App
 
             return tempFileName;
         }
-
     }
 }

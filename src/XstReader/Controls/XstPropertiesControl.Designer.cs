@@ -30,14 +30,13 @@
         {
             this.PropertiesSplitContainer = new Krypton.Toolkit.KryptonSplitContainer();
             this.PropertyGridProperties = new Krypton.Toolkit.KryptonPropertyGrid();
-            this.PropDescWebView = new Microsoft.Web.WebView2.WinForms.WebView2();
+            this.PropDescWebView = new Krypton.Toolkit.KryptonWebBrowser();
             this.ElementNameLabel = new Krypton.Toolkit.KryptonLabel();
             this.ElementTypeLabel = new Krypton.Toolkit.KryptonLabel();
             ((System.ComponentModel.ISupportInitialize)(this.PropertiesSplitContainer)).BeginInit();
             this.PropertiesSplitContainer.Panel1.SuspendLayout();
             this.PropertiesSplitContainer.Panel2.SuspendLayout();
             this.PropertiesSplitContainer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PropDescWebView)).BeginInit();
             this.SuspendLayout();
             // 
             // PropertiesSplitContainer
@@ -80,16 +79,12 @@
             // 
             // PropDescWebView
             // 
-            this.PropDescWebView.AllowExternalDrop = true;
-            this.PropDescWebView.CreationProperties = null;
-            this.PropDescWebView.DefaultBackgroundColor = System.Drawing.SystemColors.Control;
             this.PropDescWebView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PropDescWebView.Location = new System.Drawing.Point(0, 0);
             this.PropDescWebView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.PropDescWebView.Name = "PropDescWebView";
             this.PropDescWebView.Size = new System.Drawing.Size(355, 241);
             this.PropDescWebView.TabIndex = 2;
-            this.PropDescWebView.ZoomFactor = 0.8D;
             // 
             // ElementNameLabel
             // 
@@ -125,7 +120,6 @@
             this.PropertiesSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PropertiesSplitContainer)).EndInit();
             this.PropertiesSplitContainer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.PropDescWebView)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -133,7 +127,7 @@
 
         #endregion
         private Krypton.Toolkit.KryptonPropertyGrid PropertyGridProperties;
-        private Microsoft.Web.WebView2.WinForms.WebView2 PropDescWebView;
+        private Krypton.Toolkit.KryptonWebBrowser PropDescWebView;
         private Krypton.Toolkit.KryptonSplitContainer PropertiesSplitContainer;
         private Krypton.Toolkit.KryptonLabel ElementNameLabel;
         private Krypton.Toolkit.KryptonLabel ElementTypeLabel;

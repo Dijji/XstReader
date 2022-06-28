@@ -29,38 +29,24 @@
         private void InitializeComponent()
         {
             this.MainKryptonPanel = new Krypton.Toolkit.KryptonPanel();
-            this.WebView2 = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.KryptonDockingManager = new Krypton.Docking.KryptonDockingManager();
             this.KryptonToolStrip = new Krypton.Toolkit.KryptonToolStrip();
             this.ExportPdfToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.SaveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.KryptonWebBrowser = new Krypton.Toolkit.KryptonWebBrowser();
             ((System.ComponentModel.ISupportInitialize)(this.MainKryptonPanel)).BeginInit();
             this.MainKryptonPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.WebView2)).BeginInit();
             this.KryptonToolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainKryptonPanel
             // 
-            this.MainKryptonPanel.Controls.Add(this.WebView2);
+            this.MainKryptonPanel.Controls.Add(this.KryptonWebBrowser);
             this.MainKryptonPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainKryptonPanel.Location = new System.Drawing.Point(0, 31);
             this.MainKryptonPanel.Name = "MainKryptonPanel";
             this.MainKryptonPanel.Size = new System.Drawing.Size(435, 426);
             this.MainKryptonPanel.TabIndex = 1;
-            // 
-            // WebView2
-            // 
-            this.WebView2.AllowExternalDrop = true;
-            this.WebView2.CreationProperties = null;
-            this.WebView2.DefaultBackgroundColor = System.Drawing.Color.White;
-            this.WebView2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.WebView2.Location = new System.Drawing.Point(0, 0);
-            this.WebView2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.WebView2.Name = "WebView2";
-            this.WebView2.Size = new System.Drawing.Size(435, 426);
-            this.WebView2.TabIndex = 1;
-            this.WebView2.ZoomFactor = 1D;
             // 
             // KryptonToolStrip
             // 
@@ -84,6 +70,14 @@
             this.ExportPdfToolStripButton.Size = new System.Drawing.Size(28, 28);
             this.ExportPdfToolStripButton.Text = "Export to PDF";
             // 
+            // KryptonWebBrowser
+            // 
+            this.KryptonWebBrowser.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.KryptonWebBrowser.Location = new System.Drawing.Point(0, 0);
+            this.KryptonWebBrowser.Name = "KryptonWebBrowser";
+            this.KryptonWebBrowser.Size = new System.Drawing.Size(435, 426);
+            this.KryptonWebBrowser.TabIndex = 3;
+            // 
             // XstMessageContentViewControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -94,7 +88,6 @@
             this.Size = new System.Drawing.Size(435, 457);
             ((System.ComponentModel.ISupportInitialize)(this.MainKryptonPanel)).EndInit();
             this.MainKryptonPanel.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.WebView2)).EndInit();
             this.KryptonToolStrip.ResumeLayout(false);
             this.KryptonToolStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -105,10 +98,10 @@
         #endregion
 
         private Krypton.Toolkit.KryptonPanel MainKryptonPanel;
-        private Microsoft.Web.WebView2.WinForms.WebView2 WebView2;
         private Krypton.Docking.KryptonDockingManager KryptonDockingManager;
         private Krypton.Toolkit.KryptonToolStrip KryptonToolStrip;
         private ToolStripButton ExportPdfToolStripButton;
         private SaveFileDialog SaveFileDialog;
+        private Krypton.Toolkit.KryptonWebBrowser KryptonWebBrowser;
     }
 }

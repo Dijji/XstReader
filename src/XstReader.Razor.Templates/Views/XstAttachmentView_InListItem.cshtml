@@ -1,0 +1,35 @@
+﻿@using XstReader
+@using XstReader.App.Common
+@using XstReader.ElementProperties
+@using XstReader.Razor.Templates
+
+@model XstAttachment
+
+@{
+    XstAttachment Attachment = Model;
+    XstExportOptions Options = RenderOptions.ExportOptions;
+
+    if (Attachment!=null)
+    {
+        <a href="#@Attachment.ContentId"> @(Attachment.DisplayName?? Attachment.FileName)</a>
+        @*
+        if (Options.EmbedAttachmentsInFile)
+        {
+            string contentType = Attachment.Properties[PropertyCanonicalName.PidTagAttachMimeTag]?.Value ?? "application/octet-stream";
+            string href = $"data:{contentType};base64,{Attachment.GetContentAsBase64()}";
+
+            <a href="@href" download="@Attachment.LongFileName">
+                @(Attachment.DisplayName?? Attachment.FileName)
+            </a>
+        }
+        else
+            @(Attachment.DisplayName?? Attachment.FileName)
+        *@
+        if (Attachment.Size > 1000000)
+            @($" ({Attachment.Size / 1000000}Mb)")
+        else if (Attachment.Size > 1000)
+            @($" ({Attachment.Size / 1000}Kb)")
+        else
+            @($" ({Attachment.Size}b)")
+    }
+}

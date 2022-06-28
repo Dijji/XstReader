@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using XstReader.App.Common;
+﻿using XstReader.App.Common;
 
 namespace XstReader.App.Controls
 {
@@ -24,9 +15,10 @@ namespace XstReader.App.Controls
         {
             if (DesignMode) return;
 
-            PropDescWebView.EnsureCoreWebView2Async();
-            PropertyGridProperties.SelectedGridItemChanged += (s, e) 
-                => PropDescWebView.NavigateToString((e.NewSelection.PropertyDescriptor as CustomXstPropertyDescriptor)?.HtmlDescription??"");
+            PropertyGridProperties.SelectedGridItemChanged += (s, e)
+                => PropDescWebView.DocumentText = (e.NewSelection.PropertyDescriptor as CustomXstPropertyDescriptor)?.HtmlDescription ?? "";
+
+            PropDescWebView.DocumentCompleted += (s,e) => PropDescWebView.Document.Body.Style = "zoom:90%";
         }
 
         private XstElement? _DataSource;

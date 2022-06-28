@@ -1,4 +1,5 @@
 ﻿using Krypton.Docking;
+using Razor.Templating.Core;
 using XstReader.App.Common;
 
 namespace XstReader.App.Controls
@@ -30,20 +31,7 @@ namespace XstReader.App.Controls
 
             ExportPdfToolStripButton.Enabled = false;
             ExportPdfToolStripButton.Click += (s, e) => ExportToPdf();
-
-            WebView2.CoreWebView2InitializationCompleted += (s, e) =>
-            {
-                if (ToDoWhenInitialized?.Any() ?? false)
-                    ToDoWhenInitialized.ForEach(a => a?.Invoke());
-                ToDoWhenInitialized?.Clear();
-
-                IsCoreViewInitialized = true;
-            };
-            WebView2.EnsureCoreWebView2Async();
         }
-
-        private bool IsCoreViewInitialized { get; set; } = false;
-        private List<Action> ToDoWhenInitialized { get; set; } = new List<Action>();
 
         protected override void OnLoad(EventArgs e)
         {
@@ -79,43 +67,34 @@ namespace XstReader.App.Controls
             RecipientListControl.SetDataSource(dataSource?.Recipients.Items);
             AttachmentListControl.SetDataSource(dataSource?.Attachments);
 
-            var htmlText = _DataSource?.GetHtmlVisualization() ?? "";
-            ExecuteWhenCoreViewInitialized(() =>
+            //var htmlText = _DataSource?.GetHtmlVisualization() ?? "";
+            var htmlText = _DataSource.RenderAsHtml(true);
+            try
             {
-                try
-                {
-                    if (htmlText.Length < 1500000)
-                        WebView2.NavigateToString(htmlText);
-                    else
-                        WebView2.Source = new Uri(SetTempFileContent(htmlText));
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error showing message");
-                }
-            });
+                if (htmlText.Length < 1500000)
+                    KryptonWebBrowser.DocumentText = htmlText;
+                else
+                    KryptonWebBrowser.Url = new Uri(SetTempFileContent(htmlText));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error showing message");
+            }
         }
 
-        private void ExecuteWhenCoreViewInitialized(Action action)
-        {
-            if (action == null)
-                return;
-
-            if (!IsCoreViewInitialized)
-                ToDoWhenInitialized.Add(action);
-            else
-                action.Invoke();
-        }
 
         private void ExportToPdf()
         {
             if (_DataSource == null)
                 return;
 
-            SaveFileDialog.FileName = _DataSource.DisplayName + ".pdf";
+            SaveFileDialog.FileName = _DataSource.DisplayName + ".html";
 
             if (SaveFileDialog.ShowDialog() == DialogResult.OK)
-                WebView2.CoreWebView2.PrintToPdfAsync(SaveFileDialog.FileName);
+                File.WriteAllText(SaveFileDialog.FileName, _DataSource.RenderAsHtml(false));
+
+            //    WebView2.CoreWebView2.PrintToPdfAsync(SaveFileDialog.FileName);
+            KryptonWebBrowser.ShowPrintPreviewDialog();
         }
 
         public XstElement? GetSelectedItem()
