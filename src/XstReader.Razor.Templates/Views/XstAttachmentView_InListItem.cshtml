@@ -11,20 +11,15 @@
 
     if (Attachment!=null)
     {
-        <a href="#@Attachment.ContentId"> @(Attachment.DisplayName?? Attachment.FileName)</a>
-        @*
-        if (Options.EmbedAttachmentsInFile)
+        if(Options.ShowDetails)
         {
-            string contentType = Attachment.Properties[PropertyCanonicalName.PidTagAttachMimeTag]?.Value ?? "application/octet-stream";
-            string href = $"data:{contentType};base64,{Attachment.GetContentAsBase64()}";
-
-            <a href="@href" download="@Attachment.LongFileName">
-                @(Attachment.DisplayName?? Attachment.FileName)
-            </a>
+            <a href="#@Attachment.ContentId"> @(Attachment.DisplayName?? Attachment.FileName)</a>
         }
         else
+        {
             @(Attachment.DisplayName?? Attachment.FileName)
-        *@
+        }
+
         if (Attachment.Size > 1000000)
             @($" ({Attachment.Size / 1000000}Mb)")
         else if (Attachment.Size > 1000)

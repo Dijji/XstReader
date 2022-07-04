@@ -32,10 +32,16 @@
 
 @* Attachment List *@
 @Html.Raw($"<H{level}>Attachments</H{level}>")
-    @* @Html.Raw($"<H{level}>{recipientType}</H{level + 1}>") *@
 
-@foreach(var attachment in attachments)
+@foreach (var attachment in attachments)
 {
+    string contentType = attachment.Properties[PropertyCanonicalName.PidTagAttachMimeTag]?.Value ?? "application/octet-stream";
+    contentType = contentType.ToLowerInvariant();
+    string href = $"data:{contentType};base64,{attachment.GetContentAsBase64()}";
+    bool isImage = contentType.StartsWith("image/");
+    bool isAudio = contentType.StartsWith("audio/");
+    bool isVideo = contentType.StartsWith("video/");
+    bool isPdf = contentType == "application/pdf";
     <details>
         <summary>
             @if(attachment.IsFile)
@@ -53,20 +59,67 @@
 
             @if(attachment.IsHidden)
                 @Html.Raw(" <i>(Hidden)</i>")
-
-            @if (Options.EmbedAttachmentsInFile)
+        </summary>
+        <a name="@(attachment.ContentId)">
+            @Html.Raw($"<H{level+1}>")
+            @(attachment.DisplayName?? attachment.FileName)
+            @Html.Raw($"</H{level+1}>")
+        </a>
+        <p>
+            <b>Type: </b>
+            @if(attachment.IsFile)
+                @Html.Raw("File")
+            @if(attachment.IsEmail)
+                @Html.Raw("Email")
+            <br>
+            <b>Size: </b>
+            @if (attachment.Size > 1000000)
+                @($" ({attachment.Size / 1000000}Mb)")
+            else if (attachment.Size > 1000)
+                @($" ({attachment.Size / 1000}Kb)")
+            else
+                @($" ({attachment.Size}b)")
+            <br>
+            @if(attachment.IsHidden)
+                @Html.Raw("<i>(Hidden)</i>")
+        </p>
+        @if (Options.EmbedAttachmentsInFile)
+        {
+            @if (isImage)
             {
-                string contentType = attachment.Properties[PropertyCanonicalName.PidTagAttachMimeTag]?.Value ?? "application/octet-stream";
-                string href = $"data:{contentType};base64,{attachment.GetContentAsBase64()}";
-
+                <img src="@href" alt="@attachment.Description"/>
+            }
+            else if (isAudio)
+            {
+                <audio controls src="@href">
+                </audio>
+            }
+            else if (isVideo)
+            {
+                <video controls>
+                    <source type="@contentType" src="@href">
+                </video>
+            }
+            else if (isPdf)
+            {
+                <iframe src="@href" height="70%" width="100%" frameBorder="0" scrolling="no"></iframe>
+            }
+            else if (attachment.IsFile)
+            {
                 <a href="@href" download="@attachment.LongFileName"> Download </a>
             }
-        </summary>
+            else if (attachment.IsEmail)
+            {
+                Html.RenderPartial("XstMessageView_Message", attachment.AttachedEmailMessage, GetDictionary(level));
+            }
+        }
         <p>
-            <a name="@(attachment.ContentId)"></a>
-            @{
-                Html.RenderPartial("XstPropertySetView_Properties", attachment.Properties, GetDictionary(level + 1));
-             }
+            <details>
+                <summary><b>Properties</b></summary>
+                @{
+                    Html.RenderPartial("XstPropertySetView_Properties", attachment.Properties, GetDictionary(level + 1));
+                }
+            </details>
         </p>
     </details>
 }

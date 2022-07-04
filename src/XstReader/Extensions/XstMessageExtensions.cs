@@ -3,6 +3,7 @@ using System.Text;
 using XstReader.App.Common;
 using XstReader.ElementProperties;
 using XstReader.Razor.Templates;
+using XstReader;
 
 namespace XstReader.App
 {
@@ -26,6 +27,9 @@ namespace XstReader.App
                        .GetAwaiter()
                        .GetResult();
         }
+
+        public static string GetFilenameForExport(this XstMessage? message)
+            => message?.DisplayName.ReplaceInvalidFileNameChars("_") ?? "No_Name";
 
     }
 }

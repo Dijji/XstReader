@@ -1,5 +1,4 @@
 ﻿using Krypton.Docking;
-using Razor.Templating.Core;
 using XstReader.App.Common;
 
 namespace XstReader.App.Controls
@@ -29,8 +28,10 @@ namespace XstReader.App.Controls
             AttachmentListControl.GotFocus += (s, e) => RaiseSelectedItemChanged();
             AttachmentListControl.DoubleClickItem += (s, e) => RaiseDoubleClickItem(e.Element);
 
-            ExportPdfToolStripButton.Enabled = false;
-            ExportPdfToolStripButton.Click += (s, e) => ExportToPdf();
+            ExportHtmlToolStripButton.Enabled = false;
+            ExportHtmlToolStripButton.Click += (s, e) => ExportToHtmlFile();
+            PrintToolStripButton.Enabled = false;
+            PrintToolStripButton.Click += (s, e) => Print();
         }
 
         protected override void OnLoad(EventArgs e)
@@ -62,7 +63,8 @@ namespace XstReader.App.Controls
             CleanTempFile();
             _DataSource = dataSource;
 
-            ExportPdfToolStripButton.Enabled = _DataSource != null;
+            ExportHtmlToolStripButton.Enabled = _DataSource != null;
+            PrintToolStripButton.Enabled = _DataSource != null;
 
             RecipientListControl.SetDataSource(dataSource?.Recipients.Items);
             AttachmentListControl.SetDataSource(dataSource?.Attachments);
@@ -82,18 +84,21 @@ namespace XstReader.App.Controls
             }
         }
 
-
-        private void ExportToPdf()
+        private void ExportToHtmlFile()
         {
             if (_DataSource == null)
                 return;
 
-            SaveFileDialog.FileName = _DataSource.DisplayName + ".html";
+            SaveFileDialog.FileName = _DataSource.GetFilenameForExport() + ".html";
 
             if (SaveFileDialog.ShowDialog() == DialogResult.OK)
                 File.WriteAllText(SaveFileDialog.FileName, _DataSource.RenderAsHtml(false));
+        }
 
-            //    WebView2.CoreWebView2.PrintToPdfAsync(SaveFileDialog.FileName);
+        private void Print()
+        {
+            if (_DataSource == null)
+                return;
             KryptonWebBrowser.ShowPrintPreviewDialog();
         }
 

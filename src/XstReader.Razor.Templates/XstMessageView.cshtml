@@ -4,7 +4,6 @@
 @using XstReader.Razor.Templates
 
 @model XstMessage
-
 @{
     XstMessage Message = Model;
     XstExportOptions Options = RenderOptions.ExportOptions;
@@ -26,7 +25,11 @@
     }
 
 }
-
+<style>
+details {
+  padding-left: 1em;
+}
+</style>
 <body>
     @* Message *@
     @{

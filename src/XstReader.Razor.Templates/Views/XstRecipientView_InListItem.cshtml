@@ -11,7 +11,15 @@
 
     if(Recipient!=null)
     {
-        <a href="#@Recipient.GetIdWithType()"> @Recipient.DisplayName</a>
+        if(Options.ShowDetails)
+        {
+            <a href="#@Recipient.GetIdWithType()">@Recipient.DisplayName</a>
+        }
+        else
+        {
+            @Recipient.DisplayName
+        }
+        
         if(!string.IsNullOrEmpty(Recipient.Address))
         {
             <i>@("<")<a href="mailto:@Recipient.Address">@($"{Recipient.Address}")</a>@(">")</i>
