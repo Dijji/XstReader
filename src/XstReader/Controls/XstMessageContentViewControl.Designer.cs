@@ -74,7 +74,7 @@
             // ExportHtmlToolStripButton
             // 
             this.ExportHtmlToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.ExportHtmlToolStripButton.Image = global::XstReader.App.Properties.Resources.file_code;
+            this.ExportHtmlToolStripButton.Image = global::XstReader.App.Properties.Resources.content_save;
             this.ExportHtmlToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.ExportHtmlToolStripButton.Name = "ExportHtmlToolStripButton";
             this.ExportHtmlToolStripButton.Size = new System.Drawing.Size(28, 28);

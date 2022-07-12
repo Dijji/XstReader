@@ -1,4 +1,5 @@
 ﻿using Krypton.Docking;
+using System.Diagnostics;
 using XstReader.App.Common;
 
 namespace XstReader.App.Controls
@@ -84,7 +85,7 @@ namespace XstReader.App.Controls
             }
         }
 
-        private void ExportToHtmlFile()
+        public void ExportToHtmlFile()
         {
             if (_DataSource == null)
                 return;
@@ -93,6 +94,7 @@ namespace XstReader.App.Controls
 
             if (SaveFileDialog.ShowDialog() == DialogResult.OK)
                 File.WriteAllText(SaveFileDialog.FileName, _DataSource.RenderAsHtml(false));
+                
         }
 
         private void Print()

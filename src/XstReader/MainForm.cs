@@ -53,7 +53,16 @@ namespace XstReader.App
             InfoControl.SetDataSource(value);
             PropertiesControl.SetDataSource(value);
 
+            UpdateMenu();
+
             _CurrentXstElement = value;
+        }
+
+        private void UpdateMenu()
+        {
+            ExportFolderToolStripMenuItem.Enabled = FolderTreeControl.GetSelectedItem() != null;
+            ExportMessageToolStripMenuItem.Enabled = MessageViewControl.GetDataSource() != null;
+            ExportAttachmentsToolStripMenuItem.Enabled = MessageViewControl.GetDataSource()?.Attachments?.Any(a => !a.IsHidden) ?? false;
         }
 
         public MainForm()
@@ -77,7 +86,15 @@ namespace XstReader.App
             MessageViewControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
             MessageViewControl.GotFocus += (s, e) => CurrentXstElement = MessageViewControl.GetSelectedItem();
 
+            ConfigExportToolStripMenuItem.Click += (s, e) =>
+            {
+                using (var f = new SettingsForm()) f.ShowDialog();
+            };
+
+            ExportMessageToolStripMenuItem.Click += (s, e) => MessageViewControl.ExportToHtmlFile();
+
             Reset();
+            UpdateMenu();
         }
         private void ExportToMsg()
         {

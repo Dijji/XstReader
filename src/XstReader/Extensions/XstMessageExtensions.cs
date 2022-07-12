@@ -1,9 +1,4 @@
-﻿using Razor.Templating.Core;
-using System.Text;
-using XstReader.App.Common;
-using XstReader.ElementProperties;
-using XstReader.Razor.Templates;
-using XstReader;
+﻿using XstReader.Exporter;
 
 namespace XstReader.App
 {
@@ -11,21 +6,28 @@ namespace XstReader.App
     {
         public static string RenderAsHtml(this XstMessage? message, bool isInApp)
         {
-            if(message == null)
+            if (message == null)
                 return string.Empty;
 
-            RenderOptions.ExportOptions = XstReaderEnvironment.Options.ExportOptions.Clone();
-            if (isInApp)
-            {
-                RenderOptions.ExportOptions.EmbedAttachmentsInFile = false;
-                RenderOptions.ExportOptions.ShowDetails = false;
-            }
+            var exporter = new ExporterHtml();
+            exporter.ExportOptions.EmbedAttachmentsInFile = !isInApp;
+            exporter.ExportOptions.ShowDetails = !isInApp;
 
-            RenderOptions.Initialize();
+            return exporter.Render(message);
 
-            return Task.Run(() => RazorTemplateEngine.RenderAsync("~/XstMessageView.cshtml", message))
-                       .GetAwaiter()
-                       .GetResult();
+
+            //RenderOptions.ExportOptions = XstReaderEnvironment.Options.ExportOptions.Clone();
+            //if (isInApp)
+            //{
+            //    RenderOptions.ExportOptions.EmbedAttachmentsInFile = false;
+            //    RenderOptions.ExportOptions.ShowDetails = false;
+            //}
+
+            //RenderOptions.Initialize();
+
+            //return Task.Run(() => RazorTemplateEngine.RenderAsync("~/XstMessageView.cshtml", message))
+            //           .GetAwaiter()
+            //           .GetResult();
         }
 
         public static string GetFilenameForExport(this XstMessage? message)

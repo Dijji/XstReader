@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XstReader.App.Common;
+using XstReader.Exporter;
 
 namespace XstReader.App
 {
