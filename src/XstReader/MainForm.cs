@@ -2,6 +2,7 @@
 using Krypton.Toolkit;
 using System.Data;
 using XstReader.App.Controls;
+using XstReader.App.Helpers;
 
 namespace XstReader.App
 {
@@ -49,7 +50,7 @@ namespace XstReader.App
             }
 
             MessageToolStripMenuItem.Enabled = value != null && value is XstMessage;
-            ExportAsmsgToolStripMenuItem.Enabled = value != null && value is XstMessage;
+            MessageExportAsmsgToolStripMenuItem.Enabled = value != null && value is XstMessage;
             InfoControl.SetDataSource(value);
             PropertiesControl.SetDataSource(value);
 
@@ -58,11 +59,22 @@ namespace XstReader.App
             _CurrentXstElement = value;
         }
 
+        private XstFile? GetCurrentXstFile() => FolderTreeControl.GetDataSource();
+        private XstFolder? GetCurrentXstFolder() => FolderTreeControl.GetSelectedItem();
+        private XstMessage? GetCurrentXstMessage() => MessageViewControl.GetDataSource();
+        private IEnumerable<XstAttachment>? GetCurrentXstAttachmentsToExport() => GetCurrentXstMessage()?.Attachments?.Where(a => a.IsFile && !a.IsHidden);
+
         private void UpdateMenu()
         {
-            ExportFolderToolStripMenuItem.Enabled = FolderTreeControl.GetSelectedItem() != null;
-            ExportMessageToolStripMenuItem.Enabled = MessageViewControl.GetDataSource() != null;
-            ExportAttachmentsToolStripMenuItem.Enabled = MessageViewControl.GetDataSource()?.Attachments?.Any(a => !a.IsHidden) ?? false;
+            FileExportFoldersToolStripMenuItem.Enabled =
+                FileExportAttachmentsToolStripMenuItem.Enabled =
+                GetCurrentXstFile() != null;
+
+            FolderToolStripMenuItem.Enabled = GetCurrentXstFolder() != null;
+            FolderExportFoldersToolStripMenuItem.Enabled = GetCurrentXstFolder()?.Folders?.Any() ?? false;
+
+            MessageToolStripMenuItem.Enabled = GetCurrentXstMessage() != null;
+            MessageExportAttachmentsToolStripMenuItem.Enabled = GetCurrentXstAttachmentsToExport()?.Any() ?? false;
         }
 
         public MainForm()
@@ -75,7 +87,7 @@ namespace XstReader.App
         {
             OpenToolStripMenuItem.Click += OpenXstFile;
             CloseFileToolStripMenuItem.Click += (s, e) => CloseXstFile();
-            ExportAsmsgToolStripMenuItem.Click += (s, e) => ExportToMsg();
+            MessageExportAsmsgToolStripMenuItem.Click += (s, e) => ExportToMsg();
 
             FolderTreeControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
             FolderTreeControl.GotFocus += (s, e) => CurrentXstElement = FolderTreeControl.GetSelectedItem();
@@ -86,16 +98,76 @@ namespace XstReader.App
             MessageViewControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
             MessageViewControl.GotFocus += (s, e) => CurrentXstElement = MessageViewControl.GetSelectedItem();
 
-            ConfigExportToolStripMenuItem.Click += (s, e) =>
+            ConfigExportToolStripMenuItem.Click += (s, e) => { using (var f = new SettingsForm()) f.ShowDialog(); };
+
+
+            FileExportFoldersToolStripMenuItem.Click += (s, e) =>
             {
-                using (var f = new SettingsForm()) f.ShowDialog();
+                string path = string.Empty;
+                var elem = GetCurrentXstFile();
+                if (elem != null && ExportHelper.AskDirectoryPath(ref path))
+                    DoInWait($"Exporting all Folders and Messages from {elem.FileName}",
+                             () => ExportHelper.ExportFolderToHtmlFiles(elem.RootFolder, path, true));
+            };
+            FileExportAttachmentsToolStripMenuItem.Click += (s, e) =>
+            {
+                string path = string.Empty;
+                var elem = GetCurrentXstFile();
+                if (elem != null && ExportHelper.AskDirectoryPath(ref path))
+                    DoInWait($"Exporting all Attachments from {elem.FileName}",
+                             () => ExportHelper.ExportAttachmentsToDirectory(elem.RootFolder, path, true));
             };
 
-            ExportMessageToolStripMenuItem.Click += (s, e) => MessageViewControl.ExportToHtmlFile();
+            FolderExportFoldersToolStripMenuItem.Click += (s, e) =>
+            {
+                string path = string.Empty;
+                var elem = GetCurrentXstFolder();
+                if (elem != null && ExportHelper.AskDirectoryPath(ref path))
+                    DoInWait($"Exporting all Folders and Messages from folder {elem.Path}",
+                             () => ExportHelper.ExportFolderToHtmlFiles(elem, path, true));
+            };
+            FolderExportMessagesToolStripMenuItem.Click += (s, e) =>
+            {
+                string path = string.Empty;
+                var elem = GetCurrentXstFolder();
+                if (elem != null && ExportHelper.AskDirectoryPath(ref path))
+                    DoInWait($"Exporting all Messages in folder {elem.Path}",
+                             () => ExportHelper.ExportFolderToHtmlFiles(elem, path, false));
+            };
+            FolderExportAttachmentsToolStripMenuItem.Click += (s, e) =>
+            {
+                string path = string.Empty;
+                var elem = GetCurrentXstFolder();
+                if (elem != null && ExportHelper.AskDirectoryPath(ref path))
+                    DoInWait($"Exporting all Attachments from folder {elem.Path}",
+                             () => ExportHelper.ExportAttachmentsToDirectory(elem, path, true));
+            };
+            MessagePrintToolStripMenuItem.Click += (s, e) => MessageViewControl.Print();
+            MessageExportToolStripMenuItem.Click += (s, e) =>
+            {
+                string fileName = GetCurrentXstMessage()?.GetFilenameForExport() ?? "none" + ".html";
+                var elem = GetCurrentXstMessage();
+                if (elem != null && ExportHelper.AskFileName(ref fileName))
+                    DoInWait($"Exporting Message {elem.Path}",
+                             () => ExportHelper.ExportMessageToHtmlFile(elem, fileName));
+            };
+            MessageExportAttachmentsToolStripMenuItem.Click += (s, e) =>
+            {
+                string path = string.Empty;
+                var elem = GetCurrentXstMessage();
+                var elems = GetCurrentXstAttachmentsToExport();
+                if (elem != null && elems != null && ExportHelper.AskDirectoryPath(ref path))
+                    DoInWait($"Exporting Attachments from message {elem.Path}",
+                             () => ExportHelper.ExportAttachmentsToDirectory(elems, path));
+            };
 
             Reset();
             UpdateMenu();
         }
+
+        private void DoInWait(string description, Action action)
+            => WaitingForm.Execute(description, action);
+
         private void ExportToMsg()
         {
             if (CurrentXstElement is XstMessage msg)

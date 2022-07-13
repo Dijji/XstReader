@@ -14,20 +14,6 @@ namespace XstReader.App
             exporter.ExportOptions.ShowDetails = !isInApp;
 
             return exporter.Render(message);
-
-
-            //RenderOptions.ExportOptions = XstReaderEnvironment.Options.ExportOptions.Clone();
-            //if (isInApp)
-            //{
-            //    RenderOptions.ExportOptions.EmbedAttachmentsInFile = false;
-            //    RenderOptions.ExportOptions.ShowDetails = false;
-            //}
-
-            //RenderOptions.Initialize();
-
-            //return Task.Run(() => RazorTemplateEngine.RenderAsync("~/XstMessageView.cshtml", message))
-            //           .GetAwaiter()
-            //           .GetResult();
         }
 
         public static string GetFilenameForExport(this XstMessage? message)

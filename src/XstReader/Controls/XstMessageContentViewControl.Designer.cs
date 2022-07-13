@@ -34,7 +34,6 @@
             this.KryptonToolStrip = new Krypton.Toolkit.KryptonToolStrip();
             this.ExportHtmlToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.PrintToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.SaveFileDialog = new System.Windows.Forms.SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.MainKryptonPanel)).BeginInit();
             this.MainKryptonPanel.SuspendLayout();
             this.KryptonToolStrip.SuspendLayout();
@@ -112,7 +111,6 @@
         private Krypton.Toolkit.KryptonPanel MainKryptonPanel;
         private Krypton.Docking.KryptonDockingManager KryptonDockingManager;
         private Krypton.Toolkit.KryptonToolStrip KryptonToolStrip;
-        private SaveFileDialog SaveFileDialog;
         private Krypton.Toolkit.KryptonWebBrowser KryptonWebBrowser;
         private ToolStripButton ExportHtmlToolStripButton;
         private ToolStripButton PrintToolStripButton;

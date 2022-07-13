@@ -30,7 +30,7 @@ namespace XstReader.App.Controls
             AttachmentListControl.DoubleClickItem += (s, e) => RaiseDoubleClickItem(e.Element);
 
             ExportHtmlToolStripButton.Enabled = false;
-            ExportHtmlToolStripButton.Click += (s, e) => ExportToHtmlFile();
+            ExportHtmlToolStripButton.Click += (s, e) => Helpers.ExportHelper.ExportMessageToHtmlFile(_DataSource, true);
             PrintToolStripButton.Enabled = false;
             PrintToolStripButton.Click += (s, e) => Print();
         }
@@ -85,19 +85,7 @@ namespace XstReader.App.Controls
             }
         }
 
-        public void ExportToHtmlFile()
-        {
-            if (_DataSource == null)
-                return;
-
-            SaveFileDialog.FileName = _DataSource.GetFilenameForExport() + ".html";
-
-            if (SaveFileDialog.ShowDialog() == DialogResult.OK)
-                File.WriteAllText(SaveFileDialog.FileName, _DataSource.RenderAsHtml(false));
-                
-        }
-
-        private void Print()
+        public void Print()
         {
             if (_DataSource == null)
                 return;

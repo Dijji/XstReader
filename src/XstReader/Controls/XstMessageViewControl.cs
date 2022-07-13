@@ -124,7 +124,7 @@ namespace XstReader.App.Controls
             MainKryptonNavigator.SelectedPage = page;
         }
 
-        public void ExportToHtmlFile()
-            => MessageContentControl.ExportToHtmlFile();
+        public void Print()
+            => MessageContentControl.Print();
     }
 }
