@@ -47,7 +47,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.MainTreeView);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.MinimumSize = new System.Drawing.Size(200, 350);
+            this.MinimumSize = new System.Drawing.Size(100, 200);
             this.Name = "XstFolderTreeControl";
             this.Size = new System.Drawing.Size(200, 350);
             this.ResumeLayout(false);

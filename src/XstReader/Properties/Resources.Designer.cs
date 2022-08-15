@@ -411,6 +411,26 @@ namespace XstReader.App.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] layout_3panels {
+            get {
+                object obj = ResourceManager.GetObject("layout_3panels", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] layout_default {
+            get {
+                object obj = ResourceManager.GetObject("layout_default", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap link {
@@ -476,6 +496,16 @@ namespace XstReader.App.Properties {
         internal static System.Drawing.Bitmap tune {
             get {
                 object obj = ResourceManager.GetObject("tune", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap view_dashboard {
+            get {
+                object obj = ResourceManager.GetObject("view_dashboard", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

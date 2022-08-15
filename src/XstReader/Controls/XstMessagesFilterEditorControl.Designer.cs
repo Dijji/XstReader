@@ -86,7 +86,7 @@
             this.Controls.Add(this.SearchText);
             this.Controls.Add(this.SearchLabel);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.MinimumSize = new System.Drawing.Size(500, 22);
+            this.MinimumSize = new System.Drawing.Size(200, 22);
             this.Name = "XstMessagesFilterEditorControl";
             this.Size = new System.Drawing.Size(500, 22);
             this.ResumeLayout(false);

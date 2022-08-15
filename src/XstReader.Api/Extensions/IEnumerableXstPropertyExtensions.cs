@@ -100,6 +100,72 @@ namespace XstReader
             }
         }
 
+        /// <summary>
+        /// Saves the collection of Properties to specified file
+        /// </summary>
+        /// <param name="properties"></param>
+        public static string SaveToString(this IEnumerable<XstProperty> properties)
+            => (new IEnumerable<XstProperty>[1] { properties }).SaveToString();
+
+        /// <summary>
+        /// Saves to String the collection of collections of Properties to specified file
+        /// </summary>
+        /// <param name="lineProperties"></param>
+        public static string SaveToString(this IEnumerable<IEnumerable<XstProperty>> lineProperties)
+        {
+            // We build a dictionary of queues of line,Property pairs where each queue represents
+            // a column in the CSV file, and the line is the line number in the file.
+            // The key to the dictionary is the property ID.
+
+            var dict = new Dictionary<string, Queue<LineProp>>();
+            int lines = 1;
+
+            foreach (var line in lineProperties)
+            {
+                foreach (var p in line)
+                {
+                    if (!dict.TryGetValue(p.Tag.Id0x(), out Queue<LineProp> queue))
+                    {
+                        queue = new Queue<LineProp>();
+                        dict[p.Tag.Id0x()] = queue;
+                    }
+                    queue.Enqueue(new LineProp { line = lines, p = p });
+                }
+                lines++;
+            }
+
+            // Now we sort the columns by ID
+            var columns = dict.Keys.OrderBy(x => x).ToArray();
+
+            // And finally output the CSV file line by line
+            StringBuilder sb = new StringBuilder();
+            bool hasValue = false;
+
+            for (int line = 0; line < lines; line++)
+            {
+                foreach (var col in columns)
+                {
+                    var q = dict[col];
+
+                    // First line is always the column headers
+                    if (line == 0)
+                        AddCsvValue(sb, q.Peek().p.Tag.FriendlyName(), ref hasValue);
+
+                    // After that, output the column value if it has one
+                    else if (q.Count > 0 && q.Peek().line == line)
+                        AddCsvValue(sb, q.Dequeue().p.DisplayValue, ref hasValue);
+                    // Or leave it blank
+                    else
+                        AddCsvValue(sb, "", ref hasValue);
+                }
+
+                sb.Append(Environment.NewLine);
+                hasValue = false;
+            }
+            return sb.ToString();
+        }
+
+
         private static void AddCsvValue(StringBuilder sb, string value, ref bool hasValue)
         {
             if (hasValue)

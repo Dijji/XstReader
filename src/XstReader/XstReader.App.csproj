@@ -6,7 +6,31 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Description>XstReader is an open source viewer for Microsoft Outlook’s .ost and .pst files (also those protected by unknown password), written entirely in C#, with no dependency on any Microsoft Office components.</Description>
+    <Copyright>Copyright (c) 2021, iluvadev, and released under Ms-PL License.</Copyright>
+    <PackageProjectUrl>https://github.com/iluvadev/XstReader</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/iluvadev/XstReader</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>pst-file-viewer;outlook</PackageTags>
+    <AssemblyVersion>2.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <PackageId>XstReader</PackageId>
+    <Version>2.0.0</Version>
+    <Authors>iluvadev</Authors>
+    <Product>XstReader</Product>
+    <StartupObject>XstReader.App.Program</StartupObject>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Krypton.Docking" Version="65.22.6.152" />

@@ -75,7 +75,7 @@
             this.Controls.Add(this.PropertyGridInfo);
             this.Controls.Add(this.ElementNameLabel);
             this.Controls.Add(this.ElementTypeLabel);
-            this.MinimumSize = new System.Drawing.Size(350, 500);
+            this.MinimumSize = new System.Drawing.Size(100, 200);
             this.Name = "XstPropertiesInfoControl";
             this.Size = new System.Drawing.Size(350, 500);
             this.ResumeLayout(false);

@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace XstReader
 {
@@ -28,7 +27,7 @@ namespace XstReader
         /// <param name="creationTime"></param>
         public static void SaveToFolder(this IEnumerable<XstAttachment> attachments, string fullFolderName, DateTime? creationTime)
         {
-            foreach (var attachment in attachments)
+            foreach (var attachment in attachments.OrderBy(a => a.LastModificationTime))
                 attachment.SaveToFolder(fullFolderName, creationTime);
         }
 
@@ -42,13 +41,13 @@ namespace XstReader
         /// <summary>
         /// Gets the Visible Files Attached
         /// </summary>
-        public static IEnumerable<XstAttachment> VisibleFiles(this IEnumerable<XstAttachment> attachments) 
+        public static IEnumerable<XstAttachment> VisibleFiles(this IEnumerable<XstAttachment> attachments)
             => attachments.Files().Where(a => !a.Hide);
 
         /// <summary>
         /// Gets the Inline Attachments
         /// </summary>
-        public static IEnumerable<XstAttachment> Inlines(this IEnumerable<XstAttachment> attachments) 
+        public static IEnumerable<XstAttachment> Inlines(this IEnumerable<XstAttachment> attachments)
             => attachments.Where(a => a.HasContentId);
     }
 }

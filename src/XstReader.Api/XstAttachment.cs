@@ -58,6 +58,27 @@ namespace XstReader
             protected set => base.DisplayName = value;
         }
 
+        private string _Md5 = null;
+        /// <summary>
+        /// The Md5 checksum of the attachment
+        /// </summary>
+        [DisplayName("MD5 Hash")]
+        [Category(@"General")]
+        [Description(@"The MD5 Hash of the attachment")]
+        public string Md5
+        {
+            get
+            {
+                if (_Md5 == null && Content is byte[] contentBytes)
+                    using (var md5 = System.Security.Cryptography.MD5.Create())
+                    {
+                        md5.TransformFinalBlock(contentBytes, 0, contentBytes.Length);
+                        _Md5 = BitConverter.ToString(md5.Hash).Replace("-", "").ToLowerInvariant();
+                    }
+                return _Md5;
+            }
+        }
+
         /// <summary>
         /// The FileName of the Attachment
         /// </summary>

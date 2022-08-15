@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace XstReader.App
 {
@@ -43,7 +45,7 @@ namespace XstReader.App
 
         public static void Execute(string description, Action action)
         {
-            using(var frm = new WaitingForm())
+            using (var frm = new WaitingForm())
             {
                 frm.Start(description, action);
                 frm.ShowDialog();

@@ -1,10 +1,20 @@
-﻿using System.ComponentModel;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
+//Adapted from https://stackoverflow.com/questions/1377568/c-sharp-datagridview-sorting-with-generic-list-as-underlying-source
+
+
+using System.ComponentModel;
 
 namespace XstReader.App.Controls
 {
-    //Adapted from https://stackoverflow.com/questions/1377568/c-sharp-datagridview-sorting-with-generic-list-as-underlying-source
-
-
     internal class XstDataGridView : DataGridView
     {
         private string? _lastSortColumn;

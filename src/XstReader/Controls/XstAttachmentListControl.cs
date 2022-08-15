@@ -1,6 +1,14 @@
-﻿using BrightIdeasSoftware;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
+using BrightIdeasSoftware;
 using XstReader.App.Common;
 using XstReader.App.Helpers;
 
@@ -14,7 +22,7 @@ namespace XstReader.App.Controls
         {
             get => XstReaderEnvironment.Options.ShowHiddenAttachments;
             set => XstReaderEnvironment.Options.ShowHiddenAttachments = value;
-        } 
+        }
 
         public XstAttachmentListControl()
         {
@@ -129,7 +137,7 @@ namespace XstReader.App.Controls
                 return;
 
             if (FolderBrowserDialog.ShowDialog() == DialogResult.OK)
-                foreach (var attachment in attachments)
+                foreach (var attachment in attachments.OrderBy(a => a.LastModificationTime))
                     attachment.SaveToFolder(FolderBrowserDialog.SelectedPath);
         }
 

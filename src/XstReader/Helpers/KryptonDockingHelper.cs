@@ -1,4 +1,14 @@
-﻿using Krypton.Navigator;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
+using Krypton.Navigator;
 
 namespace XstReader.App.Helpers
 {
@@ -19,9 +29,12 @@ namespace XstReader.App.Helpers
 
         public static KryptonPage NewPage(string name, Control content)
         {
+            string pageName = $"KryptonPage{name.Replace(" ", "")}";
             // Create new page with title and image
             KryptonPage p = new()
             {
+                Name = pageName,
+                UniqueName = pageName,
                 Text = name,
                 TextTitle = name,
                 TextDescription = name,

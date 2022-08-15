@@ -1,6 +1,17 @@
-﻿using Krypton.Docking;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
+using Krypton.Docking;
 using Krypton.Toolkit;
 using System.Data;
+using System.Reflection;
 using XstReader.App.Controls;
 using XstReader.App.Helpers;
 
@@ -8,7 +19,7 @@ namespace XstReader.App
 {
     public partial class MainForm : KryptonForm
     {
-        private XstFolderTreeControl FolderTreeControl { get; } = new XstFolderTreeControl() { Name = "Folders tree" };
+        private XstFolderTreeControl FolderTreeControl { get; } = new XstFolderTreeControl() { Name = "Folders Tree" };
         private XstMessageListControl MessageListControl { get; } = new XstMessageListControl() { Name = "Message List" };
         private XstMessageViewControl MessageViewControl { get; } = new XstMessageViewControl() { Name = "Message View" };
         private XstPropertiesControl PropertiesControl { get; } = new XstPropertiesControl() { Name = "Properties" };
@@ -50,7 +61,6 @@ namespace XstReader.App
             }
 
             MessageToolStripMenuItem.Enabled = value != null && value is XstMessage;
-            MessageExportAsmsgToolStripMenuItem.Enabled = value != null && value is XstMessage;
             InfoControl.SetDataSource(value);
             PropertiesControl.SetDataSource(value);
 
@@ -87,7 +97,6 @@ namespace XstReader.App
         {
             OpenToolStripMenuItem.Click += OpenXstFile;
             CloseFileToolStripMenuItem.Click += (s, e) => CloseXstFile();
-            MessageExportAsmsgToolStripMenuItem.Click += (s, e) => ExportToMsg();
 
             FolderTreeControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
             FolderTreeControl.GotFocus += (s, e) => CurrentXstElement = FolderTreeControl.GetSelectedItem();
@@ -98,8 +107,10 @@ namespace XstReader.App
             MessageViewControl.SelectedItemChanged += (s, e) => CurrentXstElement = e.Element;
             MessageViewControl.GotFocus += (s, e) => CurrentXstElement = MessageViewControl.GetSelectedItem();
 
-            ConfigExportToolStripMenuItem.Click += (s, e) => { using (var f = new SettingsForm()) f.ShowDialog(); };
+            ConfigExportToolStripMenuItem.Click += (s, e) => { using var f = new SettingsForm(); f.ShowDialog(); };
 
+
+            AboutToolStripMenuItem.Click += (s, e) => { using var f = new AboutForm(); f.ShowDialog(); };
 
             FileExportFoldersToolStripMenuItem.Click += (s, e) =>
             {
@@ -161,6 +172,29 @@ namespace XstReader.App
                              () => ExportHelper.ExportAttachmentsToDirectory(elems, path));
             };
 
+            LayoutDefaultToolStripMenuItem.Click += (s, e) =>
+            {
+                try
+                {
+                    var fileName = Path.GetTempFileName()+".xml";
+                    File.WriteAllBytes(fileName, Properties.Resources.layout_default);
+                    KryptonDockingManager.LoadConfigFromFile(fileName);
+                    File.Delete(fileName);
+                }
+                catch { }
+            };
+            LayoutClassic3PanelToolStripMenuItem.Click += (s, e) =>
+            {
+                try
+                {
+                    var fileName = Path.GetTempFileName() + ".xml";
+                    File.WriteAllBytes(fileName, Properties.Resources.layout_3panels);
+                    KryptonDockingManager.LoadConfigFromFile(fileName);
+                    File.Delete(fileName);
+                }
+                catch { }
+            };
+
             Reset();
             UpdateMenu();
         }
@@ -168,16 +202,6 @@ namespace XstReader.App
         private void DoInWait(string description, Action action)
             => WaitingForm.Execute(description, action);
 
-        private void ExportToMsg()
-        {
-            if (CurrentXstElement is XstMessage msg)
-            {
-                var invalidPathChars = Path.GetInvalidFileNameChars();
-                string fileName = Path.Combine(@"C:\Dev\out\", new string(msg.Subject.Where(c => !invalidPathChars.Contains(c)).ToArray()) + ".msg");
-                msg.SaveToMsg(fileName);
-                //System.Diagnostics.Process.Start(fileName);
-            }
-        }
         private void OpenXstFile(object? sender, EventArgs e)
         {
             if (OpenXstFileDialog.ShowDialog(this) == DialogResult.OK)
@@ -214,6 +238,9 @@ namespace XstReader.App
 
         protected override void OnClosed(EventArgs e)
         {
+            try { KryptonDockingManager.SaveConfigToFile(Path.Combine(Application.StartupPath, "Layout.xml")); }
+            catch { }
+
             Reset();
             base.OnClosed(e);
         }
@@ -226,6 +253,7 @@ namespace XstReader.App
 
         private void LoadForm()
         {
+            KryptonMessagePanel.BeginInit();
             KryptonMessagePanel.Controls.Add(MessageViewControl);
             MessageViewControl.Dock = DockStyle.Fill;
 
@@ -235,7 +263,20 @@ namespace XstReader.App
             KryptonDockingManager.AddXstDockSpaceInTabs(DockingEdge.Top, MessageListControl);
             KryptonDockingManager.AddXstDockSpaceInTabs(DockingEdge.Right, InfoControl, PropertiesControl);
             KryptonDockingManager.AddXstDockSpaceInTabs(DockingEdge.Left, FolderTreeControl);
+
+            try { KryptonDockingManager.LoadConfigFromFile(Path.Combine(Application.StartupPath, "Layout.xml")); }
+            catch { LayoutDefaultToolStripMenuItem.PerformClick(); }
+            KryptonMessagePanel.EndInit();
         }
 
+        private void saveLayoutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            KryptonDockingManager.SaveConfigToFile(@"C:\dev\pst\layout.xml");
+        }
+
+        private void loadLayoutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            KryptonDockingManager.LoadConfigFromFile(@"C:\dev\pst\layout.xml");
+        }
     }
 }

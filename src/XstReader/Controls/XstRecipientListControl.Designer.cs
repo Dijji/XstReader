@@ -56,7 +56,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.ObjectListView);
-            this.MinimumSize = new System.Drawing.Size(300, 100);
+            this.MinimumSize = new System.Drawing.Size(200, 100);
             this.Name = "XstRecipientListControl";
             this.Size = new System.Drawing.Size(300, 150);
             ((System.ComponentModel.ISupportInitialize)(this.ObjectListView)).EndInit();

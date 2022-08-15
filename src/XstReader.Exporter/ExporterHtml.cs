@@ -1,4 +1,14 @@
-﻿using System.Text;
+﻿// Project site: https://github.com/iluvadev/XstReader
+//
+// Based on the great work of Dijji. 
+// Original project: https://github.com/dijji/XstReader
+//
+// Issues: https://github.com/iluvadev/XstReader/issues
+// License (Ms-PL): https://github.com/iluvadev/XstReader/blob/master/license.md
+//
+// Copyright (c) 2021, iluvadev, and released under Ms-PL License.
+
+using System.Text;
 using XstReader.App.Common;
 using XstReader.ElementProperties;
 
@@ -261,6 +271,7 @@ namespace XstReader.Exporter
             sb.Append("<b>Type:</b> "); if (attachment.IsFile) sb.Append("File"); else sb.Append("Email"); sb.Append("<br>");
             sb.Append("<b>Visibility:</b> "); if (attachment.IsHidden) sb.Append("Hidden"); else sb.Append("Visible"); sb.Append("<br>");
             sb.Append($"<b>Size: </b> {attachment.SizeWithMagnitude()}<br>");
+            sb.Append($"<b>MD5: </b> {attachment.Md5}<br>");
             sb.Append($"<b>File Name:</b> {attachment.FileName}<br>");
             sb.Append($"<b>Long File Name:</b> {attachment.LongFileName}<br>");
             sb.Append($"<b>Last Modification:</b> {attachment.LastModificationTime}<br>");
